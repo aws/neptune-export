@@ -1,0 +1,109 @@
+{
+  "edges" : [ {
+    "label" : "route",
+    "properties" : [ {
+      "property" : "dist",
+      "dataType" : "Integer",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "Integer" ]
+    } ]
+  } ],
+  "nodes" : [ {
+    "label" : "version",
+    "properties" : [ {
+      "property" : "type",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "code",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "desc",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    } ]
+  }, {
+    "label" : "airport",
+    "properties" : [ {
+      "property" : "country",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "code",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "longest",
+      "dataType" : "Integer",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "Integer" ]
+    }, {
+      "property" : "city",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "elev",
+      "dataType" : "Integer",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "Integer" ]
+    }, {
+      "property" : "icao",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "lon",
+      "dataType" : "Double",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "Double" ]
+    }, {
+      "property" : "type",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "region",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "runways",
+      "dataType" : "Integer",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "Integer" ]
+    }, {
+      "property" : "lat",
+      "dataType" : "Double",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "Double" ]
+    }, {
+      "property" : "desc",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    } ]
+  } ]
+}
