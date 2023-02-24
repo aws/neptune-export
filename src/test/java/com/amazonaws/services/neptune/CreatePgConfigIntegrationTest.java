@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 public class CreatePgConfigIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
-    public void testCreatePgConfig() throws FileNotFoundException {
+    public void testCreatePgConfig() {
         String[] command = {"create-pg-config", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
         NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();

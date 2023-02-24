@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
-    public void testExportPgToCsv() throws FileNotFoundException {
+    public void testExportPgToCsv() {
         String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
         NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();

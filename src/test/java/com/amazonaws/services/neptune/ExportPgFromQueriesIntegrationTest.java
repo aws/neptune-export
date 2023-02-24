@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
-    public void testExportPgFromQueries() throws FileNotFoundException {
+    public void testExportPgFromQueries() {
         String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
                 "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')"
@@ -31,7 +31,7 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
     }
 
     @Override
-    protected void assertEquivalentResults(File expected, File actual) throws FileNotFoundException {
+    protected void assertEquivalentResults(File expected, File actual) {
         assertTrue("queries.json does not match expected results", areJsonContentsEqual(expected.listFiles((dir, name) -> name.equals("queries.json"))[0], actual.listFiles((dir, name) -> name.equals("queries.json"))[0]));
         for (File expectedResultsDir : expected.listFiles((dir, name) -> name.equals("results"))[0].listFiles()) {
             assertTrue(expectedResultsDir.isDirectory());

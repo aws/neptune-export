@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
-    public void testExportRdf() throws FileNotFoundException {
+    public void testExportRdf() {
         String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
         NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();

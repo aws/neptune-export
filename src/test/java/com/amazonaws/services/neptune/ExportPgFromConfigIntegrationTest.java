@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 public class ExportPgFromConfigIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
-    public void testExportPgFromConfig() throws FileNotFoundException {
+    public void testExportPgFromConfig() {
         String[] command = {"export-pg-from-config", "-e", neptuneEndpoint,
                 "-c", "src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/input/config.json",
                 "-d", outputDir.getPath()};

@@ -68,7 +68,7 @@ public abstract class AbstractExportIntegrationTest {
 //        g.io("http://www.raw.githubusercontent.com/krlawrence/graph/v277/sample-data/air-routes-small.graphml").with(IO.reader,IO.graphml).read().iterate();
     }
 
-    protected void assertEquivalentResults(File expected, File actual) throws FileNotFoundException {
+    protected void assertEquivalentResults(File expected, File actual) {
         GraphSchema config = null;
         try {
             config = new JsonResource<GraphSchema, Boolean>(
@@ -103,14 +103,11 @@ public abstract class AbstractExportIntegrationTest {
         }
     }
 
-    protected boolean areDirContentsEquivalent(String expectedPath, String actualPath, GraphSchema config) throws FileNotFoundException {
+    protected boolean areDirContentsEquivalent(String expectedPath, String actualPath, GraphSchema config) {
         File expectedDir = new File(expectedPath);
         File actualDir = new File(actualPath);
 
         assertTrue("Expected path to a directory", expectedDir.isDirectory() && actualDir.isDirectory());
-
-        //TODO:: ensure same line count
-        //TODO:: remove matched items from set
 
         if(config.hasNodeSchemas()) {
             GraphElementSchemas nodeSchemas = config.graphElementSchemasFor(GraphElementType.nodes);
