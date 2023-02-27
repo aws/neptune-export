@@ -135,7 +135,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
         logger.log("queriesFileS3Path         : " + queriesFileS3Path);
         logger.log("completionFileS3Path      : " + completionFileS3Path);
         logger.log("s3Region                  : " + s3Region);
-        logger.log("sseKmsKeyId               : " + sseKmsKeyId); // logging key ids will be useful for debugging, but is it considered sensitive info?
+        logger.log("sseKmsKeyId               : " + sseKmsKeyId.substring(0,9) + sseKmsKeyId.substring(9).replaceAll("\\w","*"));
         logger.log("completionFilePayload     : " + completionFilePayload.toPrettyString());
         logger.log("additionalParams          : " + additionalParams.toPrettyString());
         logger.log("maxFileDescriptorCount    : " + maxFileDescriptorCount);

@@ -232,7 +232,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentLength(gcLog.length());
-            setS3Encryption(objectMetadata, sseKmsKeyId);
+            setS3Encryption(objectMetadata);
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(gcLogS3ObjectInfo.bucket(),
                     gcLogS3ObjectInfo.key(),
@@ -305,7 +305,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentLength(completionFile.length());
-            setS3Encryption(objectMetadata, sseKmsKeyId);
+            setS3Encryption(objectMetadata);
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(completionFileS3ObjectInfo.bucket(),
                     completionFileS3ObjectInfo.key(),
@@ -337,7 +337,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
                 ObjectMetadataProvider metadataProvider = (file, objectMetadata) -> {
                     objectMetadata.setContentLength(file.length());
-                    setS3Encryption(objectMetadata, sseKmsKeyId);
+                    setS3Encryption(objectMetadata);
                 };
 
                 ObjectTaggingProvider taggingProvider = uploadContext -> createObjectTags(profiles);
@@ -393,7 +393,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
     }
 
     // Sets the S3 server-side encryption to be aws:kms if a CMK ID is entered, or AES256 by default
-    private void setS3Encryption(ObjectMetadata objectMetadata, String sseKmsKeyId) {
+    private void setS3Encryption(ObjectMetadata objectMetadata) {
         if (sseKmsKeyId != null && !sseKmsKeyId.trim().isEmpty()) {
             objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
             objectMetadata.setHeader(
