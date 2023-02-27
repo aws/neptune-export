@@ -23,9 +23,11 @@ import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.S3ObjectInfo;
 import com.amazonaws.services.neptune.util.Timer;
 import com.amazonaws.services.neptune.util.TransferManagerWrapper;
+import com.amazonaws.services.s3.Headers;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.transfer.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -107,6 +109,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
     private final Collection<CompletionFileWriter> completionFileWriters;
     private final AtomicReference<S3ObjectInfo> result = new AtomicReference<>();
     private static final Pattern STATUS_CODE_5XX_PATTERN = Pattern.compile("Status Code: (5\\d+)");
+    private final String sseKmsKeyId;
 
     public ExportToS3NeptuneExportEventHandler(String localOutputPath,
                                                String outputS3Path,
@@ -116,7 +119,8 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
                                                boolean uploadToS3OnError,
                                                S3UploadParams s3UploadParams,
                                                Collection<String> profiles,
-                                               Collection<CompletionFileWriter> completionFileWriters) {
+                                               Collection<CompletionFileWriter> completionFileWriters,
+                                               String sseKmsKeyId) {
         this.localOutputPath = localOutputPath;
         this.outputS3Path = outputS3Path;
         this.s3Region = s3Region;
@@ -126,6 +130,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         this.s3UploadParams = s3UploadParams;
         this.profiles = profiles;
         this.completionFileWriters = completionFileWriters;
+        this.sseKmsKeyId = sseKmsKeyId;
     }
 
     @Override
@@ -227,7 +232,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentLength(gcLog.length());
-            objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+            setS3Encryption(objectMetadata, sseKmsKeyId);
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(gcLogS3ObjectInfo.bucket(),
                     gcLogS3ObjectInfo.key(),
@@ -300,7 +305,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentLength(completionFile.length());
-            objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+            setS3Encryption(objectMetadata, sseKmsKeyId);
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(completionFileS3ObjectInfo.bucket(),
                     completionFileS3ObjectInfo.key(),
@@ -332,7 +337,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
                 ObjectMetadataProvider metadataProvider = (file, objectMetadata) -> {
                     objectMetadata.setContentLength(file.length());
-                    objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+                    setS3Encryption(objectMetadata, sseKmsKeyId);
                 };
 
                 ObjectTaggingProvider taggingProvider = uploadContext -> createObjectTags(profiles);
@@ -384,6 +389,19 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         for (Path subdirectory : directories.subdirectories()) {
             String newKey = rootDirectory.relativize(subdirectory).toString();
             leafS3Directories.add(outputS3ObjectInfo.withNewKeySuffix(newKey));
+        }
+    }
+
+    // Sets the S3 server-side encryption to be aws:kms if a CMK ID is entered, or AES256 by default
+    private void setS3Encryption(ObjectMetadata objectMetadata, String sseKmsKeyId) {
+        if (sseKmsKeyId != null && !sseKmsKeyId.trim().isEmpty()) {
+            objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
+            objectMetadata.setHeader(
+                    Headers.SERVER_SIDE_ENCRYPTION_AWS_KMS_KEYID,
+                    sseKmsKeyId
+            );
+        } else {
+            objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
         }
     }
 

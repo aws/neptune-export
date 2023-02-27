@@ -73,6 +73,10 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 json.path("outputS3Path").textValue() :
                 EnvironmentVariableUtils.getOptionalEnv("OUTPUT_S3_PATH", "");
 
+        String sseKmsKeyId = json.has("sseKmsKeyId") ?
+                json.path("sseKmsKeyId").textValue() :
+                EnvironmentVariableUtils.getOptionalEnv("SSE_KMS_KEY_ID", "");
+
         boolean createExportSubdirectory = Boolean.parseBoolean(
                 json.has("createExportSubdirectory") ?
                         json.path("createExportSubdirectory").toString() :
@@ -131,6 +135,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
         logger.log("queriesFileS3Path         : " + queriesFileS3Path);
         logger.log("completionFileS3Path      : " + completionFileS3Path);
         logger.log("s3Region                  : " + s3Region);
+        logger.log("sseKmsKeyId               : " + sseKmsKeyId); // logging key ids will be useful for debugging, but is it considered sensitive info?
         logger.log("completionFilePayload     : " + completionFilePayload.toPrettyString());
         logger.log("additionalParams          : " + additionalParams.toPrettyString());
         logger.log("maxFileDescriptorCount    : " + maxFileDescriptorCount);
@@ -156,7 +161,8 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 additionalParams,
                 maxConcurrency,
                 s3Region,
-                maxFileDescriptorCount);
+                maxFileDescriptorCount,
+                sseKmsKeyId);
 
         S3ObjectInfo outputS3ObjectInfo = neptuneExportService.execute();
 
