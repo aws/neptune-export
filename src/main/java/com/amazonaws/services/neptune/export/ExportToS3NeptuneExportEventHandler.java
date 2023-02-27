@@ -394,7 +394,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
     // Sets the S3 server-side encryption to be aws:kms if a CMK ID is entered, or AES256 by default
     private void setS3Encryption(ObjectMetadata objectMetadata) {
-        if (sseKmsKeyId != null && !sseKmsKeyId.trim().isEmpty()) {
+        if (sseKmsKeyId != null && StringUtils.isBlank(sseKmsKeyId)) {
             objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
             objectMetadata.setHeader(
                     Headers.SERVER_SIDE_ENCRYPTION_AWS_KMS_KEYID,
