@@ -42,9 +42,9 @@ public class S3ObjectInfo {
         return key;
     }
 
-    public static ObjectMetadata createObjectMetadata(ObjectMetadata objectMetadata, long contentLength, String sseKmsKeyId){
+    public static ObjectMetadata createObjectMetadata(long contentLength, String sseKmsKeyId, ObjectMetadata objectMetadata){
         objectMetadata.setContentLength(contentLength);
-        if (sseKmsKeyId != null && !StringUtils.isBlank(sseKmsKeyId)) {
+        if (!StringUtils.isBlank(sseKmsKeyId)) {
             objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
             objectMetadata.setHeader(
                     Headers.SERVER_SIDE_ENCRYPTION_AWS_KMS_KEYID,
@@ -58,7 +58,7 @@ public class S3ObjectInfo {
     }
 
     public static ObjectMetadata createObjectMetadata(long contentLength, String sseKmsKeyId) {
-        return createObjectMetadata(new ObjectMetadata(), contentLength, sseKmsKeyId);
+        return createObjectMetadata(contentLength, sseKmsKeyId, new ObjectMetadata());
     }
 
     public File createDownloadFile(String parent) {

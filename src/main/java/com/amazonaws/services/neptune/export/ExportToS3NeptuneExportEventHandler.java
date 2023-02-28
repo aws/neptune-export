@@ -329,7 +329,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
             try {
 
                 ObjectMetadataProvider metadataProvider = (file, objectMetadata) -> {
-                    S3ObjectInfo.createObjectMetadata(objectMetadata, file.length(), sseKmsKeyId);
+                    S3ObjectInfo.createObjectMetadata(file.length(), sseKmsKeyId, objectMetadata);
                 };
 
                 ObjectTaggingProvider taggingProvider = uploadContext -> createObjectTags(profiles);
