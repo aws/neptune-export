@@ -17,3 +17,4 @@ jobs:
           age: '1 day'
           # skip-tags will prevent tags (i.e releases) from being deleted.
           skip-tags: true
+          
