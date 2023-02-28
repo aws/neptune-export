@@ -117,7 +117,7 @@ public abstract class AbstractExportIntegrationTest {
             try {
                 CSVParser parser = CSVParser.parse(file, StandardCharsets.UTF_8, CSVFormat.RFC4180);
                 Collection<String> list = parser.stream()
-                        .map(csvRecord -> {return csvRecord.toString();})
+                        .map(csvRecord -> csvRecord.toString())
                         .collect(Collectors.toList());
                 expectedNodes.addAll(list);
             } catch (IOException e) {
@@ -129,7 +129,7 @@ public abstract class AbstractExportIntegrationTest {
             try {
                 CSVParser parser = CSVParser.parse(file, StandardCharsets.UTF_8, CSVFormat.RFC4180);
                 Collection<String> list = parser.stream()
-                        .map(csvRecord -> {return csvRecord.toString();})
+                        .map(csvRecord -> csvRecord.toString())
                         .collect(Collectors.toList());
                 actualNodes.addAll(list);
             } catch (IOException e) {
