@@ -30,5 +30,21 @@ jobs:
     - name: Build with Maven
       run: mvn -B verify --file pom.xml
 
+    - name: Copy artifacts
+      run: |
+        mkdir output
+        mkdir output/jarfile
+        mkdir output/reports
+        mkdir output/testresults
+        cp target/neptune-export.jar output/jarfile
+        cp -R target/site/jacoco output/reports
+        cp -R target/surefire-reports output/testresults
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: output
+        path: output
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
