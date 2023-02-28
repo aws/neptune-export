@@ -139,43 +139,43 @@ public enum InstanceType {
             return 192;
         }
     },
-    db_r6d_large {
+    db_r6g_large {
         @Override
         int concurrency() {
             return 4;
         }
     },
-    db_r6d_xlarge {
+    db_r6g_xlarge {
         @Override
         int concurrency() {
             return 8;
         }
     },
-    db_r6d_2xlarge {
+    db_r6g_2xlarge {
         @Override
         int concurrency() {
             return 16;
         }
     },
-    db_r6d_4xlarge {
+    db_r6g_4xlarge {
         @Override
         int concurrency() {
             return 32;
         }
     },
-    db_r6d_8xlarge {
+    db_r6g_8xlarge {
         @Override
         int concurrency() {
             return 64;
         }
     },
-    db_r6d_12xlarge {
+    db_r6g_12xlarge {
         @Override
         int concurrency() {
             return 96;
         }
     },
-    db_r6d_16xlarge {
+    db_r6g_16xlarge {
         @Override
         int concurrency() {
             return 128;
