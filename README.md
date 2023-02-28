@@ -200,3 +200,4 @@ The Lambda function expects a number of parameters, which you can supply either 
 | `OUTPUT_S3_PATH` | `outputS3Path` | S3 location to which exported files will be written | Mandatory |
 | `CONFIG_FILE_S3_PATH` | `configFileS3Path` | S3 location of a JSON config file to be used when exporting a property graph from a config file | Optional |
 | `COMPLETION_FILE_S3_PATH` | `completionFileS3Path` | S3 location to which a completion file should be written once all export files have been copied to S3 | Optional |
+| `SSE_KMS_KEY_ID` | `sseKmsKeyId` | ID of the customer managed AWS-KMS symmetric encryption key to used for server-side encryption when exporting to S3 | Optional |

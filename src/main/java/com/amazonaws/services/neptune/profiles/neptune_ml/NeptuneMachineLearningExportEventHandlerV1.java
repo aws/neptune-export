@@ -30,8 +30,10 @@ import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.S3ObjectInfo;
 import com.amazonaws.services.neptune.util.Timer;
 import com.amazonaws.services.neptune.util.TransferManagerWrapper;
+import com.amazonaws.services.s3.Headers;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -62,13 +64,15 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
     private final Collection<String> profiles;
     private final boolean createExportSubdirectory;
     private final PrinterOptions printerOptions;
+    private final String sseKmsKeyId;
 
     public NeptuneMachineLearningExportEventHandlerV1(String outputS3Path,
                                                       String s3Region,
                                                       boolean createExportSubdirectory,
                                                       ObjectNode additionalParams,
                                                       Args args,
-                                                      Collection<String> profiles) {
+                                                      Collection<String> profiles,
+                                                      String sseKmsKeyId) {
         logger.info("Adding neptune_ml event handler");
 
         CsvPrinterOptions csvPrinterOptions = CsvPrinterOptions.builder()
@@ -86,6 +90,7 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
         this.trainingJobWriterConfigCollection = createTrainingJobConfigCollection(additionalParams);
         this.profiles = profiles;
         this.printerOptions = new PrinterOptions(csvPrinterOptions, jsonPrinterOptions);
+        this.sseKmsKeyId = sseKmsKeyId;
     }
 
     private Collection<TrainingDataWriterConfigV1> createTrainingJobConfigCollection(ObjectNode additionalParams) {
@@ -200,13 +205,12 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
         try (InputStream inputStream = new FileInputStream(trainingJobConfigurationFile)) {
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
-            objectMetadata.setContentLength(trainingJobConfigurationFile.length());
-            objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(s3ObjectInfo.bucket(),
                     s3ObjectInfo.key(),
                     inputStream,
-                    objectMetadata).withTagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles));
+                    S3ObjectInfo.createObjectMetadata(trainingJobConfigurationFile.length(), sseKmsKeyId))
+                    .withTagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles));
 
             Upload upload = transferManager.upload(putObjectRequest);
 

@@ -12,6 +12,9 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.util;
 
+import com.amazonaws.services.s3.Headers;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.SSEAlgorithm;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -37,6 +40,25 @@ public class S3ObjectInfo {
 
     public String key() {
         return key;
+    }
+
+    public static ObjectMetadata createObjectMetadata(long contentLength, String sseKmsKeyId, ObjectMetadata objectMetadata){
+        objectMetadata.setContentLength(contentLength);
+        if (!StringUtils.isBlank(sseKmsKeyId)) {
+            objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
+            objectMetadata.setHeader(
+                    Headers.SERVER_SIDE_ENCRYPTION_AWS_KMS_KEYID,
+                    sseKmsKeyId
+            );
+        } else {
+            objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+        }
+        return objectMetadata;
+
+    }
+
+    public static ObjectMetadata createObjectMetadata(long contentLength, String sseKmsKeyId) {
+        return createObjectMetadata(contentLength, sseKmsKeyId, new ObjectMetadata());
     }
 
     public File createDownloadFile(String parent) {

@@ -60,6 +60,7 @@ public class NeptuneExportService {
     private final int maxConcurrency;
     private final String s3Region;
     private final int maxFileDescriptorCount;
+    private final String sseKmsKeyId;
 
     public NeptuneExportService(String cmd,
                                 String localOutputPath,
@@ -75,7 +76,8 @@ public class NeptuneExportService {
                                 ObjectNode additionalParams,
                                 int maxConcurrency,
                                 String s3Region,
-                                int maxFileDescriptorCount) {
+                                int maxFileDescriptorCount,
+                                String sseKmsKeyId) {
         this.cmd = cmd;
         this.localOutputPath = localOutputPath;
         this.cleanOutputPath = cleanOutputPath;
@@ -91,6 +93,7 @@ public class NeptuneExportService {
         this.maxConcurrency = maxConcurrency;
         this.s3Region = s3Region;
         this.maxFileDescriptorCount = maxFileDescriptorCount;
+        this.sseKmsKeyId = sseKmsKeyId;
     }
 
     public S3ObjectInfo execute() throws IOException {
@@ -171,7 +174,8 @@ public class NeptuneExportService {
                 uploadToS3OnError,
                 s3UploadParams,
                 profiles,
-                completionFileWriters);
+                completionFileWriters,
+                sseKmsKeyId);
 
         eventHandlerCollection.addHandler(exportToS3EventHandler);
 
@@ -192,7 +196,8 @@ public class NeptuneExportService {
                                 createExportSubdirectory,
                                 additionalParams,
                                 args,
-                                profiles);
+                                profiles,
+                                sseKmsKeyId);
                 eventHandlerCollection.addHandler(neptuneMlEventHandler);
             } else {
                 NeptuneMachineLearningExportEventHandlerV2 neptuneMlEventHandler =
@@ -202,7 +207,8 @@ public class NeptuneExportService {
                                 createExportSubdirectory,
                                 additionalParams,
                                 args,
-                                profiles);
+                                profiles,
+                                sseKmsKeyId);
                 eventHandlerCollection.addHandler(neptuneMlEventHandler);
             }
         }
