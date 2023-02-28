@@ -5,10 +5,6 @@ import com.amazonaws.services.neptune.export.NeptuneExportRunner;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-
-
-import static org.junit.Assert.*;
 
 public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
 

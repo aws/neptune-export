@@ -6,13 +6,11 @@ import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-
-import static org.junit.Assert.assertTrue;
 
 public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
 

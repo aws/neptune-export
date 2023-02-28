@@ -1,16 +1,9 @@
 package com.amazonaws.services.neptune;
 
 import com.amazonaws.services.neptune.export.NeptuneExportRunner;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertTrue;
 
