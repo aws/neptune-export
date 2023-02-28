@@ -12,11 +12,11 @@ public class CreatePgConfigIntegrationTest extends AbstractExportIntegrationTest
 
     @Test
     public void testCreatePgConfig() {
-        String[] command = {"create-pg-config", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
-        NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        final String[] command = {"create-pg-config", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
-        File resultDir = outputDir.listFiles()[0];
+        final File resultDir = outputDir.listFiles()[0];
 
         assertEquivalentResults(new File("src/test/resources/IntegrationTest/testCreatePgConfig"), resultDir);
     }

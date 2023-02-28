@@ -18,19 +18,19 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
     public void testExportRdf() {
-        String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
-        NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
-        File resultDir = outputDir.listFiles()[0];
+        final File resultDir = outputDir.listFiles()[0];
 
         assertTrue("Returned statements don't match expected", areStatementsEqual("src/test/resources/IntegrationTest/testExportRdf/statements/statements.ttl", resultDir+"/statements/statements.ttl"));
     }
 
-    private boolean areStatementsEqual(String expected, String actual) {
-        ArrayList expectedStatements = new ArrayList();
-        ArrayList actualStatements = new ArrayList();
-        RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
+    private boolean areStatementsEqual(final String expected, final String actual) {
+        final ArrayList expectedStatements = new ArrayList();
+        final ArrayList actualStatements = new ArrayList();
+        final RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
         rdfParser.setRDFHandler(new StatementCollector(expectedStatements));
         try {
             rdfParser.parse(new FileInputStream(expected));

@@ -44,7 +44,7 @@ public abstract class AbstractExportIntegrationTest {
     protected File outputDir;
 
     @Rule
-    public TemporaryFolder tempFolder= new TemporaryFolder();
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setupClass(){
@@ -59,16 +59,13 @@ public abstract class AbstractExportIntegrationTest {
         outputDir = tempFolder.newFolder();
     }
 
-    private static void fillDbWithTestData(String neptuneEndpoint) {
+    private static void fillDbWithTestData(final String neptuneEndpoint) {
         //TODO:: For now assume that correct data is pre-loaded into DB.
 //        Cluster cluster = Cluster.build(neptuneEndpoint).enableSsl(true).create();
 //        GraphTraversalSource g = traversal().withRemote(DriverRemoteConnection.using(cluster, "g"));
-//
-//        g.V().drop().iterate();
-//        g.io("http://www.raw.githubusercontent.com/krlawrence/graph/v277/sample-data/air-routes-small.graphml").with(IO.reader,IO.graphml).read().iterate();
     }
 
-    protected void assertEquivalentResults(File expected, File actual) {
+    protected void assertEquivalentResults(final File expected, final File actual) {
         GraphSchema config = null;
         try {
             config = new JsonResource<GraphSchema, Boolean>(
@@ -91,8 +88,8 @@ public abstract class AbstractExportIntegrationTest {
         }
     }
 
-    protected boolean areJsonContentsEqual(File expected, File actual) {
-        ObjectMapper mapper = new ObjectMapper();
+    protected boolean areJsonContentsEqual(final File expected, final File actual) {
+        final ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode expectedTree = mapper.readTree(expected);
             JsonNode actualTree = mapper.readTree(actual);
@@ -103,9 +100,9 @@ public abstract class AbstractExportIntegrationTest {
         }
     }
 
-    protected boolean areDirContentsEquivalent(String expectedPath, String actualPath, GraphSchema config) {
-        File expectedDir = new File(expectedPath);
-        File actualDir = new File(actualPath);
+    protected boolean areDirContentsEquivalent(final String expectedPath, final String actualPath, final GraphSchema config) {
+        final File expectedDir = new File(expectedPath);
+        final File actualDir = new File(actualPath);
 
         assertTrue("Expected path to a directory", expectedDir.isDirectory() && actualDir.isDirectory());
 
@@ -122,9 +119,9 @@ public abstract class AbstractExportIntegrationTest {
         return true;
     }
 
-    protected boolean areLabelledDirContentsEquivalent(File expectedDir, File actualDir, String label) {
-        List<String> expectedNodes = new ArrayList<>();
-        List<String> actualNodes = new ArrayList<>();
+    protected boolean areLabelledDirContentsEquivalent(final File expectedDir, final File actualDir, final String label) {
+        final List<String> expectedNodes = new ArrayList<>();
+        final List<String> actualNodes = new ArrayList<>();
         for(File file : expectedDir.listFiles((dir, name) -> name.startsWith(label))){
             try {
                 CSVParser parser = CSVParser.parse(file, StandardCharsets.UTF_8, CSVFormat.RFC4180);

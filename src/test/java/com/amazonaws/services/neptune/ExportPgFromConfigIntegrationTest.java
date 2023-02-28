@@ -12,13 +12,13 @@ public class ExportPgFromConfigIntegrationTest extends AbstractExportIntegration
 
     @Test
     public void testExportPgFromConfig() {
-        String[] command = {"export-pg-from-config", "-e", neptuneEndpoint,
+        final String[] command = {"export-pg-from-config", "-e", neptuneEndpoint,
                 "-c", "src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/input/config.json",
                 "-d", outputDir.getPath()};
-        NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
-        File resultDir = outputDir.listFiles()[0];
+        final File resultDir = outputDir.listFiles()[0];
 
         assertEquivalentResults(new File("src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/testExportPgFromConfig"), resultDir);
     }
