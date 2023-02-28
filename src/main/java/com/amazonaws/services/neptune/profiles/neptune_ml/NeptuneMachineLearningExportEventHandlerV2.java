@@ -212,23 +212,11 @@ public class NeptuneMachineLearningExportEventHandlerV2 implements NeptuneExport
 
         try (InputStream inputStream = new FileInputStream(trainingJobConfigurationFile)) {
 
-            ObjectMetadata objectMetadata = new ObjectMetadata();
-            objectMetadata.setContentLength(trainingJobConfigurationFile.length());
-            // Set S3 server-side encryption with AED256 as default
-            if (sseKmsKeyId != null && !sseKmsKeyId.trim().isEmpty()) {
-                objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
-                objectMetadata.setHeader(
-                        Headers.SERVER_SIDE_ENCRYPTION_AWS_KMS_KEYID,
-                        sseKmsKeyId
-                );
-            } else {
-                objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
-            }
-
             PutObjectRequest putObjectRequest = new PutObjectRequest(s3ObjectInfo.bucket(),
                     s3ObjectInfo.key(),
                     inputStream,
-                    objectMetadata).withTagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles));
+                    S3ObjectInfo.createObjectMetadata(trainingJobConfigurationFile.length(),sseKmsKeyId))
+                    .withTagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles));
 
             Upload upload = transferManager.upload(putObjectRequest);
 

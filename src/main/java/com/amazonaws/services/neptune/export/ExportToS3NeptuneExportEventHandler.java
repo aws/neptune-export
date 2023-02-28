@@ -230,14 +230,10 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
         try (InputStream inputStream = new FileInputStream(gcLog)) {
 
-            ObjectMetadata objectMetadata = new ObjectMetadata();
-            objectMetadata.setContentLength(gcLog.length());
-            setS3Encryption(objectMetadata);
-
             PutObjectRequest putObjectRequest = new PutObjectRequest(gcLogS3ObjectInfo.bucket(),
                     gcLogS3ObjectInfo.key(),
                     inputStream,
-                    objectMetadata).withTagging(createObjectTags(profiles));
+                    S3ObjectInfo.createObjectMetadata(gcLog.length(), sseKmsKeyId)).withTagging(createObjectTags(profiles));
 
             Upload upload = transferManager.upload(putObjectRequest);
 
@@ -303,14 +299,11 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
         try (InputStream inputStream = new FileInputStream(completionFile)) {
 
-            ObjectMetadata objectMetadata = new ObjectMetadata();
-            objectMetadata.setContentLength(completionFile.length());
-            setS3Encryption(objectMetadata);
-
             PutObjectRequest putObjectRequest = new PutObjectRequest(completionFileS3ObjectInfo.bucket(),
                     completionFileS3ObjectInfo.key(),
                     inputStream,
-                    objectMetadata).withTagging(createObjectTags(profiles));
+                    S3ObjectInfo.createObjectMetadata(completionFile.length(), sseKmsKeyId))
+                    .withTagging(createObjectTags(profiles));
 
             Upload upload = transferManager.upload(putObjectRequest);
 
@@ -336,8 +329,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
             try {
 
                 ObjectMetadataProvider metadataProvider = (file, objectMetadata) -> {
-                    objectMetadata.setContentLength(file.length());
-                    setS3Encryption(objectMetadata);
+                    S3ObjectInfo.createObjectMetadata(objectMetadata, file.length(), sseKmsKeyId);
                 };
 
                 ObjectTaggingProvider taggingProvider = uploadContext -> createObjectTags(profiles);
@@ -389,19 +381,6 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         for (Path subdirectory : directories.subdirectories()) {
             String newKey = rootDirectory.relativize(subdirectory).toString();
             leafS3Directories.add(outputS3ObjectInfo.withNewKeySuffix(newKey));
-        }
-    }
-
-    // Sets the S3 server-side encryption to be aws:kms if a CMK ID is entered, or AES256 by default
-    private void setS3Encryption(ObjectMetadata objectMetadata) {
-        if (sseKmsKeyId != null && StringUtils.isBlank(sseKmsKeyId)) {
-            objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
-            objectMetadata.setHeader(
-                    Headers.SERVER_SIDE_ENCRYPTION_AWS_KMS_KEYID,
-                    sseKmsKeyId
-            );
-        } else {
-            objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
         }
     }
 
