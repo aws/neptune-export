@@ -25,4 +25,9 @@ public class InstanceTypeTest {
         assertEquals(InstanceType.db_r5d_12xlarge, InstanceType.parse("db.r5d.12xlarge"));
         assertEquals(InstanceType.db_r5d_12xlarge, InstanceType.parse("r5d.12xlarge"));
     }
+
+    @Test
+    public void shouldRecognizeR6gInstanceTypePrefix(){
+        assertEquals(InstanceType.parse("db.r6g.16xlarge").concurrency(), 128);
+    }
 }
