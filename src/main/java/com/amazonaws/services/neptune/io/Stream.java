@@ -41,6 +41,8 @@ public class Stream {
     private final RecordSplitter splitter;
     private final AtomicLong counter = new AtomicLong();
 
+    private final FutureCallback<UserRecordResult> userRecordCallback;
+
     private static final Logger logger = LoggerFactory.getLogger(Stream.class);
     private static final int MAX_SIZE_BYTES = 1000000;
 
@@ -52,6 +54,7 @@ public class Stream {
         this.streamThrottle = new StreamThrottle(kinesisProducer);
         this.largeStreamRecordHandlingStrategy = largeStreamRecordHandlingStrategy;
         this.splitter = new RecordSplitter(MAX_SIZE_BYTES, largeStreamRecordHandlingStrategy);
+        this.userRecordCallback = new UserRecordCallback(kinesisProducer);
     }
 
     public synchronized void publish(String s) {
@@ -92,7 +95,7 @@ public class Stream {
             streamThrottle.throttle();
 
             ListenableFuture<UserRecordResult> future = kinesisProducer.addUserRecord(streamName, String.valueOf(partitionKeyValue), data);
-            Futures.addCallback(future, CALLBACK, MoreExecutors.directExecutor());
+            Futures.addCallback(future, userRecordCallback, MoreExecutors.directExecutor());
 
         } catch (InterruptedException e) {
             logger.error(e.getMessage());
@@ -108,11 +111,20 @@ public class Stream {
         kinesisProducer.flushSync();
     }
 
-    private static final FutureCallback<UserRecordResult> CALLBACK = new FutureCallback<UserRecordResult>() {
+    public static class UserRecordCallback implements FutureCallback<UserRecordResult>  {
+
+        private final KinesisProducer kinesisProducer;
+
+        public UserRecordCallback(KinesisProducer kinesisProducer) {
+            this.kinesisProducer = kinesisProducer;
+        }
+
         @Override
         public void onSuccess(UserRecordResult userRecordResult) {
             if (!userRecordResult.isSuccessful()) {
                 logger.error("Unsuccessful attempt to write to stream: " + formatAttempts(userRecordResult.getAttempts()));
+            } else {
+                kinesisProducer.flush();
             }
         }
 
