@@ -39,8 +39,8 @@ public abstract class AbstractExportIntegrationTest {
 
     @BeforeClass
     public static void setupClass(){
-        neptuneEndpoint = System.getenv("NeptuneEndpoint");
-        assertNotNull("endpoint must be provided through \"NeptuneEndpoint\" environment variable", neptuneEndpoint);
+        neptuneEndpoint = System.getenv("NEPTUNE_ENDPOINT");
+        assertNotNull("endpoint must be provided through \"NEPTUNE_ENDPOINT\" environment variable", neptuneEndpoint);
 
         fillDbWithTestData(neptuneEndpoint);
     }
