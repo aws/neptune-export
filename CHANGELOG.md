@@ -1,5 +1,11 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v1.0.1 (Release Date: TDB):
+
+### Bug Fixes:
+
+### New Features and Improvements:
+
 ## Neptune Export v1.0.0 (Release Date: February 28, 2023):
 
 Neptune Export is a tool to perform bulk data exports from AWS Neptune. Neptune Export is migrated from the AWS Labs [Amazon Neptune Tools](https://github.com/awslabs/amazon-neptune-tools) repository, and the old module is now deprecated. In this release, the release artifact `neptune-export.jar` has been renamed to `neptune-export-1.0.0-all.jar`. Going forward, Neptune Export will be following this new versioned naming scheme.
