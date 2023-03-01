@@ -15,3 +15,4 @@ A few changes are included since the migration.
 ### New Features and Improvements:
 
 - Added a new optional parameter to use customer managed KMS key for S3 server-side encryption.
+- Added integration tests for developers requiring manual setup (see docs/dev/IntegrationTests.md).
