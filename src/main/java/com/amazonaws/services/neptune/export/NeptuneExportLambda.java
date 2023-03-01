@@ -125,6 +125,12 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 JobSize.parse(json.path("jobSize").textValue()).maxConcurrency() :
                 -1;
 
+        // We are masking 3/4 of the KMS Key ID as it is potentially sensitive information.
+        String maskedKeyId = StringUtils.isBlank(sseKmsKeyId) ?
+                sseKmsKeyId :
+                sseKmsKeyId.substring(0, sseKmsKeyId.length()/4) +
+                        sseKmsKeyId.substring(sseKmsKeyId.length()/4).replaceAll("\\w","*");
+
         logger.log("cmd                       : " + cmd);
         logger.log("params                    : " + params.toPrettyString());
         logger.log("outputS3Path              : " + outputS3Path);
@@ -135,7 +141,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
         logger.log("queriesFileS3Path         : " + queriesFileS3Path);
         logger.log("completionFileS3Path      : " + completionFileS3Path);
         logger.log("s3Region                  : " + s3Region);
-        logger.log("sseKmsKeyId               : " + sseKmsKeyId.substring(0,9) + sseKmsKeyId.substring(9).replaceAll("\\w","*"));
+        logger.log("sseKmsKeyId               : " + maskedKeyId);
         logger.log("completionFilePayload     : " + completionFilePayload.toPrettyString());
         logger.log("additionalParams          : " + additionalParams.toPrettyString());
         logger.log("maxFileDescriptorCount    : " + maxFileDescriptorCount);
