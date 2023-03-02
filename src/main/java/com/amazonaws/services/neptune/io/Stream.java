@@ -74,7 +74,6 @@ public class Stream {
                     publish(partitionKeyValue, bytes);
                 }
 
-
             } catch (UnsupportedEncodingException e) {
                 logger.error(e.getMessage());
             }
@@ -111,7 +110,7 @@ public class Stream {
         kinesisProducer.flushSync();
     }
 
-    public static class UserRecordCallback implements FutureCallback<UserRecordResult>  {
+    public static class UserRecordCallback implements FutureCallback<UserRecordResult> {
 
         private final KinesisProducer kinesisProducer;
 
@@ -123,8 +122,6 @@ public class Stream {
         public void onSuccess(UserRecordResult userRecordResult) {
             if (!userRecordResult.isSuccessful()) {
                 logger.error("Unsuccessful attempt to write to stream: " + formatAttempts(userRecordResult.getAttempts()));
-            } else {
-                kinesisProducer.flush();
             }
         }
 
@@ -136,7 +133,9 @@ public class Stream {
             }
             logger.error("Error writing to stream.", throwable);
         }
-    };
+    }
+
+    ;
 
     private static String formatAttempts(List<Attempt> attempts) {
         StringBuilder builder = new StringBuilder();

@@ -45,6 +45,12 @@
         </dependency>
 
         <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.tinkerpop</groupId>
             <artifactId>gremlin-driver</artifactId>
             <version>${gremlin.version}</version>
@@ -84,6 +90,12 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>amazon-kinesis-producer</artifactId>
             <version>${kinesis.producer.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.glue</groupId>
+                    <artifactId>schema-registry-serde</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

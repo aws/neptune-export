@@ -28,7 +28,7 @@ public class StreamThrottle {
     private volatile int tumblingWindowSize = 10;
 
     private static final long MAX_QUEUE_HIGH_WATERMARK = 10000;
-    private static final long QUEUE_SIZE_BYTES = 10000000;
+    private static final long QUEUE_SIZE_BYTES = 1000000000;
     private static final int LENGTH_HIGH_WATERMARK = 900000;
 
     public StreamThrottle(KinesisProducer kinesisProducer) {
@@ -41,7 +41,7 @@ public class StreamThrottle {
 
         if (length > LENGTH_HIGH_WATERMARK || counter % tumblingWindowSize == 0) {
             queueHighWatermark = Math.min(QUEUE_SIZE_BYTES / (currentWindowSizeBytes / tumblingWindowSize), MAX_QUEUE_HIGH_WATERMARK);
-            logger.debug("Current window has {} records totalling {} bytes, meaning that maxNumberOfQueuedRecords cannot exceed {}", tumblingWindowSize, currentWindowSizeBytes, queueHighWatermark);
+            logger.trace("Current window has {} records totalling {} bytes, meaning that maxNumberOfQueuedRecords cannot exceed {}", tumblingWindowSize, currentWindowSizeBytes, queueHighWatermark);
             windowSizeBytes.set(0);
         }
     }

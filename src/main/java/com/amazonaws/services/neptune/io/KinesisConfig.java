@@ -20,12 +20,13 @@ public class KinesisConfig {
 
     private final Stream stream;
 
-    public KinesisConfig(String streamName, String region, LargeStreamRecordHandlingStrategy largeStreamRecordHandlingStrategy) {
+    public KinesisConfig(String streamName, String region, LargeStreamRecordHandlingStrategy largeStreamRecordHandlingStrategy, boolean enableAggregation) {
         this.stream = (StringUtils.isNotEmpty(region) && StringUtils.isNotEmpty(streamName)) ?
                 new Stream(
                         new KinesisProducer(new KinesisProducerConfiguration()
+                                .setAggregationEnabled(enableAggregation)
                                 .setRegion(region)
-                                .setRateLimit(100)
+                                .setRateLimit(120)
                                 .setConnectTimeout(12000)
                                 .setRequestTimeout(12000)
                                 .setRecordTtl(Integer.MAX_VALUE)),

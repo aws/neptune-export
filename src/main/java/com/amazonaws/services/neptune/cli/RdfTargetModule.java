@@ -13,7 +13,6 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.cli;
 
 import com.amazonaws.services.neptune.io.*;
-import com.amazonaws.services.neptune.propertygraph.io.PropertyGraphExportFormat;
 import com.amazonaws.services.neptune.rdf.io.RdfExportFormat;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.github.rvesse.airline.annotations.Option;
@@ -58,6 +57,10 @@ public class RdfTargetModule implements CommandWriter {
     @AllowedEnumValues(LargeStreamRecordHandlingStrategy.class)
     private LargeStreamRecordHandlingStrategy largeStreamRecordHandlingStrategy = LargeStreamRecordHandlingStrategy.splitAndShred;
 
+    @Option(name = {"--disable-stream-aggregation"}, description = "Disable aggregation of Kinesis Data Stream records).")
+    @Once
+    private boolean disableAggregation = false;
+
     @Option(name = {"--export-id"}, description = "Export ID")
     @Once
     private String exportId = UUID.randomUUID().toString().replace("-", "");
@@ -75,7 +78,7 @@ public class RdfTargetModule implements CommandWriter {
     }
 
     public RdfTargetConfig config(Directories directories) {
-        return new RdfTargetConfig(directories, new KinesisConfig(streamName, region, largeStreamRecordHandlingStrategy), output, format);
+        return new RdfTargetConfig(directories, new KinesisConfig(streamName, region, largeStreamRecordHandlingStrategy, !disableAggregation), output, format);
     }
 
     @Override
