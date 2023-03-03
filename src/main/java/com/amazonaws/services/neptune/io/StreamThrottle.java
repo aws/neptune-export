@@ -28,7 +28,7 @@ public class StreamThrottle {
     private volatile int tumblingWindowSize = 10;
 
     private static final long MAX_QUEUE_HIGH_WATERMARK = 10000;
-    private static final long QUEUE_SIZE_BYTES = 1000000000;
+    private static final long QUEUE_SIZE_BYTES = 10000000;
     private static final int LENGTH_HIGH_WATERMARK = 900000;
 
     public StreamThrottle(KinesisProducer kinesisProducer) {

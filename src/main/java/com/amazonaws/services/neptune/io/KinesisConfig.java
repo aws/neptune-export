@@ -26,7 +26,7 @@ public class KinesisConfig {
                         new KinesisProducer(new KinesisProducerConfiguration()
                                 .setAggregationEnabled(enableAggregation)
                                 .setRegion(region)
-                                .setRateLimit(120)
+                                .setRateLimit(100)
                                 .setConnectTimeout(12000)
                                 .setRequestTimeout(12000)
                                 .setRecordTtl(Integer.MAX_VALUE)),
