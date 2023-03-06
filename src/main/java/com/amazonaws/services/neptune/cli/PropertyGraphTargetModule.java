@@ -58,6 +58,10 @@ public class PropertyGraphTargetModule implements CommandWriter {
     @AllowedEnumValues(LargeStreamRecordHandlingStrategy.class)
     private LargeStreamRecordHandlingStrategy largeStreamRecordHandlingStrategy = LargeStreamRecordHandlingStrategy.splitAndShred;
 
+    @Option(name = {"--disable-stream-aggregation"}, description = "Disable aggregation of Kinesis Data Stream records).")
+    @Once
+    private boolean disableAggregation = false;
+
     @Option(name = {"--merge-files"}, description = "Merge files for each vertex or edge label (currently only supports CSV files for export-pg).")
     @Once
     private boolean mergeFiles = false;
@@ -95,7 +99,7 @@ public class PropertyGraphTargetModule implements CommandWriter {
             throw new IllegalArgumentException("Merge files is only supported for CSV formats for export-pg");
         }
 
-        KinesisConfig kinesisConfig = new KinesisConfig(streamName, region, largeStreamRecordHandlingStrategy);
+        KinesisConfig kinesisConfig = new KinesisConfig(streamName, region, largeStreamRecordHandlingStrategy, !disableAggregation);
         
         return new PropertyGraphTargetConfig(directories, kinesisConfig, printerOptions, format, output, mergeFiles, perLabelDirectories, true);
     }

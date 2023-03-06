@@ -41,7 +41,7 @@ public class StreamThrottle {
 
         if (length > LENGTH_HIGH_WATERMARK || counter % tumblingWindowSize == 0) {
             queueHighWatermark = Math.min(QUEUE_SIZE_BYTES / (currentWindowSizeBytes / tumblingWindowSize), MAX_QUEUE_HIGH_WATERMARK);
-            logger.debug("Current window has {} records totalling {} bytes, meaning that maxNumberOfQueuedRecords cannot exceed {}", tumblingWindowSize, currentWindowSizeBytes, queueHighWatermark);
+            logger.trace("Current window has {} records totalling {} bytes, meaning that maxNumberOfQueuedRecords cannot exceed {}", tumblingWindowSize, currentWindowSizeBytes, queueHighWatermark);
             windowSizeBytes.set(0);
         }
     }

@@ -15,23 +15,34 @@ package com.amazonaws.services.neptune.io;
 
 import com.amazonaws.services.kinesis.producer.*;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KinesisConfig {
 
     private final Stream stream;
+    private static final Logger logger = LoggerFactory.getLogger(KinesisConfig.class);
 
-    public KinesisConfig(String streamName, String region, LargeStreamRecordHandlingStrategy largeStreamRecordHandlingStrategy) {
-        this.stream = (StringUtils.isNotEmpty(region) && StringUtils.isNotEmpty(streamName)) ?
-                new Stream(
-                        new KinesisProducer(new KinesisProducerConfiguration()
-                                .setRegion(region)
-                                .setRateLimit(100)
-                                .setConnectTimeout(12000)
-                                .setRequestTimeout(12000)
-                                .setRecordTtl(Integer.MAX_VALUE)),
-                        streamName,
-                        largeStreamRecordHandlingStrategy) :
-                null;
+    public KinesisConfig(String streamName, String region, LargeStreamRecordHandlingStrategy largeStreamRecordHandlingStrategy, boolean enableAggregation) {
+
+        if (StringUtils.isNotEmpty(region) && StringUtils.isNotEmpty(streamName)) {
+            logger.trace("Constructing new KinesisConfig for stream name: {}, in region: {}, with LargeStreamRecordHandlingStrategy: {} and AggregationEnabled={}",
+                    streamName, region, largeStreamRecordHandlingStrategy, enableAggregation);
+
+            this.stream = new Stream(
+                    new KinesisProducer(new KinesisProducerConfiguration()
+                            .setAggregationEnabled(enableAggregation)
+                            .setRegion(region)
+                            .setRateLimit(100)
+                            .setConnectTimeout(12000)
+                            .setRequestTimeout(12000)
+                            .setRecordTtl(Integer.MAX_VALUE)),
+                    streamName,
+                    largeStreamRecordHandlingStrategy);
+        }
+        else {
+            this.stream = null;
+        }
     }
 
     public Stream stream() {

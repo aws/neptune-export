@@ -20,6 +20,7 @@ Exports Amazon Neptune property graph data to CSV or JSON, or RDF graph data to 
   - [Exporting to the Bulk Loader CSV Format](#exporting-to-the-bulk-loader-csv-format)
   - [Exporting the Results of User-Supplied Queries](#exporting-the-results-of-user-supplied-queries)
   - [Exporting an RDF Graph](#exporting-an-rdf-graph)
+  - [Exporting to an Amazon Kinesis Data Stream](#exporting-to-an-amazon-kinesis-data-stream)
   - [Building neptune-export](#building-neptune-export)
   - [Security](#security)
   - [Deploying neptune-export as an AWS Lambda Function](#deploying-neptune-export-as-an-aws-lambda-function)
@@ -177,6 +178,12 @@ _neptune-export_ also supports connecting through a load balancer to a Neptune d
 If you are connecting through a load balancer, and have IAM DB authentication enabled, you must also supply either an `--nlb-endpoint` option (if using a network load balancer) or an `--alb-endpoint` option (if using an application load balancer), and an `--lb-port`.
 
 For details on using a load balancer with a database with IAM DB authentication enabled, see [Connecting to Amazon Neptune from Clients Outside the Neptune VPC](https://github.com/aws-samples/aws-dbs-refarch-graph/tree/master/src/connecting-using-a-load-balancer). 
+
+## Exporting to an Amazon Kinesis Data Stream
+
+When exporting to an Amazon Kinesis Data Stream, records are [aggregated](https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html#kinesis-kpl-concepts-aggretation) by default – that is, multiple exported records are packed into a single Kinesis Data Streams record. In your stream client your will need to [deaggregate](https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-consumer-deaggregation.html) the records. If you are using a Python client, you can use the record deaggregation module from the [Kinesis Aggregation/Deaggregation Modules for Python](https://pypi.org/project/aws-kinesis-agg/).
+
+You can turn off stream record aggregation when you export to a Kinesis Data Stream using the `--disable-stream-aggregation` option.
    
 ## Building neptune-export
 
