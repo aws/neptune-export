@@ -113,7 +113,7 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
             chunkedInStream = (ChunkedInputStream) responseInStream;
         }
         else if (responseInStream instanceof EofSensorInputStream) {
-            // HTTPClient 4.5.13 provides no methods for accessing trailers from a wrapped stream requiring the use
+            // HTTPClient 4.5.13 provides no methods for accessing trailers from a wrapped stream requiring the use of
             // reflection to break encapsulation. This bug is being tracked in https://issues.apache.org/jira/browse/HTTPCLIENT-2263.
             try {
                 Method getWrappedStream = EofSensorInputStream.class.getDeclaredMethod("getWrappedStream");
