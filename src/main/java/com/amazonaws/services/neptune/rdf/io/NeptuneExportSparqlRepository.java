@@ -17,18 +17,25 @@ import com.amazonaws.neptune.auth.NeptuneApacheHttpSigV4Signer;
 import com.amazonaws.neptune.auth.NeptuneSigV4Signer;
 import com.amazonaws.neptune.auth.NeptuneSigV4SignerException;
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.io.ChunkedInputStream;
 import org.apache.http.protocol.HttpContext;
 import org.eclipse.rdf4j.http.client.SharedHttpClientSessionManager;
 import org.eclipse.rdf4j.http.client.util.HttpClientBuilders;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +45,7 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
     private final ConnectionConfig config;
     private NeptuneSigV4Signer<HttpUriRequest> v4Signer;
 
-    public HttpContext lastContext;
+    private HttpContext lastContext;
 
     public NeptuneExportSparqlRepository(String endpointUrl) throws NeptuneSigV4SignerException {
         this(endpointUrl, null, null, null);
@@ -98,4 +105,42 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
     private static String getSparqlEndpoint(String endpointUrl) {
         return endpointUrl + "/sparql";
     }
+
+    /**
+     * Attempts to extract error messages from trailing headers from the most recent response received by 'repository'.
+     * If no trailers are found an empty String is returned.
+     */
+    public String getErrorMessageFromTrailers() {
+        InputStream responseInStream = (InputStream) this.lastContext.getAttribute("raw-response-inputstream");
+        ChunkedInputStream chunkedInStream;
+        if (responseInStream instanceof ChunkedInputStream) {
+            chunkedInStream = (ChunkedInputStream) responseInStream;
+        }
+        else if (responseInStream instanceof EofSensorInputStream) {
+            // HTTPClient 4.5.13 provides no methods for accessing trailers from a wrapped stream requiring the use
+            // reflection to break encapsulation. This bug is being tracked in https://issues.apache.org/jira/browse/HTTPCLIENT-2263.
+            try {
+                Method getWrappedStream = EofSensorInputStream.class.getDeclaredMethod("getWrappedStream");
+                getWrappedStream.setAccessible(true);
+                chunkedInStream = (ChunkedInputStream) getWrappedStream.invoke(responseInStream);
+                getWrappedStream.setAccessible(false);
+            } catch (Exception e) {
+                return "";
+            }
+        }
+        else {
+            return "";
+        }
+        Header[] trailers = chunkedInStream.getFooters();
+        String message = "";
+        for (Header trailer : trailers) {
+            try {
+                message += URLDecoder.decode(trailer.toString(), "UTF-8") + "\n";
+            } catch (UnsupportedEncodingException e) {
+                message += trailer + "\n";
+            }
+        }
+        return message;
+    }
+
 }
