@@ -20,7 +20,10 @@ import com.amazonaws.services.neptune.io.OutputWriter;
 import com.amazonaws.services.neptune.rdf.io.NeptuneExportSparqlRepository;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.EnvironmentVariableUtils;
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.EofSensorInputStream;
+import org.apache.http.impl.io.ChunkedInputStream;
 import org.eclipse.rdf4j.http.client.HttpClientSessionManager;
 import org.eclipse.rdf4j.http.client.RDF4JProtocolSession;
 import org.eclipse.rdf4j.http.client.SPARQLProtocolSession;
@@ -34,6 +37,10 @@ import org.eclipse.rdf4j.rio.helpers.BasicParserSettings;
 import org.joda.time.DateTime;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -118,7 +125,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
             connection.prepareTupleQuery(sparql).evaluate(new TupleQueryHandler(writer, factory));
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(getErrorMessageFromTrailers(repository), e);
         }
     }
 
@@ -133,13 +140,53 @@ public class NeptuneSparqlClient implements AutoCloseable {
             connection.prepareGraphQuery(sparql).evaluate(new GraphQueryHandler(writer));
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(getErrorMessageFromTrailers(repository), e);
         }
     }
 
 
     private SPARQLRepository chooseRepository() {
         return repositories.get(random.nextInt(repositories.size()));
+    }
+
+    /**
+     * Attempts to extract error messages from trailing headers from the most recent response received by 'repository'.
+     * If no trailers are found an empty String is returned.
+     */
+    private String getErrorMessageFromTrailers(SPARQLRepository repository) {
+        if(repository instanceof NeptuneExportSparqlRepository) {
+            InputStream responseInStream = (InputStream) ((NeptuneExportSparqlRepository) repository).lastContext.getAttribute("raw-response-inputstream");
+            ChunkedInputStream chunkedInStream;
+            if (responseInStream instanceof ChunkedInputStream) {
+                chunkedInStream = (ChunkedInputStream) responseInStream;
+            }
+            else if (responseInStream instanceof EofSensorInputStream) {
+                // HTTPClient 4.5.13 provides no methods for accessing trailers from a wrapped stream requiring the use
+                // reflection to break encapsulation. This bug is being tracked in https://issues.apache.org/jira/browse/HTTPCLIENT-2263.
+                try {
+                    Method getWrappedStream = EofSensorInputStream.class.getDeclaredMethod("getWrappedStream");
+                    getWrappedStream.setAccessible(true);
+                    chunkedInStream = (ChunkedInputStream) getWrappedStream.invoke(responseInStream);
+                    getWrappedStream.setAccessible(false);
+                } catch (Exception e) {
+                    return "";
+                }
+            }
+            else {
+                return "";
+            }
+            Header[] trailers = chunkedInStream.getFooters();
+            String message = "";
+            for (Header trailer : trailers) {
+                try {
+                    message += URLDecoder.decode(trailer.toString(), "UTF-8") + "\n";
+                } catch (UnsupportedEncodingException e) {
+                    message += trailer + "\n";
+                }
+            }
+            return message;
+        }
+        return "";
     }
 
     @Override
