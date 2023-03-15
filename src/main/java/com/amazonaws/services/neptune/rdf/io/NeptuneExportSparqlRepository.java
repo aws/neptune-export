@@ -58,18 +58,6 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
         this.regionName = regionName;
         this.initAuthenticatingHttpClient();
 
-        HttpClientBuilder clientBuilder = HttpClientBuilder.create().addInterceptorLast((HttpResponseInterceptor) (response, context) -> {
-            lastContext = context;
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                context.setAttribute("raw-response-inputstream", entity.getContent());
-            }
-        });
-
-        SharedHttpClientSessionManager clientSessionManager = new SharedHttpClientSessionManager();
-        clientSessionManager.setHttpClientBuilder(clientBuilder);
-        this.setHttpClientSessionManager(clientSessionManager);
-
         Map<String, String> additionalHeaders = new HashMap<>();
         additionalHeaders.put("te", "trailers"); //Asks Neptune to send trailing headers which may contain error messages
         this.setAdditionalHttpHeaders(additionalHeaders);
@@ -80,6 +68,14 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
         HttpClientBuilder httpClientBuilder = config.useSsl() ?
                 HttpClientBuilders.getSSLTrustAllHttpClientBuilder() :
                 HttpClientBuilder.create();
+
+        httpClientBuilder.addInterceptorLast((HttpResponseInterceptor) (response, context) -> {
+            lastContext = context;
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                context.setAttribute("raw-response-inputstream", entity.getContent());
+            }
+        });
 
         if (config.useIamAuth()) {
             v4Signer = new NeptuneApacheHttpSigV4Signer(regionName, awsCredentialsProvider);
