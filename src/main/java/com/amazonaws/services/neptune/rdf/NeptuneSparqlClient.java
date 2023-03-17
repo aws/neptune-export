@@ -20,7 +20,10 @@ import com.amazonaws.services.neptune.io.OutputWriter;
 import com.amazonaws.services.neptune.rdf.io.NeptuneExportSparqlRepository;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.EnvironmentVariableUtils;
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.EofSensorInputStream;
+import org.apache.http.impl.io.ChunkedInputStream;
 import org.eclipse.rdf4j.http.client.HttpClientSessionManager;
 import org.eclipse.rdf4j.http.client.RDF4JProtocolSession;
 import org.eclipse.rdf4j.http.client.SPARQLProtocolSession;
@@ -118,7 +121,12 @@ public class NeptuneSparqlClient implements AutoCloseable {
             connection.prepareTupleQuery(sparql).evaluate(new TupleQueryHandler(writer, factory));
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (repository instanceof NeptuneExportSparqlRepository) {
+                throw new RuntimeException(((NeptuneExportSparqlRepository) repository).getErrorMessageFromTrailers(), e);
+            }
+            else {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -133,7 +141,12 @@ public class NeptuneSparqlClient implements AutoCloseable {
             connection.prepareGraphQuery(sparql).evaluate(new GraphQueryHandler(writer));
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (repository instanceof NeptuneExportSparqlRepository) {
+                throw new RuntimeException(((NeptuneExportSparqlRepository) repository).getErrorMessageFromTrailers(), e);
+            }
+            else {
+                throw new RuntimeException(e);
+            }
         }
     }
 
