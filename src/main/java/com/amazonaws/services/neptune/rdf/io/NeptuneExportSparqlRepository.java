@@ -28,7 +28,6 @@ import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.io.ChunkedInputStream;
 import org.apache.http.protocol.HttpContext;
-import org.eclipse.rdf4j.http.client.SharedHttpClientSessionManager;
 import org.eclipse.rdf4j.http.client.util.HttpClientBuilders;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 
@@ -128,15 +127,16 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
             return "";
         }
         Header[] trailers = chunkedInStream.getFooters();
-        String message = "";
+        StringBuilder messageBuilder = new StringBuilder();
         for (Header trailer : trailers) {
             try {
-                message += URLDecoder.decode(trailer.toString(), "UTF-8") + "\n";
+                messageBuilder.append(URLDecoder.decode(trailer.toString(), "UTF-8"));
             } catch (UnsupportedEncodingException e) {
-                message += trailer + "\n";
+                messageBuilder.append(trailer);
             }
+            messageBuilder.append('\n');
         }
-        return message;
+        return messageBuilder.toString();
     }
 
 }
