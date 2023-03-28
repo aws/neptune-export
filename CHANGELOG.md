@@ -1,10 +1,16 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.0.1 (Release Date: TDB):
+## Neptune Export v1.0.1 (Release Date: Mar 30, 2023):
 
 ### Bug Fixes:
 
+- Updated NOTICE file in shaded jar
+
 ### New Features and Improvements:
+
+- Added new `--disable-stream-aggregation` option for property graph exports to Kinesis streams. More details can be found [here](https://github.com/aws/neptune-export#exporting-to-an-amazon-kinesis-data-stream).
+
+- Improved error messages from server side errors (such as timeout exceptions) for RDF exports.
 
 ## Neptune Export v1.0.0 (Release Date: February 28, 2023):
 
