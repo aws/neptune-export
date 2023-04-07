@@ -43,7 +43,7 @@ public class FileToStreamOutputWriter implements OutputWriter {
 
     @Override
     public String outputId() {
-        return String.format("%s [for stream %]", filePath.toString(), stream.name());
+        return String.format("%s [for stream %s]", filePath.toString(), stream.name());
     }
 
     @Override
