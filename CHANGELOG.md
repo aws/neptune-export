@@ -1,8 +1,10 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.0.2 (Release Date: TBD):
+## Neptune Export v1.0.2 (Release Date: April 7, 2023):
 
 ### Bug Fixes:
+
+- Fixed bug which was preventing getting the output id in FileToStreamOutputWriter
 
 ### New Features and Improvements:
 
