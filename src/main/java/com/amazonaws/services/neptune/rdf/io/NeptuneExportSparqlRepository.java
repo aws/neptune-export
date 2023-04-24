@@ -46,12 +46,11 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
 
     private HttpContext lastContext;
 
-    public NeptuneExportSparqlRepository(String endpointUrl) throws NeptuneSigV4SignerException {
-        this(endpointUrl, null, null, null);
-    }
-
     public NeptuneExportSparqlRepository(String endpointUrl, AWSCredentialsProvider awsCredentialsProvider, String regionName, ConnectionConfig config) throws NeptuneSigV4SignerException {
         super(getSparqlEndpoint(endpointUrl));
+        if (config == null) {
+            throw new IllegalArgumentException("ConnectionConfig is required to be non-null");
+        }
         this.config = config;
         this.awsCredentialsProvider = awsCredentialsProvider;
         this.regionName = regionName;
@@ -106,6 +105,9 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
      * If no trailers are found an empty String is returned.
      */
     public String getErrorMessageFromTrailers() {
+        if (this.lastContext == null) {
+            return "";
+        }
         InputStream responseInStream = (InputStream) this.lastContext.getAttribute("raw-response-inputstream");
         ChunkedInputStream chunkedInStream;
         if (responseInStream instanceof ChunkedInputStream) {
@@ -137,6 +139,10 @@ public class NeptuneExportSparqlRepository extends SPARQLRepository {
             messageBuilder.append('\n');
         }
         return messageBuilder.toString();
+    }
+
+    protected void setLastContext(HttpContext context) {
+        this.lastContext = context;
     }
 
 }
