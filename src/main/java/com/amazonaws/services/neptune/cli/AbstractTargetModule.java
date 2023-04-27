@@ -1,5 +1,7 @@
 package com.amazonaws.services.neptune.cli;
 
+
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.io.CommandWriter;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.DirectoryStructure;
@@ -10,12 +12,18 @@ import com.github.rvesse.airline.annotations.restrictions.AllowedEnumValues;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import com.github.rvesse.airline.annotations.restrictions.PathKind;
 import com.github.rvesse.airline.annotations.restrictions.Required;
+import org.apache.commons.lang.StringUtils;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
+import static com.amazonaws.services.neptune.util.AWSCredentialsUtil.getSTSAssumeRoleCredentialsProvider;
+
 public abstract class AbstractTargetModule implements CommandWriter {
+    @Inject
+    private CredentialProfileModule credentialProfileModule = new CredentialProfileModule();
 
     @Option(name = {"-d", "--dir"}, description = "Root directory for output.")
     @Required
@@ -49,6 +57,18 @@ public abstract class AbstractTargetModule implements CommandWriter {
     @Once
     private boolean disableAggregation = false;
 
+    @Option(name = {"--stream-role-arn"}, description = "Optional. Assume specified role for upload to Kinesis stream.")
+    @Once
+    private String streamRoleArn = null;
+
+    @Option(name = {"--stream-role-session-name"}, description = "Optional. To be used with '--stream-role-arn'. Use specified session name when assuming stream role.")
+    @Once
+    private String streamRoleSessionName = "Neptune-Export";
+
+    @Option(name = {"--stream-role-external-id"}, description = "Optional. To be used with '--stream-role-arn'. Use specified external id when assuming stream role.")
+    @Once
+    private String streamRoleExternalId = null;
+
     @Option(name = {"--export-id"}, description = "Export ID")
     @Once
     private String exportId = UUID.randomUUID().toString().replace("-", "");
@@ -57,7 +77,7 @@ public abstract class AbstractTargetModule implements CommandWriter {
     @Once
     private String partitionDirectories = "";
 
-    public AbstractTargetModule(){}
+    public AbstractTargetModule() {}
     public AbstractTargetModule(Target target) {
         this.output =  target;
     }
@@ -109,4 +129,12 @@ public abstract class AbstractTargetModule implements CommandWriter {
     }
 
     protected abstract DirectoryStructure directoryStructure();
+
+    public AWSCredentialsProvider getCredentialsProvider() {
+        if (StringUtils.isEmpty(streamRoleArn)) {
+            return credentialProfileModule.getCredentialsProvider();
+        }
+        return getSTSAssumeRoleCredentialsProvider(streamRoleArn, streamRoleSessionName, streamRoleExternalId, credentialProfileModule.getCredentialsProvider(), region);
+    }
+
 }

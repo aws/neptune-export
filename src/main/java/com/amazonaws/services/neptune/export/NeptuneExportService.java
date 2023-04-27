@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.export;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.profiles.incremental_export.IncrementalExportEventHandler;
 import com.amazonaws.services.neptune.profiles.neptune_ml.NeptuneMachineLearningExportEventHandlerV1;
 import com.amazonaws.services.neptune.profiles.neptune_ml.NeptuneMachineLearningExportEventHandlerV2;
@@ -61,6 +62,7 @@ public class NeptuneExportService {
     private final String s3Region;
     private final int maxFileDescriptorCount;
     private final String sseKmsKeyId;
+    private final AWSCredentialsProvider s3CredentialsProvider;
 
     public NeptuneExportService(String cmd,
                                 String localOutputPath,
@@ -77,7 +79,8 @@ public class NeptuneExportService {
                                 int maxConcurrency,
                                 String s3Region,
                                 int maxFileDescriptorCount,
-                                String sseKmsKeyId) {
+                                String sseKmsKeyId,
+                                AWSCredentialsProvider s3CredentialsProvider) {
         this.cmd = cmd;
         this.localOutputPath = localOutputPath;
         this.cleanOutputPath = cleanOutputPath;
@@ -94,6 +97,7 @@ public class NeptuneExportService {
         this.s3Region = s3Region;
         this.maxFileDescriptorCount = maxFileDescriptorCount;
         this.sseKmsKeyId = sseKmsKeyId;
+        this.s3CredentialsProvider = s3CredentialsProvider;
     }
 
     public S3ObjectInfo execute() throws IOException {
@@ -133,7 +137,7 @@ public class NeptuneExportService {
             throw new RuntimeException(e);
         }
 
-        try (TransferManagerWrapper transferManager = new TransferManagerWrapper(s3Region)) {
+        try (TransferManagerWrapper transferManager = new TransferManagerWrapper(s3Region, s3CredentialsProvider)) {
 
             if (cleanOutputPath) {
                 clearTempFiles();
@@ -175,7 +179,8 @@ public class NeptuneExportService {
                 s3UploadParams,
                 profiles,
                 completionFileWriters,
-                sseKmsKeyId);
+                sseKmsKeyId,
+                s3CredentialsProvider);
 
         eventHandlerCollection.addHandler(exportToS3EventHandler);
 
@@ -197,7 +202,8 @@ public class NeptuneExportService {
                                 additionalParams,
                                 args,
                                 profiles,
-                                sseKmsKeyId);
+                                sseKmsKeyId,
+                                s3CredentialsProvider);
                 eventHandlerCollection.addHandler(neptuneMlEventHandler);
             } else {
                 NeptuneMachineLearningExportEventHandlerV2 neptuneMlEventHandler =
@@ -208,7 +214,8 @@ public class NeptuneExportService {
                                 additionalParams,
                                 args,
                                 profiles,
-                                sseKmsKeyId);
+                                sseKmsKeyId,
+                                s3CredentialsProvider);
                 eventHandlerCollection.addHandler(neptuneMlEventHandler);
             }
         }

@@ -13,6 +13,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.export;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.event.ProgressEvent;
 import com.amazonaws.event.ProgressListener;
 import com.amazonaws.services.neptune.cluster.Cluster;
@@ -110,6 +111,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
     private final AtomicReference<S3ObjectInfo> result = new AtomicReference<>();
     private static final Pattern STATUS_CODE_5XX_PATTERN = Pattern.compile("Status Code: (5\\d+)");
     private final String sseKmsKeyId;
+    private final AWSCredentialsProvider s3CredentialsProvider;
 
     public ExportToS3NeptuneExportEventHandler(String localOutputPath,
                                                String outputS3Path,
@@ -120,7 +122,8 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
                                                S3UploadParams s3UploadParams,
                                                Collection<String> profiles,
                                                Collection<CompletionFileWriter> completionFileWriters,
-                                               String sseKmsKeyId) {
+                                               String sseKmsKeyId,
+                                               AWSCredentialsProvider s3CredentialsProvider) {
         this.localOutputPath = localOutputPath;
         this.outputS3Path = outputS3Path;
         this.s3Region = s3Region;
@@ -131,6 +134,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         this.profiles = profiles;
         this.completionFileWriters = completionFileWriters;
         this.sseKmsKeyId = sseKmsKeyId;
+        this.s3CredentialsProvider = s3CredentialsProvider;
     }
 
     @Override
@@ -154,7 +158,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
         logger.info("S3 upload params: {}", s3UploadParams);
 
-        try (TransferManagerWrapper transferManager = new TransferManagerWrapper(s3Region)) {
+        try (TransferManagerWrapper transferManager = new TransferManagerWrapper(s3Region, s3CredentialsProvider)) {
 
             File outputDirectory = directories.rootDirectory().toFile();
             S3ObjectInfo outputS3ObjectInfo = calculateOutputS3Path(outputDirectory);
@@ -193,7 +197,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
             long size = Files.walk(outputPath).mapToLong(p -> p.toFile().length()).sum();
             logger.warn("Total size of failed export files: {}", FileUtils.byteCountToDisplaySize(size));
 
-            try (TransferManagerWrapper transferManager = new TransferManagerWrapper(s3Region)) {
+            try (TransferManagerWrapper transferManager = new TransferManagerWrapper(s3Region, s3CredentialsProvider)) {
 
                 String s3Suffix = UUID.randomUUID().toString().replace("-", "");
 

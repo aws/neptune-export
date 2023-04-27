@@ -39,7 +39,9 @@
                     [ {-s | --scope} <scope> ] [ --serializer <serializer> ]
                     [ --skip <skip> ]
                     [ --stream-large-record-strategy <largeStreamRecordHandlingStrategy> ]
-                    [ --stream-name <streamName> ] [ --strict-cardinality ]
+                    [ --stream-name <streamName> ] [ --stream-role-arn <streamRoleArn> ]
+                    [ --stream-role-external-id <streamRoleExternalId> ]
+                    [ --stream-role-session-name <streamRoleSessionName> ] [ --strict-cardinality ]
                     [ {-t | --tag} <tag> ] [ --token-prefix <tokenPrefix> ]
                     [ --tokens-only <tokensOnly> ] [ --use-iam-auth ] [ --use-ssl ]
     
@@ -484,7 +486,27 @@
     
                 This option may occur a maximum of 1 times
     
+
+            --stream-role-arn <streamRoleArn>
+                Role to be assumed when uploading results to an Amazon Kinesis Data Stream.
+                If this options is unused, upload to Kinesis will use credentials found by
+                the DefaultAWSCredentialsProviderChain.
+
+                This option may occur a maximum of 1 times
+
+
+            --stream-role-external-id <streamRoleExternalId>
+                External Id to be used when assuming the role defined by --stream-role-arn
+
+                This option may occur a maximum of 1 times
+
+
+            --stream-role-session-name <streamRoleSessionName>
+                Session name to be used when assuming the role defined by --stream-role-arn
+
+                This option may occur a maximum of 1 times
     
+
             --strict-cardinality
                 Format all set and list cardinality properties as arrays in JSON,
                 including properties with a single value (optional, default

@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.profiles.neptune_ml;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.cluster.Cluster;
 import com.amazonaws.services.neptune.export.Args;
 import com.amazonaws.services.neptune.export.ExportToS3NeptuneExportEventHandler;
@@ -65,6 +66,7 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
     private final boolean createExportSubdirectory;
     private final PrinterOptions printerOptions;
     private final String sseKmsKeyId;
+    private final AWSCredentialsProvider s3CredentialsProvider;
 
     public NeptuneMachineLearningExportEventHandlerV1(String outputS3Path,
                                                       String s3Region,
@@ -72,7 +74,8 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
                                                       ObjectNode additionalParams,
                                                       Args args,
                                                       Collection<String> profiles,
-                                                      String sseKmsKeyId) {
+                                                      String sseKmsKeyId,
+                                                      AWSCredentialsProvider s3CredentialsProvider) {
         logger.info("Adding neptune_ml event handler");
 
         CsvPrinterOptions csvPrinterOptions = CsvPrinterOptions.builder()
@@ -91,6 +94,7 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
         this.profiles = profiles;
         this.printerOptions = new PrinterOptions(csvPrinterOptions, jsonPrinterOptions);
         this.sseKmsKeyId = sseKmsKeyId;
+        this.s3CredentialsProvider = s3CredentialsProvider;
     }
 
     private Collection<TrainingDataWriterConfigV1> createTrainingJobConfigCollection(ObjectNode additionalParams) {
@@ -156,7 +160,7 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
                 PropertyGraphTrainingDataConfigWriterV1.COLUMN_NAME_WITHOUT_DATATYPE :
                 PropertyGraphTrainingDataConfigWriterV1.COLUMN_NAME_WITH_DATATYPE;
 
-        try (TransferManagerWrapper transferManager = new TransferManagerWrapper(s3Region)) {
+        try (TransferManagerWrapper transferManager = new TransferManagerWrapper(s3Region, s3CredentialsProvider)) {
             for (TrainingDataWriterConfigV1 trainingJobWriterConfig : trainingJobWriterConfigCollection) {
                 createTrainingJobConfigurationFile(trainingJobWriterConfig, directories.rootDirectory(), graphSchema, propertyName, transferManager);
             }

@@ -18,9 +18,6 @@ import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.*;
 
-import java.io.IOException;
-import java.util.UUID;
-
 public class RdfTargetModule extends AbstractTargetModule {
 
     @Option(name = {"--format"}, description = "Output format (optional, default 'turtle').")

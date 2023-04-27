@@ -80,7 +80,10 @@ public class CloneCluster implements CloneClusterStrategy {
                         targetClusterId,
                         targetClusterMetadata.endpoints(),
                         connectionConfig.port(),
-                        targetClusterMetadata.isIAMDatabaseAuthenticationEnabled(), true, connectionConfig.proxyConfig()
+                        targetClusterMetadata.isIAMDatabaseAuthenticationEnabled(),
+                        true,
+                        connectionConfig.proxyConfig(),
+                        connectionConfig.getCredentialsProvider()
                 ),
                 new ConcurrencyConfig(newConcurrency),
                 targetClusterMetadata
