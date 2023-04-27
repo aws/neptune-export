@@ -14,6 +14,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.io;
 
 import com.amazonaws.services.kinesis.producer.*;
+import com.amazonaws.services.neptune.cli.AbstractTargetModule;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,22 +24,22 @@ public class KinesisConfig {
     private final Stream stream;
     private static final Logger logger = LoggerFactory.getLogger(KinesisConfig.class);
 
-    public KinesisConfig(String streamName, String region, LargeStreamRecordHandlingStrategy largeStreamRecordHandlingStrategy, boolean enableAggregation) {
-
-        if (StringUtils.isNotEmpty(region) && StringUtils.isNotEmpty(streamName)) {
+    public KinesisConfig(AbstractTargetModule tm) {
+        if (StringUtils.isNotEmpty(tm.getRegion()) && StringUtils.isNotEmpty(tm.getStreamName())) {
             logger.trace("Constructing new KinesisConfig for stream name: {}, in region: {}, with LargeStreamRecordHandlingStrategy: {} and AggregationEnabled={}",
-                    streamName, region, largeStreamRecordHandlingStrategy, enableAggregation);
+                    tm.getStreamName(), tm.getRegion(), tm.getLargeStreamRecordHandlingStrategy(), tm.isEnableAggregation());
 
             this.stream = new Stream(
                     new KinesisProducer(new KinesisProducerConfiguration()
-                            .setAggregationEnabled(enableAggregation)
-                            .setRegion(region)
+                            .setAggregationEnabled(tm.isEnableAggregation())
+                            .setRegion(tm.getRegion())
                             .setRateLimit(100)
                             .setConnectTimeout(12000)
                             .setRequestTimeout(12000)
-                            .setRecordTtl(Integer.MAX_VALUE)),
-                    streamName,
-                    largeStreamRecordHandlingStrategy);
+                            .setRecordTtl(Integer.MAX_VALUE)
+                    ),
+                    tm.getStreamName(),
+                    tm.getLargeStreamRecordHandlingStrategy());
         }
         else {
             this.stream = null;
