@@ -25,7 +25,9 @@
                     [ {--region | --stream-region} <region> ]
                     [ --serializer <serializer> ]
                     [ --stream-large-record-strategy <largeStreamRecordHandlingStrategy> ]
-                    [ --stream-name <streamName> ] [ {-t | --tag} <tag> ]
+                    [ --stream-name <streamName> ] [ --stream-role-arn <streamRoleArn> ]
+                    [ --stream-role-external-id <streamRoleExternalId> ]
+                    [ --stream-role-session-name <streamRoleSessionName> ] [ {-t | --tag} <tag> ]
                     [ --timeout-millis <timeoutMillis> ] [ --two-pass-analysis ]
                     [ --use-iam-auth ] [ --use-ssl ]
     
@@ -366,6 +368,26 @@
     
                 This option may occur a maximum of 1 times
     
+
+            --stream-role-arn <streamRoleArn>
+                Role to be assumed when uploading results to an Amazon Kinesis Data Stream.
+                If this options is unused, upload to Kinesis will use credentials found by
+                the DefaultAWSCredentialsProviderChain.
+
+                This option may occur a maximum of 1 times
+
+
+            --stream-role-external-id <streamRoleExternalId>
+                External Id to be used when assuming the role defined by --stream-role-arn
+
+                This option may occur a maximum of 1 times
+
+
+            --stream-role-session-name <streamRoleSessionName>
+                Session name to be used when assuming the role defined by --stream-role-arn
+
+                This option may occur a maximum of 1 times
+
     
             -t <tag>, --tag <tag>
                 Directory prefix (optional).

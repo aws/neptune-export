@@ -12,8 +12,9 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cluster;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.neptune.auth.HandshakeRequestConfig;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -26,17 +27,27 @@ public class ConnectionConfig {
     private final boolean useIamAuth;
     private boolean useSsl;
     private final ProxyConfig proxyConfig;
+    private final AWSCredentialsProvider credentialsProvider;
 
     public ConnectionConfig(String clusterId,
                             Collection<String> neptuneEndpoints,
                             int neptunePort,
                             boolean useIamAuth, boolean useSsl, ProxyConfig proxyConfig) {
+        this(clusterId, neptuneEndpoints, neptunePort, useIamAuth, useSsl, proxyConfig, new DefaultAWSCredentialsProviderChain());
+    }
+
+    public ConnectionConfig(String clusterId,
+                            Collection<String> neptuneEndpoints,
+                            int neptunePort,
+                            boolean useIamAuth, boolean useSsl, ProxyConfig proxyConfig,
+                            AWSCredentialsProvider credentialsProvider) {
         this.clusterId = clusterId;
         this.neptuneEndpoints = neptuneEndpoints;
         this.neptunePort = neptunePort;
         this.useIamAuth = useIamAuth;
         this.useSsl = useSsl;
         this.proxyConfig = proxyConfig;
+        this.credentialsProvider = credentialsProvider;
     }
 
     public Collection<String> endpoints() {
@@ -77,5 +88,9 @@ public class ConnectionConfig {
 
     public ProxyConfig proxyConfig() {
         return proxyConfig;
+    }
+
+    public AWSCredentialsProvider getCredentialsProvider() {
+        return credentialsProvider;
     }
 }

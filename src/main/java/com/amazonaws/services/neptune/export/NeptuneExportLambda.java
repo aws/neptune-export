@@ -19,7 +19,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import com.amazonaws.services.neptune.util.GitProperties;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.services.neptune.util.AWSCredentialsUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -131,6 +132,8 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 sseKmsKeyId.substring(0, sseKmsKeyId.length()/4) +
                         sseKmsKeyId.substring(sseKmsKeyId.length()/4).replaceAll("\\w","*");
 
+        AWSCredentialsProvider s3CredentialsProvider = getS3CredentialsProvider(json, params, s3Region);
+
         logger.log("cmd                       : " + cmd);
         logger.log("params                    : " + params.toPrettyString());
         logger.log("outputS3Path              : " + outputS3Path);
@@ -168,7 +171,8 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 maxConcurrency,
                 s3Region,
                 maxFileDescriptorCount,
-                sseKmsKeyId);
+                sseKmsKeyId,
+                s3CredentialsProvider);
 
         S3ObjectInfo outputS3ObjectInfo = neptuneExportService.execute();
 
@@ -184,4 +188,34 @@ public class NeptuneExportLambda implements RequestStreamHandler {
             System.exit(-1);
         }
     }
+
+    private AWSCredentialsProvider getS3CredentialsProvider(JsonNode json, ObjectNode params, String region) {
+        String s3RoleArn = json.has("s3RoleArn") ?
+                json.path("s3RoleArn").textValue() :
+                EnvironmentVariableUtils.getOptionalEnv("S3_ROLE_ARN", "");
+
+        String s3RoleSessionName = json.has("s3RoleSessionName") ?
+                json.path("s3RoleSessionName").textValue() :
+                EnvironmentVariableUtils.getOptionalEnv("S3_ROLE_SESSION_NAME", "Neptune-Export");
+
+        String s3RoleExternalId = json.has("s3RoleExternalId") ?
+                json.path("s3RoleExternalId").textValue() :
+                EnvironmentVariableUtils.getOptionalEnv("S3_ROLE_EXTERNAL_ID", "");
+
+        String credentialsProfile = params.has("credentials-profile") ?
+                params.path("credentials-profile").textValue() :
+                EnvironmentVariableUtils.getOptionalEnv("CREDENTIALS_PROFILE", "");
+
+        String credentialsConfigFilePath = params.has("credentials-config-file") ?
+                params.path("credentials-config-file").textValue() :
+                EnvironmentVariableUtils.getOptionalEnv("CREDENTIALS_CONFIG_FILE", "");
+
+        AWSCredentialsProvider sourceCredentialsProvider = AWSCredentialsUtil.getProfileCredentialsProvider(credentialsProfile, credentialsConfigFilePath);
+
+        if (StringUtils.isEmpty(s3RoleArn)) {
+            return sourceCredentialsProvider;
+        }
+        return AWSCredentialsUtil.getSTSAssumeRoleCredentialsProvider(s3RoleArn, s3RoleSessionName, s3RoleExternalId, sourceCredentialsProvider, region);
+    }
+
 }

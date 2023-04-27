@@ -6,6 +6,10 @@
 
 ### New Features and Improvements:
 
+- Cross Account Exports: New CLI options and parameters added to specify a role to assume when uploading to
+Amazon S3 buckets or Amazon Kinesis Data Streams
+- New --credentials-profile CLI option to fetch AWS Credentials from non-default AWS CLI profiles
+
 ## Neptune Export v1.0.6 (Release Date: July 31, 2023):
 
 ### Bug Fixes:

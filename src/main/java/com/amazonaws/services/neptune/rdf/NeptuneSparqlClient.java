@@ -13,17 +13,13 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.rdf;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.neptune.auth.NeptuneSigV4SignerException;
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
 import com.amazonaws.services.neptune.io.OutputWriter;
 import com.amazonaws.services.neptune.rdf.io.NeptuneExportSparqlRepository;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.EnvironmentVariableUtils;
-import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
-import org.apache.http.conn.EofSensorInputStream;
-import org.apache.http.impl.io.ChunkedInputStream;
 import org.eclipse.rdf4j.http.client.HttpClientSessionManager;
 import org.eclipse.rdf4j.http.client.RDF4JProtocolSession;
 import org.eclipse.rdf4j.http.client.SPARQLProtocolSession;
@@ -48,7 +44,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
     public static NeptuneSparqlClient create(ConnectionConfig config) {
 
         String serviceRegion = config.useIamAuth() ? EnvironmentVariableUtils.getMandatoryEnv("SERVICE_REGION") : null;
-        AWSCredentialsProvider credentialsProvider = config.useIamAuth() ? new DefaultAWSCredentialsProviderChain() : null;
+        AWSCredentialsProvider credentialsProvider = config.useIamAuth() ? config.getCredentialsProvider() : null;
 
         return new NeptuneSparqlClient(
                 config.endpoints().stream()

@@ -63,6 +63,7 @@ public class KinesisConfig {
                             .setConnectTimeout(12000)
                             .setRequestTimeout(12000)
                             .setRecordTtl(Integer.MAX_VALUE)
+                            .setCredentialsProvider(targetModule.getCredentialsProvider())
                     ),
                     targetModule.getStreamName(),
                     targetModule.getLargeStreamRecordHandlingStrategy());

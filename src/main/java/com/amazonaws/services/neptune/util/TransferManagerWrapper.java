@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.util;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
@@ -22,8 +23,15 @@ public class TransferManagerWrapper implements AutoCloseable {
     private final TransferManager transferManager;
 
     public TransferManagerWrapper(String s3Region) {
+        this(s3Region, null);
+    }
+
+    public TransferManagerWrapper(String s3Region, AWSCredentialsProvider credentialsProvider) {
 
         AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3ClientBuilder.standard();
+        if (credentialsProvider != null) {
+            amazonS3ClientBuilder = amazonS3ClientBuilder.withCredentials(credentialsProvider);
+        }
 
         if (StringUtils.isNotEmpty(s3Region)) {
             amazonS3ClientBuilder = amazonS3ClientBuilder.withRegion(s3Region);

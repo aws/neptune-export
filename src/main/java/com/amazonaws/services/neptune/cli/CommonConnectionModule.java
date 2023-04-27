@@ -21,11 +21,15 @@ import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.*;
 import org.apache.commons.lang.StringUtils;
 
+import javax.inject.Inject;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.function.Supplier;
 
 public class CommonConnectionModule {
+
+    @Inject
+    private CredentialProfileModule credentialProfileModule = new CredentialProfileModule();
 
     @Option(name = {"-e", "--endpoint"}, description = "Neptune endpoint(s) – supply multiple instance endpoints if you want to load balance requests across a cluster.", title = "endpoint")
     @RequireSome(tag = "endpoint or clusterId")
@@ -123,7 +127,8 @@ public class CommonConnectionModule {
                 port,
                 useIamAuth,
                 !disableSsl,
-                proxyConfig
+                proxyConfig,
+                credentialProfileModule.getCredentialsProvider()
         );
     }
 }
