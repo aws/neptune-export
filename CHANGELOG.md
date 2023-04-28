@@ -1,8 +1,10 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.0.3 (Release Date: TBD):
+## Neptune Export v1.0.3 (Release Date: April 27, 2023):
 
 ### Bug Fixes:
+
+- Fixed NullPointerException bug during RDF Exports
 
 ### New Features and Improvements:
 
