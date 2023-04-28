@@ -5,6 +5,7 @@
 ### Bug Fixes:
 
 ### New Features and Improvements:
+- Added aws-java-sdk-sts as a dependency to enable WebIdentityTokenFileCredentialsProvider.
 
 ## Neptune Export v1.0.2 (Release Date: April 7, 2023):
 
