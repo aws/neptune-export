@@ -1,5 +1,11 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v1.0.4 (Release Date: TBD):
+
+### Bug Fixes:
+
+### New Features and Improvements:
+
 ## Neptune Export v1.0.3 (Release Date: April 27, 2023):
 
 ### Bug Fixes:
@@ -7,6 +13,7 @@
 - Fixed NullPointerException bug during RDF Exports
 
 ### New Features and Improvements:
+
 - Added aws-java-sdk-sts as a dependency to enable WebIdentityTokenFileCredentialsProvider.
 
 ## Neptune Export v1.0.2 (Release Date: April 7, 2023):
