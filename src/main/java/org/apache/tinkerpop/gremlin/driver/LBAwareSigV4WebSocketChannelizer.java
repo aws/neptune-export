@@ -42,10 +42,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.apache.tinkerpop.gremlin.driver.exception.ConnectionException;
@@ -123,20 +121,6 @@ public class LBAwareSigV4WebSocketChannelizer extends Channelizer.AbstractChanne
     }
 
     /**
-     * Keep-alive is supported through the ping/pong websocket protocol.
-     * @see <a href=https://tools.ietf.org/html/rfc6455#section-5.5.2>IETF RFC 6455</a>
-     */
-    @Override
-    public boolean supportsKeepAlive() {
-        return true;
-    }
-
-    @Override
-    public Object createKeepAliveMessage() {
-        return new PingWebSocketFrame();
-    }
-
-    /**
      * Sends a {@code CloseWebSocketFrame} to the server for the specified channel.
      */
     @Override
@@ -206,6 +190,6 @@ public class LBAwareSigV4WebSocketChannelizer extends Channelizer.AbstractChanne
                 cluster.getMaxContentLength(),
                 new ChainedSigV4PropertiesProvider(),
                 handshakeRequestConfig);
-        return new WebSocketClientHandler(handshaker);
+        return new WebSocketClientHandler(handshaker, 10000, supportsSsl());
     }
 }

@@ -12,6 +12,10 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph;
 
+import com.amazon.neptune.gremlin.driver.sigv4.ChainedSigV4PropertiesProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.neptune.auth.NeptuneNettyHttpSigV4Signer;
+import com.amazonaws.neptune.auth.NeptuneSigV4SignerException;
 import com.amazonaws.services.neptune.cluster.Cluster;
 import com.amazonaws.services.neptune.cluster.ConcurrencyConfig;
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
@@ -46,7 +50,20 @@ public class NeptuneGremlinClient implements AutoCloseable {
 
         if (connectionConfig.useIamAuth()) {
             if (connectionConfig.isDirectConnection()) {
-                builder = builder.channelizer(SigV4WebSocketChannelizer.class);
+                builder = builder.handshakeInterceptor( r ->
+                        {
+                            try {
+                                NeptuneNettyHttpSigV4Signer sigV4Signer =
+                                        new NeptuneNettyHttpSigV4Signer(
+                                                new ChainedSigV4PropertiesProvider().getSigV4Properties().getServiceRegion(),
+                                                new DefaultAWSCredentialsProviderChain());
+                                sigV4Signer.signRequest(r);
+                            } catch (NeptuneSigV4SignerException e) {
+                                throw new RuntimeException("Exception occurred while signing the request", e);
+                            }
+                            return r;
+                        }
+                );
             } else {
                 builder = builder
                         // use the JAAS_ENTRY auth property to pass Host header info to the channelizer

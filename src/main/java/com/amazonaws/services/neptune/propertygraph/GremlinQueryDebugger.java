@@ -12,11 +12,11 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph;
 
-import org.apache.tinkerpop.gremlin.groovy.jsr223.GroovyTranslator;
+import org.apache.tinkerpop.gremlin.process.traversal.translator.GroovyTranslator;
 
 public class GremlinQueryDebugger {
 
     public static String queryAsString(Object o){
-        return String.valueOf(new GroovyTranslator.DefaultTypeTranslator().apply("g", o));
+        return new GroovyTranslator.DefaultTypeTranslator(false).apply("g", o).getScript();
     }
 }
