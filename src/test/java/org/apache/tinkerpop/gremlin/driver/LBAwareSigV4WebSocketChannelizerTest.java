@@ -31,6 +31,8 @@ import static org.mockito.Mockito.when;
 public class LBAwareSigV4WebSocketChannelizerTest  {
     @Test
     public void configureShouldAddSigV4HandshakerToPipeline() throws URISyntaxException {
+        System.setProperty("SERVICE_REGION", "us-west-2");
+
         ChannelPipeline mockedPipeline = new EmbeddedChannel().pipeline();
         LBAwareSigV4WebSocketChannelizer channelizer = new LBAwareSigV4WebSocketChannelizer();
         Connection mockedConnection = mock(Connection.class);
