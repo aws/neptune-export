@@ -78,7 +78,7 @@ public class LBAwareSigV4WebSocketChannelizer extends Channelizer.AbstractChanne
      * Name of the WebSocket handler.
      */
 
-    private static final String WEB_SOCKET_HANDLER = "ws-handler";
+    protected static final String WEB_SOCKET_HANDLER = "ws-handler";
     /**
      * Name of the GremlinEncoder handler.
      */
