@@ -12,11 +12,16 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph;
 
+import com.amazon.neptune.gremlin.driver.sigv4.ChainedSigV4PropertiesProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.neptune.auth.NeptuneNettyHttpSigV4Signer;
+import com.amazonaws.neptune.auth.NeptuneSigV4SignerException;
 import com.amazonaws.services.neptune.cluster.Cluster;
 import com.amazonaws.services.neptune.cluster.ConcurrencyConfig;
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
 import com.amazonaws.services.neptune.propertygraph.io.SerializationConfig;
 import org.apache.tinkerpop.gremlin.driver.*;
+import org.apache.tinkerpop.gremlin.driver.Cluster.Builder;
 import org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection;
 import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -37,7 +42,7 @@ public class NeptuneGremlinClient implements AutoCloseable {
             logger.warn("SSL has been disabled");
         }
 
-        org.apache.tinkerpop.gremlin.driver.Cluster.Builder builder = org.apache.tinkerpop.gremlin.driver.Cluster.build()
+        Builder builder = org.apache.tinkerpop.gremlin.driver.Cluster.build()
                 .port(connectionConfig.port())
                 .enableSsl(connectionConfig.useSsl())
                 .maxWaitForConnection(10000);
@@ -45,14 +50,7 @@ public class NeptuneGremlinClient implements AutoCloseable {
         builder = serializationConfig.apply(builder);
 
         if (connectionConfig.useIamAuth()) {
-            if (connectionConfig.isDirectConnection()) {
-                builder = builder.channelizer(SigV4WebSocketChannelizer.class);
-            } else {
-                builder = builder
-                        // use the JAAS_ENTRY auth property to pass Host header info to the channelizer
-                        .authProperties(new AuthProperties().with(AuthProperties.Property.JAAS_ENTRY, connectionConfig.handshakeRequestConfig().value()))
-                        .channelizer(LBAwareSigV4WebSocketChannelizer.class);
-            }
+            builder = configureIamSigning(builder, connectionConfig);
         }
 
         for (String endpoint : connectionConfig.endpoints()) {
@@ -62,6 +60,31 @@ public class NeptuneGremlinClient implements AutoCloseable {
         int numberOfEndpoints = connectionConfig.endpoints().size();
 
         return new NeptuneGremlinClient(concurrencyConfig.applyTo(builder, numberOfEndpoints).create());
+    }
+
+    protected static Builder configureIamSigning (Builder builder, ConnectionConfig connectionConfig) {
+        if (connectionConfig.isDirectConnection()) {
+            builder = builder.handshakeInterceptor( r ->
+                    {
+                        try {
+                            NeptuneNettyHttpSigV4Signer sigV4Signer =
+                                    new NeptuneNettyHttpSigV4Signer(
+                                            new ChainedSigV4PropertiesProvider().getSigV4Properties().getServiceRegion(),
+                                            new DefaultAWSCredentialsProviderChain());
+                            sigV4Signer.signRequest(r);
+                        } catch (NeptuneSigV4SignerException e) {
+                            throw new RuntimeException("Exception occurred while signing the request", e);
+                        }
+                        return r;
+                    }
+            );
+        } else {
+            builder = builder
+                    // use the JAAS_ENTRY auth property to pass Host header info to the channelizer
+                    .authProperties(new AuthProperties().with(AuthProperties.Property.JAAS_ENTRY, connectionConfig.handshakeRequestConfig().value()))
+                    .channelizer(LBAwareSigV4WebSocketChannelizer.class);
+        }
+        return builder;
     }
 
     private final org.apache.tinkerpop.gremlin.driver.Cluster cluster;

@@ -20,12 +20,12 @@
         <javac.target>1.8</javac.target>
         <uberjar.name>neptune-export-${project.version}-all</uberjar.name>
         <aws.sdk.version>1.12.359</aws.sdk.version>
-        <gremlin.version>3.4.8</gremlin.version>
+        <gremlin.version>3.6.2</gremlin.version>
         <slf4j.version>2.0.5</slf4j.version>
         <rdf4j.version>3.5.0</rdf4j.version>
-        <amazon.neptune.sigv4.signer.version>2.1.1</amazon.neptune.sigv4.signer.version>
-        <amazon.neptune.gremlin.java.sigv4.version>2.1.1</amazon.neptune.gremlin.java.sigv4.version>
-        <amazon.neptune.sparql.java.sigv4.version>2.1.1</amazon.neptune.sparql.java.sigv4.version>
+        <amazon.neptune.sigv4.signer.version>2.4.0</amazon.neptune.sigv4.signer.version>
+        <amazon.neptune.gremlin.java.sigv4.version>2.4.0</amazon.neptune.gremlin.java.sigv4.version>
+        <amazon.neptune.sparql.java.sigv4.version>2.4.0</amazon.neptune.sparql.java.sigv4.version>
         <netty.version>4.1.52.Final</netty.version>
         <kinesis.producer.version>0.14.0</kinesis.producer.version>
     </properties>
@@ -36,6 +36,12 @@
             <groupId>org.janusgraph</groupId>
             <artifactId>janusgraph-driver</artifactId>
             <version>0.5.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tinkerpop</groupId>
+                    <artifactId>gremlin-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -162,7 +168,7 @@
 
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
+            <artifactId>mockito-inline</artifactId>
             <version>2.25.0</version>
             <scope>test</scope>
         </dependency>

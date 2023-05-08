@@ -42,10 +42,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.apache.tinkerpop.gremlin.driver.exception.ConnectionException;
@@ -80,7 +78,7 @@ public class LBAwareSigV4WebSocketChannelizer extends Channelizer.AbstractChanne
      * Name of the WebSocket handler.
      */
 
-    private static final String WEB_SOCKET_HANDLER = "ws-handler";
+    protected static final String WEB_SOCKET_HANDLER = "ws-handler";
     /**
      * Name of the GremlinEncoder handler.
      */
@@ -120,20 +118,6 @@ public class LBAwareSigV4WebSocketChannelizer extends Channelizer.AbstractChanne
         super.init(connection);
         webSocketGremlinRequestEncoder = new WebSocketGremlinRequestEncoder(true, cluster.getSerializer());
         webSocketGremlinResponseDecoder = new WebSocketGremlinResponseDecoder(cluster.getSerializer());
-    }
-
-    /**
-     * Keep-alive is supported through the ping/pong websocket protocol.
-     * @see <a href=https://tools.ietf.org/html/rfc6455#section-5.5.2>IETF RFC 6455</a>
-     */
-    @Override
-    public boolean supportsKeepAlive() {
-        return true;
-    }
-
-    @Override
-    public Object createKeepAliveMessage() {
-        return new PingWebSocketFrame();
     }
 
     /**
@@ -206,6 +190,6 @@ public class LBAwareSigV4WebSocketChannelizer extends Channelizer.AbstractChanne
                 cluster.getMaxContentLength(),
                 new ChainedSigV4PropertiesProvider(),
                 handshakeRequestConfig);
-        return new WebSocketClientHandler(handshaker);
+        return new WebSocketClientHandler(handshaker, 10000, supportsSsl());
     }
 }
