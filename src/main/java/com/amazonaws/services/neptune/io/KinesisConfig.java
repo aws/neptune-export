@@ -24,22 +24,48 @@ public class KinesisConfig {
     private final Stream stream;
     private static final Logger logger = LoggerFactory.getLogger(KinesisConfig.class);
 
-    public KinesisConfig(AbstractTargetModule tm) {
-        if (StringUtils.isNotEmpty(tm.getRegion()) && StringUtils.isNotEmpty(tm.getStreamName())) {
+    @Deprecated
+    public KinesisConfig(String streamName, String region, LargeStreamRecordHandlingStrategy largeStreamRecordHandlingStrategy, boolean enableAggregation) {
+        this(new AbstractTargetModule() {
+            @Override
+            protected DirectoryStructure directoryStructure() {
+                return null;
+            }
+            @Override
+            public String getStreamName() {
+                return streamName;
+            }
+            @Override
+            public String getRegion() {
+                return region;
+            }
+            @Override
+            public LargeStreamRecordHandlingStrategy getLargeStreamRecordHandlingStrategy() {
+                return largeStreamRecordHandlingStrategy;
+            }
+            @Override
+            public boolean isEnableAggregation() {
+                return enableAggregation;
+            }
+        });
+    }
+
+    public KinesisConfig(AbstractTargetModule targetModule) {
+        if (StringUtils.isNotEmpty(targetModule.getRegion()) && StringUtils.isNotEmpty(targetModule.getStreamName())) {
             logger.trace("Constructing new KinesisConfig for stream name: {}, in region: {}, with LargeStreamRecordHandlingStrategy: {} and AggregationEnabled={}",
-                    tm.getStreamName(), tm.getRegion(), tm.getLargeStreamRecordHandlingStrategy(), tm.isEnableAggregation());
+                    targetModule.getStreamName(), targetModule.getRegion(), targetModule.getLargeStreamRecordHandlingStrategy(), targetModule.isEnableAggregation());
 
             this.stream = new Stream(
                     new KinesisProducer(new KinesisProducerConfiguration()
-                            .setAggregationEnabled(tm.isEnableAggregation())
-                            .setRegion(tm.getRegion())
+                            .setAggregationEnabled(targetModule.isEnableAggregation())
+                            .setRegion(targetModule.getRegion())
                             .setRateLimit(100)
                             .setConnectTimeout(12000)
                             .setRequestTimeout(12000)
                             .setRecordTtl(Integer.MAX_VALUE)
                     ),
-                    tm.getStreamName(),
-                    tm.getLargeStreamRecordHandlingStrategy());
+                    targetModule.getStreamName(),
+                    targetModule.getLargeStreamRecordHandlingStrategy());
         }
         else {
             this.stream = null;
