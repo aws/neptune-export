@@ -215,6 +215,12 @@
             <version>${netty.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>1.19.0</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
@@ -307,12 +313,11 @@
                                 <rule>
                                     <element>BUNDLE</element>
                                     <limits>
-<!--                                        Limit should be uncommented once code coverage for the project has improved-->
-<!--                                        <limit>-->
-<!--                                            <counter>COMPLEXITY</counter>-->
-<!--                                            <value>COVEREDRATIO</value>-->
-<!--                                            <minimum>0.80</minimum>-->
-<!--                                        </limit>-->
+                                        <limit>
+                                            <counter>COMPLEXITY</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.38</minimum>
+                                        </limit>
                                     </limits>
                                 </rule>
                             </rules>
