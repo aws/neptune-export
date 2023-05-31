@@ -4,7 +4,7 @@
 
 ### New Features and Improvements:
 
-- Upgraded to TinkerPop 3.6.2
+- Upgraded to Gremlin Dependency Version to 3.6.2
 
 ## Neptune Export v1.0.3 (Release Date: April 27, 2023):
 
