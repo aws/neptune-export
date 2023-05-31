@@ -44,7 +44,7 @@ public class EdgesClientTest {
                 new GraphElementHandler<Map<?, Object>>() {
                     @Override
                     public void handle(Map<?, Object> properties, boolean allowTokens) throws IOException {
-                        schema.update(GraphElementType.nodes, properties, allowTokens);
+                        schema.update(GraphElementType.edges, properties, allowTokens);
                     }
                     @Override
                     public void close() {}
@@ -53,7 +53,7 @@ public class EdgesClientTest {
 
         JsonNode expectedSchema = new ObjectMapper().readTree(
                 "{\n" +
-                        "  \"nodes\" : [ {\n" +
+                        "  \"edges\" : [ {\n" +
                         "    \"label\" : \"knows\",\n" +
                         "    \"properties\" : [ {\n" +
                         "      \"property\" : \"weight\",\n" +
