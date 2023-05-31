@@ -54,7 +54,7 @@ public class NeptuneExportLambdaTest {
                 "\"params\": {\"endpoint\" : \"fakeEndpoint\"," +
                 "\"illegalArgument\": \"test\"}}";
 
-        lambda.handleRequest(new StringInputStream(input), OutputStream.nullOutputStream(), context);
+        lambda.handleRequest(new StringInputStream(input), mock(OutputStream.class), context);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class NeptuneExportLambdaTest {
         NeptuneExportLambda lambda = new NeptuneExportLambda();
         String input = "{\"command\": \"export-pg\", \"params\": {}}";
 
-        lambda.handleRequest(new StringInputStream(input), OutputStream.nullOutputStream(), context);
+        lambda.handleRequest(new StringInputStream(input), mock(OutputStream.class), context);
     }
 
     @Test
@@ -76,7 +76,7 @@ public class NeptuneExportLambdaTest {
         String input = "{[}";
 
         assertThrows(JsonParseException.class,
-                () -> lambda.handleRequest(new StringInputStream(input), OutputStream.nullOutputStream(), context));
+                () -> lambda.handleRequest(new StringInputStream(input), mock(OutputStream.class), context));
     }
 
     private class ErrorChecker implements Assertion {
