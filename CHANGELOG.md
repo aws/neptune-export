@@ -1,10 +1,10 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.0.4 (Release Date: TBD):
-
-### Bug Fixes:
+## Neptune Export v1.0.4 (Release Date: May 31, 2023):
 
 ### New Features and Improvements:
+
+- Upgraded to TinkerPop 3.6.2
 
 ## Neptune Export v1.0.3 (Release Date: April 27, 2023):
 
