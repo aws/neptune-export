@@ -1,5 +1,6 @@
 package com.amazonaws.services.neptune.export;
 
+import com.amazonaws.SDKGlobalConfiguration;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.util.StringInputStream;
@@ -46,7 +47,7 @@ public class NeptuneExportLambdaTest {
         exit.expectSystemExitWithStatus(-1);
         exit.checkAssertionAfterwards(new ErrorChecker("Found unexpected parameters:"));
 
-        System.setProperty("AWS_REGION", "us-west-2");
+        System.setProperty(SDKGlobalConfiguration.AWS_REGION_SYSTEM_PROPERTY, "us-west-2");
 
         NeptuneExportLambda lambda = new NeptuneExportLambda();
         String input = "{" +
@@ -61,7 +62,7 @@ public class NeptuneExportLambdaTest {
         exit.expectSystemExitWithStatus(-1);
         exit.checkAssertionAfterwards(new ErrorChecker("One/more of the following options must be specified: -e, --endpoint, --cluster-id, --cluster, --clusterid"));
 
-        System.setProperty("AWS_REGION", "us-west-2");
+        System.setProperty(SDKGlobalConfiguration.AWS_REGION_SYSTEM_PROPERTY, "us-west-2");
 
         NeptuneExportLambda lambda = new NeptuneExportLambda();
         String input = "{\"command\": \"export-pg\", \"params\": {}}";
