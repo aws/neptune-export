@@ -45,6 +45,9 @@ public class NeptuneExportLambdaTest {
     public void shouldRejectIllegalArguments() throws IOException {
         exit.expectSystemExitWithStatus(-1);
         exit.checkAssertionAfterwards(new ErrorChecker("Found unexpected parameters:"));
+
+        System.setProperty("AWS_REGION", "us-west-2");
+
         NeptuneExportLambda lambda = new NeptuneExportLambda();
         String input = "{" +
                 "\"params\": {\"endpoint\" : \"fakeEndpoint\"," +
@@ -57,6 +60,9 @@ public class NeptuneExportLambdaTest {
     public void shouldRejectMissingRequiredArguments() throws IOException {
         exit.expectSystemExitWithStatus(-1);
         exit.checkAssertionAfterwards(new ErrorChecker("One/more of the following options must be specified: -e, --endpoint, --cluster-id, --cluster, --clusterid"));
+
+        System.setProperty("AWS_REGION", "us-west-2");
+
         NeptuneExportLambda lambda = new NeptuneExportLambda();
         String input = "{\"command\": \"export-pg\", \"params\": {}}";
 
