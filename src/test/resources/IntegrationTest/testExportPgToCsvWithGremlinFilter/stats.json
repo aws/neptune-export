@@ -1,0 +1,172 @@
+{
+  "stats" : {
+    "nodes" : 8,
+    "edges" : 0,
+    "properties" : 96,
+    "details" : {
+      "nodes" : [ {
+        "description" : "airport",
+        "labels" : [ "airport" ],
+        "count" : 8,
+        "properties" : [ {
+          "name" : "country",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 8
+            } ]
+          }
+        }, {
+          "name" : "code",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 8
+            } ]
+          }
+        }, {
+          "name" : "longest",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Integer",
+            "counts" : [ {
+              "Integer" : 8
+            } ]
+          }
+        }, {
+          "name" : "city",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 8
+            } ]
+          }
+        }, {
+          "name" : "elev",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Integer",
+            "counts" : [ {
+              "Integer" : 8
+            } ]
+          }
+        }, {
+          "name" : "icao",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 8
+            } ]
+          }
+        }, {
+          "name" : "lon",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Double",
+            "counts" : [ {
+              "Double" : 8
+            } ]
+          }
+        }, {
+          "name" : "type",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 8
+            } ]
+          }
+        }, {
+          "name" : "region",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 8
+            } ]
+          }
+        }, {
+          "name" : "runways",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Integer",
+            "counts" : [ {
+              "Integer" : 8
+            } ]
+          }
+        }, {
+          "name" : "lat",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Double",
+            "counts" : [ {
+              "Double" : 8
+            } ]
+          }
+        }, {
+          "name" : "desc",
+          "count" : 8,
+          "numberOfRecords" : 8,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 8
+            } ]
+          }
+        } ]
+      } ],
+      "edges" : [ ]
+    }
+  }
+}

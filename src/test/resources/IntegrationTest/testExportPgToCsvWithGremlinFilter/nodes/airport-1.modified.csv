@@ -1,0 +1,9 @@
+~id,~label,country:string,code:string,longest:int,city:string,elev:int,icao:string,lon:double,type:string,region:string,runways:int,lat:double,desc:string
+"3","airport","US","AUS",12250,"Austin",542,"KAUS",-97.6698989868164,"airport","US-TX",2,30.1944999694824,"Austin Bergstrom International Airport"
+"9","airport","US","FLL",9000,"Fort Lauderdale",64,"KFLL",-80.152702331543,"airport","US-FL",2,26.0725994110107,"Fort Lauderdale/Hollywood International Airport"
+"14","airport","US","LGA",7003,"New York",20,"KLGA",-73.87259674,"airport","US-NY",2,40.77719879,"New York La Guardia"
+"28","airport","US","SNA",5701,"Santa Ana",56,"KSNA",-117.8679962,"airport","US-CA",2,33.67570114,"Orange County/Santa Ana, John Wayne"
+"32","airport","US","HPN",6549,"White Plains",439,"KHPN",-73.7076034545898,"airport","US-NY",2,41.0670013427734,"Westchester County"
+"34","airport","US","MSY",10104,"New Orleans",3,"KMSY",-90.2580032348633,"airport","US-LA",2,29.9934005737305,"New Orleans L. Armstrong"
+"36","airport","US","CID",8600,"Cedar Rapids",869,"KCID",-91.7108001708984,"airport","US-IA",2,41.8847007751465,"The Eastern Iowa Airport"
+"40","airport","PR","SJU",10400,"San Juan",9,"TJSJ",-66.0018005371,"airport","PR-U-A",2,18.4393997192,"Puerto Rico, Luis Munoz International Airport"
