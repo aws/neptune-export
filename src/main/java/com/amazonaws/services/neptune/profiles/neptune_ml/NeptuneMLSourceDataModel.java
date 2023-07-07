@@ -32,16 +32,18 @@ public enum NeptuneMLSourceDataModel {
     PropertyGraph {
         @Override
         void updateArgsBeforeExport(Args args, Collection<TrainingDataWriterConfigV2> trainingJobWriterConfigCollection) {
-            if (!args.contains("--exclude-type-definitions")) {
-                args.addFlag("--exclude-type-definitions");
-            }
+            if(!args.contains("export-pg-from-queries")){
+                if (!args.contains("--exclude-type-definitions")) {
+                    args.addFlag("--exclude-type-definitions");
+                }
 
-            if (args.contains("--edge-label-strategy", EdgeLabelStrategy.edgeLabelsOnly.name())) {
-                args.removeOptions("--edge-label-strategy");
-            }
+                if (args.contains("--edge-label-strategy", EdgeLabelStrategy.edgeLabelsOnly.name())) {
+                    args.removeOptions("--edge-label-strategy");
+                }
 
-            if (!args.contains("--edge-label-strategy", EdgeLabelStrategy.edgeAndVertexLabels.name())) {
-                args.addOption("--edge-label-strategy", EdgeLabelStrategy.edgeAndVertexLabels.name());
+                if (!args.contains("--edge-label-strategy", EdgeLabelStrategy.edgeAndVertexLabels.name())) {
+                    args.addOption("--edge-label-strategy", EdgeLabelStrategy.edgeAndVertexLabels.name());
+                }
             }
 
             if (!args.contains("--merge-files")) {
