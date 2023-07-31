@@ -4,6 +4,8 @@
 
 ### Bug Fixes:
 
+- Fixed bug which could lead to corrupted output in highly concurrent csv exports
+
 ### New Features and Improvements:
 
 ## Neptune Export v1.0.5 (Release Date: June 5, 2023):

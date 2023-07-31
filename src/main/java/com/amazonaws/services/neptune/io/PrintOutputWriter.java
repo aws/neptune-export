@@ -88,7 +88,7 @@ public class PrintOutputWriter extends PrintWriter implements OutputWriter {
 
     @Override
     public void endCommit() {
-        // Do nothing
+        flush();
     }
 
     @Override
