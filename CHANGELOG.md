@@ -1,20 +1,16 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.0.6 (Release Date: TBD):
+## Neptune Export v1.0.6 (Release Date: July 31, 2023):
 
 ### Bug Fixes:
 
 - Fixed bug which could lead to corrupted output in highly concurrent csv exports
-
-### New Features and Improvements:
 
 ## Neptune Export v1.0.5 (Release Date: June 5, 2023):
 
 ### Bug Fixes:
 
 - Resolves issue which caused the error `gremlin-groovy is not an available GremlinScriptEngine` to appear when using the `--gremlin-filter` option in the uber jar.
-
-### New Features and Improvements:
 
 ## Neptune Export v1.0.4 (Release Date: May 31, 2023):
 
