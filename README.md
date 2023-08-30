@@ -24,11 +24,15 @@ Exports Amazon Neptune property graph data to CSV or JSON, or RDF graph data to 
   - [Building neptune-export](#building-neptune-export)
   - [Security](#security)
   - [Deploying neptune-export as an AWS Lambda Function](#deploying-neptune-export-as-an-aws-lambda-function)
-  
+
 ## Neptune-Export service
 
 You can now deploy _neptune-export_ as a service inside your Neptune VPC. Use [these CloudFormation templates](https://docs.aws.amazon.com/neptune/latest/userguide/machine-learning-data-export-service.html) to install the Neptune-Export service.
- 
+
+## Standalone usage
+
+_neptune-export_ is also runnable as an adhoc command. See [prerequisites](https://docs.aws.amazon.com/neptune/latest/userguide/export-utility.html).
+
 ## Best practices
 
 ### Export from a cloned cluster
