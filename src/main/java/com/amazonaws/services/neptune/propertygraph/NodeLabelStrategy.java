@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph;
 
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -41,6 +42,14 @@ public enum NodeLabelStrategy implements LabelStrategy {
         public Label getLabelFor(Map<String, Object> input) {
             @SuppressWarnings("unchecked")
             List<String> labels = (List<String>) input.get("~label");
+            labels = Label.fixLabelsIssue(labels);
+
+            return new Label(labels);
+        }
+
+        @Override
+        public Label getLabelFor(PGResult input) {
+            List<String> labels = input.getLabel();
             labels = Label.fixLabelsIssue(labels);
 
             return new Label(labels);

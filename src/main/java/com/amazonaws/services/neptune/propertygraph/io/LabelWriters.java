@@ -13,6 +13,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.propertygraph.io;
 
 import com.amazonaws.services.neptune.propertygraph.Label;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class LabelWriters<T extends Map<?, ?>> implements AutoCloseable {
+public class LabelWriters<T extends PGResult> implements AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(LabelWriters.class);
 

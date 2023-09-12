@@ -21,6 +21,7 @@ import com.amazonaws.services.neptune.propertygraph.*;
 import com.amazonaws.services.neptune.propertygraph.io.ExportPropertyGraphTask;
 import com.amazonaws.services.neptune.propertygraph.io.GraphElementHandler;
 import com.amazonaws.services.neptune.propertygraph.io.PropertyGraphTargetConfig;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 
 import java.util.*;
@@ -55,7 +56,7 @@ public class ExportSpecification {
             return;
         }
 
-        GraphClient<Map<String, Object>> graphClient = graphElementType.graphClient(g, tokensOnly, stats, featureToggles);
+        GraphClient<? extends PGResult> graphClient = graphElementType.graphClient(g, tokensOnly, stats, featureToggles);
 
         graphClient.queryForSchema(
                 new CreateSchemaHandler(graphElementType, graphSchema),
@@ -69,7 +70,7 @@ public class ExportSpecification {
             return;
         }
 
-        GraphClient<Map<String, Object>> graphClient = graphElementType.graphClient(g, tokensOnly, stats, featureToggles);
+        GraphClient<? extends PGResult> graphClient = graphElementType.graphClient(g, tokensOnly, stats, featureToggles);
         Collection<Label> labels = labelsFilter.getLabelsUsing(graphClient);
 
         for (Label label : labels) {
@@ -95,7 +96,7 @@ public class ExportSpecification {
                 concurrencyConfig);
     }
 
-    public ExportPropertyGraphTask<Map<String, Object>> createExportTask(GraphSchema graphSchema,
+    public ExportPropertyGraphTask createExportTask(GraphSchema graphSchema,
                                                                          GraphTraversalSource g,
                                                                          PropertyGraphTargetConfig targetConfig,
                                                                          GremlinFilters gremlinFilters,
@@ -104,7 +105,7 @@ public class ExportSpecification {
                                                                          AtomicInteger index,
                                                                          AtomicInteger fileDescriptorCount,
                                                                          int maxFileDescriptorCount) {
-        return new ExportPropertyGraphTask<>(
+        return new ExportPropertyGraphTask(
                 graphSchema.copyOfGraphElementSchemasFor(graphElementType),
                 labelsFilter,
                 graphElementType.graphClient(g, tokensOnly, stats, featureToggles),

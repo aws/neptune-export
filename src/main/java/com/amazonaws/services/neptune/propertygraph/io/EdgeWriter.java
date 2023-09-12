@@ -14,11 +14,13 @@ package com.amazonaws.services.neptune.propertygraph.io;
 
 import com.amazonaws.services.neptune.propertygraph.Label;
 import com.amazonaws.services.neptune.propertygraph.LabelsFilter;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGEdgeResult;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 
 import java.io.IOException;
 import java.util.*;
 
-public class EdgeWriter implements LabelWriter<Map<String, Object>> {
+public class EdgeWriter implements LabelWriter<PGEdgeResult> {
 
     private final PropertyGraphPrinter propertyGraphPrinter;
     private final boolean hasFromAndToLabels;
@@ -29,21 +31,18 @@ public class EdgeWriter implements LabelWriter<Map<String, Object>> {
     }
 
     @Override
-    public void handle(Map<String, Object> map, boolean allowTokens) throws IOException {
-        String from = String.valueOf(map.get("~from"));
-        String to = String.valueOf(map.get("~to"));
-        @SuppressWarnings("unchecked")
-        Map<?, Object> properties = (Map<?, Object>) map.get("properties");
-        String id = String.valueOf(map.get("~id"));
-        String label = (String) map.get("~label");
+    public void handle(PGEdgeResult edge, boolean allowTokens) throws IOException {
+        String from = edge.getFrom();
+        String to = edge.getTo();
+        Map<?, Object> properties = edge.getProperties();
+        String id = edge.getId();
+        String label = edge.getLabel().get(0);
 
         propertyGraphPrinter.printStartRow();
 
         if (hasFromAndToLabels){
-            @SuppressWarnings("unchecked")
-            List<String> fromLabels = (List<String>) map.get("~fromLabels");
-            @SuppressWarnings("unchecked")
-            List<String> toLabels = (List<String>) map.get("~toLabels");
+            List<String> fromLabels = edge.getFromLabels();
+            List<String> toLabels = edge.getToLabels();
 
             // Temp fix for concatenated label issue
             fromLabels = Label.fixLabelsIssue(fromLabels);

@@ -17,6 +17,9 @@ import com.amazonaws.services.neptune.io.Status;
 import com.amazonaws.services.neptune.propertygraph.Label;
 import com.amazonaws.services.neptune.propertygraph.NamedQuery;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
+import com.amazonaws.services.neptune.propertygraph.NodeLabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.io.result.QueriesNodeResult;
+import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.LabelSchema;
 import com.amazonaws.services.neptune.util.Activity;
@@ -146,6 +149,10 @@ public class QueryTask implements Callable<Object> {
                         throw new RuntimeException(e);
                     }
                 });
+    }
+
+    private QueriesNodeResult getPGResult(Map<?, ?> map) {
+        return new QueriesNodeResult(map);
     }
 
     private HashMap<?, ?> castToMap(Object o) {

@@ -13,13 +13,13 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.propertygraph.io;
 
 import com.amazonaws.services.neptune.propertygraph.Label;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class NodeWriter implements LabelWriter<Map<String, Object>> {
+public class NodeWriter implements LabelWriter<PGResult> {
 
     private final PropertyGraphPrinter propertyGraphPrinter;
 
@@ -27,15 +27,12 @@ public class NodeWriter implements LabelWriter<Map<String, Object>> {
         this.propertyGraphPrinter = propertyGraphPrinter;
     }
 
-
     @Override
-    public void handle(Map<String, Object> map, boolean allowTokens) throws IOException {
+    public void handle(PGResult node, boolean allowTokens) throws IOException {
 
-        @SuppressWarnings("unchecked")
-        Map<?, Object> properties = (Map<?, Object>) map.get("properties");
-        String id = String.valueOf(map.get("~id"));
-        @SuppressWarnings("unchecked")
-        List<String> labels = (List<String>) map.get("~label");
+        Map<?, Object> properties = node.getProperties();
+        String id = String.valueOf(node.getId());
+        List<String> labels = node.getLabel();
 
         labels = Label.fixLabelsIssue(labels);
 
