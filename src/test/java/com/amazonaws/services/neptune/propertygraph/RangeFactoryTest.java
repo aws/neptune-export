@@ -13,6 +13,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.propertygraph;
 
 import com.amazonaws.services.neptune.cluster.ConcurrencyConfig;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.util.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -37,6 +38,11 @@ public class RangeFactoryTest {
 
         @Override
         public Label getLabelFor(Map<String, Object> input) {
+            throw new NotImplementedException();
+        }
+
+        @Override
+        public Label getLabelFor(PGResult input) {
             throw new NotImplementedException();
         }
 

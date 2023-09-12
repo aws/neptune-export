@@ -20,11 +20,11 @@ import com.amazonaws.services.neptune.propertygraph.NodesClient;
 import com.amazonaws.services.neptune.propertygraph.io.EdgesWriterFactory;
 import com.amazonaws.services.neptune.propertygraph.io.NodesWriterFactory;
 import com.amazonaws.services.neptune.propertygraph.io.WriterFactory;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 
 public enum GraphElementType {
 
@@ -35,12 +35,12 @@ public enum GraphElementType {
         }
 
         @Override
-        public GraphClient<Map<String, Object>> graphClient(GraphTraversalSource g, boolean tokensOnly, ExportStats stats, FeatureToggles featureToggles) {
+        public GraphClient<? extends PGResult> graphClient(GraphTraversalSource g, boolean tokensOnly, ExportStats stats, FeatureToggles featureToggles) {
             return new NodesClient(g, tokensOnly, stats, featureToggles);
         }
 
         @Override
-        public WriterFactory<Map<String, Object>> writerFactory() {
+        public WriterFactory<? extends PGResult> writerFactory() {
             return new NodesWriterFactory();
         }
     },
@@ -51,17 +51,17 @@ public enum GraphElementType {
         }
 
         @Override
-        public GraphClient<Map<String, Object>> graphClient(GraphTraversalSource g, boolean tokensOnly, ExportStats stats, FeatureToggles featureToggles) {
+        public GraphClient<? extends PGResult> graphClient(GraphTraversalSource g, boolean tokensOnly, ExportStats stats, FeatureToggles featureToggles) {
             return new EdgesClient(g, tokensOnly, stats, featureToggles);
         }
 
         @Override
-        public WriterFactory<Map<String, Object>> writerFactory() {
+        public WriterFactory<? extends PGResult> writerFactory() {
             return new EdgesWriterFactory();
         }
     };
 
     public abstract Collection<String> tokenNames();
-    public abstract GraphClient<Map<String, Object>> graphClient(GraphTraversalSource g, boolean tokensOnly, ExportStats stats, FeatureToggles featureToggles);
-    public abstract WriterFactory<Map<String, Object>> writerFactory();
+    public abstract GraphClient<? extends PGResult> graphClient(GraphTraversalSource g, boolean tokensOnly, ExportStats stats, FeatureToggles featureToggles);
+    public abstract WriterFactory<? extends PGResult> writerFactory();
 }

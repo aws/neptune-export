@@ -14,6 +14,7 @@ package com.amazonaws.services.neptune.propertygraph;
 
 import com.amazonaws.services.neptune.export.FeatureToggle;
 import com.amazonaws.services.neptune.export.FeatureToggles;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import com.amazonaws.services.neptune.propertygraph.schema.LabelSchema;
@@ -140,6 +141,11 @@ public class SpecifiedLabels implements LabelsFilter {
 
     @Override
     public Label getLabelFor(Map<String, Object> input) {
+        return labelStrategy.getLabelFor(input);
+    }
+
+    @Override
+    public Label getLabelFor(PGResult input) {
         return labelStrategy.getLabelFor(input);
     }
 

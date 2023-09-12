@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph;
 
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -20,7 +21,10 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
@@ -43,6 +47,11 @@ public enum EdgeLabelStrategy implements LabelStrategy {
         @Override
         public Label getLabelFor(Map<String, Object> input) {
             return new Label(input.get("~label").toString());
+        }
+
+        @Override
+        public Label getLabelFor(PGResult input) {
+            return new Label(input.getLabel());
         }
 
         @Override
@@ -84,6 +93,14 @@ public enum EdgeLabelStrategy implements LabelStrategy {
             String label = String.valueOf(input.get("~label"));
             @SuppressWarnings("unchecked")
             Collection<String> toLabels = (Collection<String>) input.get("~toLabels");
+            return new Label(label, fromLabels, toLabels);
+        }
+
+        @Override
+        public Label getLabelFor(PGResult input) {
+            Collection<String> fromLabels = input.getFromLabels();
+            String label = input.getLabel().get(0);
+            Collection<String> toLabels = input.getToLabels();
             return new Label(label, fromLabels, toLabels);
         }
 

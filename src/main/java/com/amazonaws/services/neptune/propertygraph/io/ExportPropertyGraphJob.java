@@ -19,6 +19,7 @@ import com.amazonaws.services.neptune.io.StatusOutputFormat;
 import com.amazonaws.services.neptune.propertygraph.GremlinFilters;
 import com.amazonaws.services.neptune.propertygraph.RangeConfig;
 import com.amazonaws.services.neptune.propertygraph.RangeFactory;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.propertygraph.schema.*;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
@@ -110,7 +111,7 @@ public class ExportPropertyGraphJob {
                 ExecutorService taskExecutor = Executors.newFixedThreadPool(rangeFactory.concurrency());
 
                 for (int index = 1; index <= rangeFactory.concurrency(); index++) {
-                    ExportPropertyGraphTask<?> exportTask = labelSpecificExportSpecification.createExportTask(
+                    ExportPropertyGraphTask exportTask = labelSpecificExportSpecification.createExportTask(
                             graphSchema,
                             g,
                             targetConfig,

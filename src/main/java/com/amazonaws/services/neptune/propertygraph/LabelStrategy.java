@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph;
 
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -23,6 +24,8 @@ public interface LabelStrategy {
     Collection<Label> getLabels(GraphTraversalSource g);
 
     Label getLabelFor(Map<String, Object> input);
+
+    Label getLabelFor(PGResult input);
 
     String[] additionalColumns(String... columns);
 

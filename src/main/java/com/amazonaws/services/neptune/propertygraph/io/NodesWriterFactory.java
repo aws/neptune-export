@@ -13,12 +13,12 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.propertygraph.io;
 
 import com.amazonaws.services.neptune.propertygraph.Label;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.propertygraph.schema.LabelSchema;
 
 import java.io.IOException;
-import java.util.Map;
 
-public class NodesWriterFactory implements WriterFactory<Map<String, Object>> {
+public class NodesWriterFactory implements WriterFactory<PGResult> {
 
     @Override
     public PropertyGraphPrinter createPrinter(String name, LabelSchema labelSchema, PropertyGraphTargetConfig targetConfig) throws IOException {
@@ -31,7 +31,7 @@ public class NodesWriterFactory implements WriterFactory<Map<String, Object>> {
     }
 
     @Override
-    public LabelWriter<Map<String, Object>> createLabelWriter(PropertyGraphPrinter propertyGraphPrinter, Label label) {
+    public LabelWriter<PGResult> createLabelWriter(PropertyGraphPrinter propertyGraphPrinter, Label label) {
         return new NodeWriter(propertyGraphPrinter);
     }
 }

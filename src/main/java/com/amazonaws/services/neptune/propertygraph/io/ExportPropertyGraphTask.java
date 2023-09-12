@@ -12,39 +12,37 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph.io;
 
-import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.Status;
 import com.amazonaws.services.neptune.propertygraph.*;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
-import com.amazonaws.services.neptune.propertygraph.schema.LabelSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ExportPropertyGraphTask<T extends Map<?, ?>> implements Callable<FileSpecificLabelSchemas> {
+public class ExportPropertyGraphTask implements Callable<FileSpecificLabelSchemas> {
 
     private static final Logger logger = LoggerFactory.getLogger(ExportPropertyGraphTask.class);
 
     private final GraphElementSchemas graphElementSchemas;
     private final LabelsFilter labelsFilter;
-    private final GraphClient<T> graphClient;
-    private final WriterFactory<T> writerFactory;
+    private final GraphClient<? extends PGResult> graphClient;
+    private final WriterFactory<? extends PGResult> writerFactory;
     private final PropertyGraphTargetConfig targetConfig;
     private final RangeFactory rangeFactory;
     private final GremlinFilters gremlinFilters;
     private final Status status;
     private final AtomicInteger index;
-    private final LabelWriters<T> labelWriters;
+    private final LabelWriters<PGResult> labelWriters;
 
     public ExportPropertyGraphTask(GraphElementSchemas graphElementSchemas,
                                    LabelsFilter labelsFilter,
-                                   GraphClient<T> graphClient,
-                                   WriterFactory<T> writerFactory,
+                                   GraphClient<? extends PGResult> graphClient,
+                                   WriterFactory<? extends PGResult> writerFactory,
                                    PropertyGraphTargetConfig targetConfig,
                                    RangeFactory rangeFactory,
                                    GremlinFilters gremlinFilters,
@@ -70,7 +68,7 @@ public class ExportPropertyGraphTask<T extends Map<?, ?>> implements Callable<Fi
         FileSpecificLabelSchemas fileSpecificLabelSchemas = new FileSpecificLabelSchemas();
 
         CountingHandler handler = new CountingHandler(
-                new TaskHandler(
+                new ExportPGTaskHandler(
                         fileSpecificLabelSchemas,
                         graphElementSchemas,
                         targetConfig,
@@ -78,7 +76,8 @@ public class ExportPropertyGraphTask<T extends Map<?, ?>> implements Callable<Fi
                         labelWriters,
                         graphClient,
                         status,
-                        index
+                        index,
+                        labelsFilter
                 ));
 
         try {
@@ -104,96 +103,4 @@ public class ExportPropertyGraphTask<T extends Map<?, ?>> implements Callable<Fi
         return fileSpecificLabelSchemas;
     }
 
-    private class TaskHandler implements GraphElementHandler<T> {
-
-        private final FileSpecificLabelSchemas fileSpecificLabelSchemas;
-        private final GraphElementSchemas graphElementSchemas;
-        private final PropertyGraphTargetConfig targetConfig;
-        private final WriterFactory<T> writerFactory;
-        private final LabelWriters<T> labelWriters;
-        private final GraphClient<T> graphClient;
-        private final Status status;
-        private final AtomicInteger index;
-
-        private TaskHandler(FileSpecificLabelSchemas fileSpecificLabelSchemas,
-                            GraphElementSchemas graphElementSchemas,
-                            PropertyGraphTargetConfig targetConfig,
-                            WriterFactory<T> writerFactory,
-                            LabelWriters<T> labelWriters,
-                            GraphClient<T> graphClient,
-                            Status status,
-                            AtomicInteger index) {
-            this.fileSpecificLabelSchemas = fileSpecificLabelSchemas;
-            this.graphElementSchemas = graphElementSchemas;
-            this.targetConfig = targetConfig;
-            this.writerFactory = writerFactory;
-            this.labelWriters = labelWriters;
-            this.graphClient = graphClient;
-            this.status = status;
-            this.index = index;
-        }
-
-        @Override
-        public void handle(T input, boolean allowTokens) throws IOException {
-            status.update();
-            Label label = graphClient.getLabelFor(input, labelsFilter);
-            if (!labelWriters.containsKey(label)) {
-                createWriterFor(label);
-            }
-            graphClient.updateStats(label);
-            labelWriters.get(label).handle(input, allowTokens);
-        }
-
-        @Override
-        public void close() {
-            try {
-                labelWriters.close();
-            } catch (Exception e) {
-                logger.warn("Error closing label writer: {}.", e.getMessage());
-            }
-        }
-
-        private void createWriterFor(Label label) {
-            try {
-                LabelSchema labelSchema = graphElementSchemas.getSchemaFor(label);
-
-                PropertyGraphPrinter propertyGraphPrinter = writerFactory.createPrinter(
-                        Directories.fileName(label.fullyQualifiedLabel(), index),
-                        labelSchema,
-                        targetConfig);
-                LabelWriter<T> labelWriter = writerFactory.createLabelWriter(propertyGraphPrinter, labelSchema.label());
-
-                labelWriters.put(label, labelWriter);
-                fileSpecificLabelSchemas.add(labelWriter.outputId(), targetConfig.format(), labelSchema);
-
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private class CountingHandler implements GraphElementHandler<T> {
-
-        private final GraphElementHandler<T> parent;
-        private long counter = 0;
-
-        private CountingHandler(GraphElementHandler<T> parent) {
-            this.parent = parent;
-        }
-
-        @Override
-        public void handle(T input, boolean allowTokens) throws IOException {
-            parent.handle(input, allowTokens);
-            counter++;
-        }
-
-        long numberProcessed() {
-            return counter;
-        }
-
-        @Override
-        public void close() throws Exception {
-            parent.close();
-        }
-    }
 }

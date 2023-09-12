@@ -15,6 +15,8 @@ package com.amazonaws.services.neptune.propertygraph;
 import com.amazonaws.services.neptune.export.FeatureToggle;
 import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.propertygraph.io.GraphElementHandler;
+import com.amazonaws.services.neptune.propertygraph.io.result.ExportPGNodeResult;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import com.amazonaws.services.neptune.util.Activity;
@@ -36,7 +38,7 @@ import java.util.Map;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 
-public class NodesClient implements GraphClient<Map<String, Object>> {
+public class NodesClient implements GraphClient<PGResult> {
 
     private static final Logger logger = LoggerFactory.getLogger(NodesClient.class);
 
@@ -82,7 +84,7 @@ public class NodesClient implements GraphClient<Map<String, Object>> {
     }
 
     @Override
-    public void queryForValues(GraphElementHandler<Map<String, Object>> handler,
+    public void queryForValues(GraphElementHandler<PGResult> handler,
                                Range range,
                                LabelsFilter labelsFilter,
                                GremlinFilters gremlinFilters,
@@ -110,7 +112,7 @@ public class NodesClient implements GraphClient<Map<String, Object>> {
                 if (featureToggles.containsFeature(FeatureToggle.Inject_Fault)){
                     throw new IllegalStateException("Simulated fault in NodesClient");
                 }
-                handler.handle(m, false);
+                handler.handle(new ExportPGNodeResult(m), false);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -156,7 +158,7 @@ public class NodesClient implements GraphClient<Map<String, Object>> {
     }
 
     @Override
-    public Label getLabelFor(Map<String, Object> input, LabelsFilter labelsFilter) {
+    public Label getLabelFor(PGResult input, LabelsFilter labelsFilter) {
         return labelsFilter.getLabelFor(input);
     }
 

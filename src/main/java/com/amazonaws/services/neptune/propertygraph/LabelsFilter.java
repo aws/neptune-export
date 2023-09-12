@@ -13,6 +13,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.propertygraph;
 
 import com.amazonaws.services.neptune.export.FeatureToggles;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -30,6 +31,8 @@ public interface LabelsFilter {
     String[] getPropertiesForLabels(GraphElementSchemas graphElementSchemas);
 
     Label getLabelFor(Map<String, Object> input);
+
+    Label getLabelFor(PGResult result);
 
     String[] addAdditionalColumnNames(String... columns);
 
