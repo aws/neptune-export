@@ -17,11 +17,14 @@ import com.amazonaws.services.neptune.cluster.Cluster;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.DirectoryStructure;
 import com.amazonaws.services.neptune.propertygraph.ExportStats;
+import com.amazonaws.services.neptune.propertygraph.GremlinFilters;
 import com.amazonaws.services.neptune.propertygraph.NamedQueries;
 import com.amazonaws.services.neptune.propertygraph.NamedQueriesCollection;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
 import com.amazonaws.services.neptune.propertygraph.airline.NameQueriesTypeConverter;
 import com.amazonaws.services.neptune.propertygraph.io.*;
+import com.amazonaws.services.neptune.propertygraph.schema.ExportSpecification;
+import com.amazonaws.services.neptune.propertygraph.schema.GraphSchema;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 import com.github.rvesse.airline.annotations.Command;
@@ -33,6 +36,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Examples(examples = {
@@ -61,6 +65,9 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
     @Inject
     private PropertyGraphSerializationModule serialization = new PropertyGraphSerializationModule();
 
+    @Inject
+    private PropertyGraphScopeModule scope = new PropertyGraphScopeModule();
+
     @Option(name = {"-q", "--queries", "--query", "--gremlin"}, description = "Gremlin queries (format: name=\"semi-colon-separated list of queries\" OR \"semi-colon-separated list of queries\").",
             arity = 1, typeConverterProvider = NameQueriesTypeConverter.class)
     private List<NamedQueries> queries = new ArrayList<>();
@@ -81,6 +88,11 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
     @Once
     private Long timeoutMillis = null;
 
+    @Option(name = {"--structured-output"}, description = "Enables schema generation. When combined with \"--format csv\", CSV will be structured" +
+            "according to schema.")
+    @Once
+    private boolean structuredOutput = false;
+
     @Override
     public void run() {
 
@@ -92,7 +104,7 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                         concurrency.config(),
                         featureToggles())) {
 
-                    Directories directories = target.createDirectories(DirectoryStructure.GremlinQueries);
+                    Directories directories = initDirectories();
                     JsonResource<NamedQueriesCollection, Object> queriesResource = queriesFile != null ?
                             new JsonResource<>("Queries file", queriesFile, NamedQueriesCollection.class) :
                             directories.queriesResource();
@@ -103,7 +115,18 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                     PropertyGraphTargetConfig targetConfig = target.config(directories, new PrinterOptions(csvPrinterOptions, jsonPrinterOptions));
                     NamedQueriesCollection namedQueries = getNamedQueriesCollection(queries, queriesFile, queriesResource);
 
-                    directories.createResultsSubdirectories(namedQueries.names());
+                    GraphSchema graphSchema = new GraphSchema();
+                    ExportStats exportStats = new ExportStats();
+
+                    Collection<ExportSpecification> exportSpecifications = scope.exportSpecifications(
+                            graphSchema,
+                            new GremlinFilters(null, null, null),
+                            exportStats,
+                            featureToggles());
+
+                    if (!structuredOutput) {
+                        directories.createResultsSubdirectories(namedQueries.names());
+                    }
 
                     try (NeptuneGremlinClient client = NeptuneGremlinClient.create(cluster, serialization.config());
                          NeptuneGremlinClient.QueryClient queryClient = client.queryClient()) {
@@ -114,9 +137,11 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                                 cluster.concurrencyConfig(),
                                 targetConfig,
                                 twoPassAnalysis,
-                                timeoutMillis);
+                                timeoutMillis,
+                                exportSpecifications,
+                                featureToggles(),
+                                structuredOutput);
                         queryJob.execute();
-
                     }
 
                     directories.writeResultsDirectoryPathAsMessage(target.description(), target);
@@ -124,13 +149,20 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                     queriesResource.writeResourcePathAsMessage(target);
 
                     directories.writeRootDirectoryPathAsReturnValue(target);
-                    onExportComplete(directories, new ExportStats(), cluster);
+                    onExportComplete(directories, exportStats, cluster);
 
                 }
             });
         } catch (Exception e) {
             handleException(e);
         }
+    }
+
+    private Directories initDirectories() throws IOException {
+        if (structuredOutput) {
+            return target.createDirectories();
+        }
+        return target.createDirectories(DirectoryStructure.GremlinQueries);
     }
 
     private NamedQueriesCollection getNamedQueriesCollection(List<NamedQueries> queries,

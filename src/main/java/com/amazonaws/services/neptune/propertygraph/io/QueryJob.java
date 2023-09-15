@@ -12,11 +12,15 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph.io;
 
+import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.io.Status;
 import com.amazonaws.services.neptune.io.StatusOutputFormat;
 import com.amazonaws.services.neptune.propertygraph.NamedQuery;
 import com.amazonaws.services.neptune.cluster.ConcurrencyConfig;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
+import com.amazonaws.services.neptune.propertygraph.schema.ExportSpecification;
+import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
+import com.amazonaws.services.neptune.propertygraph.schema.MasterLabelSchemas;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 
@@ -33,19 +37,28 @@ public class QueryJob {
     private final PropertyGraphTargetConfig targetConfig;
     private final boolean twoPassAnalysis;
     private final Long timeoutMillis;
+    private final Collection<ExportSpecification> exportSpecifications;
+    private final FeatureToggles featureToggles;
+    private final boolean structuredOutput;
 
     public QueryJob(Collection<NamedQuery> queries,
                     NeptuneGremlinClient.QueryClient queryClient,
                     ConcurrencyConfig concurrencyConfig,
                     PropertyGraphTargetConfig targetConfig,
                     boolean twoPassAnalysis,
-                    Long timeoutMillis){
+                    Long timeoutMillis,
+                    Collection<ExportSpecification> exportSpecifications,
+                    FeatureToggles featureToggles,
+                    boolean structuredOutput){
         this.queries = new ConcurrentLinkedQueue<>(queries);
         this.queryClient = queryClient;
         this.concurrencyConfig = concurrencyConfig;
         this.targetConfig = targetConfig;
         this.twoPassAnalysis = twoPassAnalysis;
         this.timeoutMillis = timeoutMillis;
+        this.exportSpecifications = exportSpecifications;
+        this.featureToggles = featureToggles;
+        this.structuredOutput = structuredOutput;
     }
 
     public void execute() throws Exception {
@@ -60,7 +73,9 @@ public class QueryJob {
 
         ExecutorService taskExecutor = Executors.newFixedThreadPool(concurrencyConfig.concurrency());
 
-        Collection<Future<Object>> futures = new ArrayList<>();
+        Collection<Future<FileSpecificLabelSchemas>> futures = new ArrayList<>();
+
+        Collection<FileSpecificLabelSchemas> fileSpecificLabelSchemas = new ArrayList<>();
 
         AtomicInteger fileIndex = new AtomicInteger();
 
@@ -72,7 +87,8 @@ public class QueryJob {
                     twoPassAnalysis,
                     timeoutMillis,
                     status,
-                    fileIndex);
+                    fileIndex,
+                    structuredOutput);
             futures.add(taskExecutor.submit(queryTask));
         }
 
@@ -85,14 +101,23 @@ public class QueryJob {
             throw new RuntimeException(e);
         }
 
-        for (Future<Object> future : futures) {
+        for (Future<FileSpecificLabelSchemas> future : futures) {
             if (future.isCancelled()) {
                 throw new IllegalStateException("Unable to complete job because at least one task was cancelled");
             }
             if (!future.isDone()) {
                 throw new IllegalStateException("Unable to complete job because at least one task has not completed");
             }
-            future.get();
+            fileSpecificLabelSchemas.add(future.get());
+        }
+
+        RewriteCommand rewriteCommand = targetConfig.createRewriteCommand(concurrencyConfig, featureToggles);
+        MasterLabelSchemas masterLabelSchemas = exportSpecifications.iterator().next().createMasterLabelSchemas(fileSpecificLabelSchemas);
+
+        try {
+            rewriteCommand.execute(masterLabelSchemas);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

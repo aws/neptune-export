@@ -14,6 +14,7 @@ package com.amazonaws.services.neptune.propertygraph.io;
 
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.Status;
+import com.amazonaws.services.neptune.propertygraph.AllLabels;
 import com.amazonaws.services.neptune.propertygraph.Label;
 import com.amazonaws.services.neptune.propertygraph.NamedQuery;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
@@ -21,6 +22,7 @@ import com.amazonaws.services.neptune.propertygraph.NodeLabelStrategy;
 import com.amazonaws.services.neptune.propertygraph.io.result.QueriesNodeResult;
 import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
+import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import com.amazonaws.services.neptune.propertygraph.schema.LabelSchema;
 import com.amazonaws.services.neptune.util.Activity;
 import com.amazonaws.services.neptune.util.CheckedActivity;
@@ -36,7 +38,7 @@ import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class QueryTask implements Callable<Object> {
+public class QueryTask implements Callable<FileSpecificLabelSchemas> {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryTask.class);
 
@@ -47,6 +49,7 @@ public class QueryTask implements Callable<Object> {
     private final Long timeoutMillis;
     private final Status status;
     private final AtomicInteger index;
+    private final boolean structuredOutput;
 
     public QueryTask(Queue<NamedQuery> queries,
                      NeptuneGremlinClient.QueryClient queryClient,
@@ -54,7 +57,8 @@ public class QueryTask implements Callable<Object> {
                      boolean twoPassAnalysis,
                      Long timeoutMillis,
                      Status status,
-                     AtomicInteger index) {
+                     AtomicInteger index,
+                     boolean structuredOutput) {
 
         this.queries = queries;
         this.queryClient = queryClient;
@@ -63,13 +67,15 @@ public class QueryTask implements Callable<Object> {
         this.timeoutMillis = timeoutMillis;
         this.status = status;
         this.index = index;
+        this.structuredOutput = structuredOutput;
     }
 
     @Override
-    public Object call() throws Exception {
+    public FileSpecificLabelSchemas call() throws Exception {
 
         QueriesWriterFactory writerFactory = new QueriesWriterFactory();
         Map<Label, LabelWriter<Map<?, ?>>> labelWriters = new HashMap<>();
+        FileSpecificLabelSchemas fileSpecificLabelSchemas = new FileSpecificLabelSchemas();
 
         try {
 
@@ -90,7 +96,7 @@ public class QueryTask implements Callable<Object> {
 
                         Timer.timedActivity(String.format("executing query [%s]", namedQuery.query()),
                                 (CheckedActivity.Runnable) () ->
-                                        executeQuery(namedQuery, writerFactory, labelWriters, graphElementSchemas));
+                                        executeQuery(namedQuery, writerFactory, labelWriters, graphElementSchemas, fileSpecificLabelSchemas));
 
                     } else {
                         status.halt();
@@ -111,7 +117,7 @@ public class QueryTask implements Callable<Object> {
             }
         }
 
-        return null;
+        return fileSpecificLabelSchemas;
 
     }
 
@@ -128,17 +134,37 @@ public class QueryTask implements Callable<Object> {
     private void executeQuery(NamedQuery namedQuery,
                               QueriesWriterFactory writerFactory,
                               Map<Label, LabelWriter<Map<?, ?>>> labelWriters,
-                              GraphElementSchemas graphElementSchemas) {
+                              GraphElementSchemas graphElementSchemas,
+                              FileSpecificLabelSchemas fileSpecificLabelSchemas) {
 
         ResultSet results = queryClient.submit(namedQuery.query(), timeoutMillis);
 
-        ResultsHandler resultsHandler = new ResultsHandler(
-                new Label(namedQuery.name()),
-                labelWriters,
-                writerFactory,
-                graphElementSchemas);
+        GraphElementHandler<Map<?, ?>> handler;
 
-        StatusHandler handler = new StatusHandler(resultsHandler, status);
+        if(structuredOutput) {
+            handler = new QueriesResultWrapperHandler(
+                    new CountingHandler<QueriesNodeResult>(
+                        new ExportPGTaskHandler<QueriesNodeResult>(
+                                fileSpecificLabelSchemas,
+                                graphElementSchemas,
+                                targetConfig,
+                                (WriterFactory<QueriesNodeResult>) GraphElementType.nodes.writerFactory(),
+                                new LabelWriters<>(new AtomicInteger(),0),
+                                null,
+                                status,
+                                index,
+                                new AllLabels(NodeLabelStrategy.nodeLabelsOnly))
+            ));
+        }
+        else {
+            ResultsHandler resultsHandler = new ResultsHandler(
+                    new Label(namedQuery.name()),
+                    labelWriters,
+                    writerFactory,
+                    graphElementSchemas);
+
+            handler = new StatusHandler(resultsHandler, status);
+        }
 
         results.stream().
                 map(r -> castToMap(r.getObject())).
@@ -149,10 +175,6 @@ public class QueryTask implements Callable<Object> {
                         throw new RuntimeException(e);
                     }
                 });
-    }
-
-    private QueriesNodeResult getPGResult(Map<?, ?> map) {
-        return new QueriesNodeResult(map);
     }
 
     private HashMap<?, ?> castToMap(Object o) {
@@ -234,6 +256,29 @@ public class QueryTask implements Callable<Object> {
         @Override
         public void close() throws Exception {
             parent.close();
+        }
+    }
+
+    private static class QueriesResultWrapperHandler implements GraphElementHandler<Map<?, ?>> {
+
+        private final GraphElementHandler<QueriesNodeResult> parent;
+
+        private QueriesResultWrapperHandler(GraphElementHandler<QueriesNodeResult> parent) {
+            this.parent = parent;
+        }
+
+        @Override
+        public void handle(Map<?, ?> input, boolean allowTokens) throws IOException {
+            parent.handle(getQueriesResult(input), allowTokens);
+        }
+
+        @Override
+        public void close() throws Exception {
+            parent.close();
+        }
+
+        private QueriesNodeResult getQueriesResult(Map<?, ?> map) {
+            return new QueriesNodeResult(map);
         }
     }
 }
