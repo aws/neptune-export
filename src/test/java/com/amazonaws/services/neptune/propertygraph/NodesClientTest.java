@@ -2,6 +2,8 @@ package com.amazonaws.services.neptune.propertygraph;
 
 import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.propertygraph.io.GraphElementHandler;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
+import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphSchema;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,9 +16,14 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +56,7 @@ public class NodesClientTest {
                     @Override
                     public void close() {}
                 },
-                Range.ALL, new AllLabels(mock(LabelStrategy.class)), GremlinFilters.EMPTY);
+                Range.ALL, new AllLabels(NodeLabelStrategy.nodeLabelsOnly), GremlinFilters.EMPTY);
 
         JsonNode expectedSchema = new ObjectMapper().readTree(
                 "{\n" +
@@ -87,6 +94,24 @@ public class NodesClientTest {
                         "}"
         );
         assertEquals(expectedSchema, schema.toJson(false));
+    }
+
+    @Test
+    public void testQueryForValues() {
+        List<String> ids = new ArrayList<>();
+        GraphElementHandler<PGResult> handler = new GraphElementHandler<PGResult>() {
+            @Override
+            public void handle(PGResult element, boolean allowTokens) throws IOException {
+                ids.add(element.getId());
+                assertFalse(allowTokens);
+            }
+            @Override
+            public void close() throws Exception {}
+        };
+        client.queryForValues(handler, Range.ALL, new AllLabels(NodeLabelStrategy.nodeLabelsOnly),
+                GremlinFilters.EMPTY, new GraphElementSchemas());
+
+        assertEquals(Arrays.asList("1","2","3","4","5","6"), ids);
     }
 
 }

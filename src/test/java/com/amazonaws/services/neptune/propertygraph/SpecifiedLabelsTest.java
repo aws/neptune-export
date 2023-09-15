@@ -13,6 +13,8 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.propertygraph;
 
 import com.amazonaws.services.neptune.export.FeatureToggles;
+import com.amazonaws.services.neptune.propertygraph.io.result.ExportPGNodeResult;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -21,9 +23,12 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyGraph;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -216,5 +221,35 @@ public class SpecifiedLabelsTest {
         assertEquals("edges with zero labels", newFilter.description("edges"));
     }
 
+    @Test
+    public void shouldGetSpecifiedLabelForPGResult() {
+        LabelStrategy labelStrategy = NodeLabelStrategy.nodeLabelsOnly;
+        SpecifiedLabels specifiedLabels = new SpecifiedLabels(
+                Arrays.asList(new Label("label1"), new Label("label2")), labelStrategy);
+
+        Map<String, Object> input = new HashMap<>();
+        List<String> labels = Collections.singletonList("label1");
+        input.put("~label", labels);
+        PGResult pgResult = new ExportPGNodeResult(input);
+
+        Label label = specifiedLabels.getLabelFor(pgResult);
+
+        assertEquals(new Label(labels), label);
+    }
+
+    @Test
+    public void shouldGetSpecifiedLabelForInputMap() {
+        LabelStrategy labelStrategy = NodeLabelStrategy.nodeLabelsOnly;
+        SpecifiedLabels specifiedLabels = new SpecifiedLabels(
+                Arrays.asList(new Label("label1"), new Label("label2")), labelStrategy);
+
+        Map<String, Object> input = new HashMap<>();
+        List<String> labels = Collections.singletonList("label1");
+        input.put("~label", labels);
+
+        Label label = specifiedLabels.getLabelFor(input);
+
+        assertEquals(new Label(labels), label);
+    }
 
 }

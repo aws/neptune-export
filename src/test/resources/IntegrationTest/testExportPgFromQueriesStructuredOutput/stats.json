@@ -1,0 +1,236 @@
+{
+  "stats" : {
+    "nodes" : 47,
+    "edges" : 1326,
+    "properties" : 1881,
+    "details" : {
+      "nodes" : [ {
+        "description" : "version",
+        "labels" : [ "version" ],
+        "count" : 1,
+        "properties" : [ {
+          "name" : "type",
+          "count" : 1,
+          "numberOfRecords" : 1,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 1
+            } ]
+          }
+        }, {
+          "name" : "code",
+          "count" : 1,
+          "numberOfRecords" : 1,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 1
+            } ]
+          }
+        }, {
+          "name" : "desc",
+          "count" : 1,
+          "numberOfRecords" : 1,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 1
+            } ]
+          }
+        } ]
+      }, {
+        "description" : "airport",
+        "labels" : [ "airport" ],
+        "count" : 46,
+        "properties" : [ {
+          "name" : "country",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 46
+            } ]
+          }
+        }, {
+          "name" : "code",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 46
+            } ]
+          }
+        }, {
+          "name" : "longest",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Integer",
+            "counts" : [ {
+              "Integer" : 46
+            } ]
+          }
+        }, {
+          "name" : "city",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 46
+            } ]
+          }
+        }, {
+          "name" : "elev",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Integer",
+            "counts" : [ {
+              "Integer" : 46
+            } ]
+          }
+        }, {
+          "name" : "icao",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 46
+            } ]
+          }
+        }, {
+          "name" : "lon",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Double",
+            "counts" : [ {
+              "Double" : 46
+            } ]
+          }
+        }, {
+          "name" : "type",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 46
+            } ]
+          }
+        }, {
+          "name" : "region",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 46
+            } ]
+          }
+        }, {
+          "name" : "runways",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Integer",
+            "counts" : [ {
+              "Integer" : 46
+            } ]
+          }
+        }, {
+          "name" : "lat",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Double",
+            "counts" : [ {
+              "Double" : 46
+            } ]
+          }
+        }, {
+          "name" : "desc",
+          "count" : 46,
+          "numberOfRecords" : 46,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "String",
+            "counts" : [ {
+              "String" : 46
+            } ]
+          }
+        } ]
+      } ],
+      "edges" : [ {
+        "description" : "route",
+        "labels" : {
+          "edge" : [ "route" ]
+        },
+        "count" : 1326,
+        "properties" : [ {
+          "name" : "dist",
+          "count" : 1326,
+          "numberOfRecords" : 1326,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Integer",
+            "counts" : [ {
+              "Integer" : 1326
+            } ]
+          }
+        } ]
+      } ]
+    }
+  }
+}
