@@ -64,7 +64,32 @@
                     db.r5.4xlarge
                     db.r5.8xlarge
                     db.r5.12xlarge
+                    db.r5.16xlarge
+                    db.r5.24xlarge
+                    db.r5d.large
+                    db.r5d.xlarge
+                    db.r5d.2xlarge
+                    db.r5d.4xlarge
+                    db.r5d.8xlarge
+                    db.r5d.12xlarge
+                    db.r5d.16xlarge
+                    db.r5d.24xlarge
+                    db.r6g.large
+                    db.r6g.xlarge
+                    db.r6g.2xlarge
+                    db.r6g.4xlarge
+                    db.r6g.8xlarge
+                    db.r6g.12xlarge
+                    db.r6g.16xlarge
+                    db.x2g.large
+                    db.x2g.xlarge
+                    db.x2g.2xlarge
+                    db.x2g.4xlarge
+                    db.x2g.8xlarge
+                    db.x2g.12xlarge
+                    db.x2g.16xlarge
                     db.t3.medium
+                    db.t4g.medium
                     r4.large
                     r4.xlarge
                     r4.2xlarge
@@ -76,7 +101,32 @@
                     r5.4xlarge
                     r5.8xlarge
                     r5.12xlarge
+                    r5.16xlarge
+                    r5.24xlarge
+                    r5d.large
+                    r5d.xlarge
+                    r5d.2xlarge
+                    r5d.4xlarge
+                    r5d.8xlarge
+                    r5d.12xlarge
+                    r5d.16xlarge
+                    r5d.24xlarge
+                    r6g.large
+                    r6g.xlarge
+                    r6g.2xlarge
+                    r6g.4xlarge
+                    r6g.8xlarge
+                    r6g.12xlarge
+                    r6g.16xlarge
+                    x2g.large
+                    x2g.xlarge
+                    x2g.2xlarge
+                    x2g.4xlarge
+                    x2g.8xlarge
+                    x2g.12xlarge
+                    x2g.16xlarge
                     t3.medium
+                    t4g.medium
     
                 This option may occur a maximum of 1 times
     
