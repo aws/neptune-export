@@ -2,6 +2,7 @@
 
 [![CI Status](https://github.com/aws/neptune-export/actions/workflows/maven_build_and_verify.yml/badge.svg)](https://github.com/aws/neptune-export/actions/workflows/maven_build_and_verify.yml)
 [![Code Coverage](https://codecov.io/gh/aws/neptune-export/branch/develop/graph/badge.svg)](https://codecov.io/gh/aws/neptune-export)
+[![Project Map](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/awsneptuneexport/)
 
 Exports Amazon Neptune property graph data to CSV or JSON, or RDF graph data to Turtle.
 
