@@ -14,6 +14,18 @@ on:
   pull_request:
     branches: [ "develop" ]
 
+  # Trigger on-demand
+  workflow_dispatch:
+    inputs:
+      signJarArtifacts:
+        description: Sign jar file artifacts
+        type: boolean
+        required: false
+        default: false
+
+env:
+  SIGNING_ENABLED: ${{ github.event.inputs.signJarArtifacts }}
+
 jobs:
   build:
 
@@ -29,6 +41,73 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B clean io.github.git-commit-id:git-commit-id-maven-plugin:revision io.github.git-commit-id:git-commit-id-maven-plugin:validateRevision install --file pom.xml
+
+    - name: "Configure AWS credentials"
+      if: ${{env.SIGNING_ENABLED == 'true'}}
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-skip-session-tagging: true
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+        role-duration-seconds: 3600
+
+    - name: Sign Jar files
+      id: sign-jar-files
+      shell: bash
+      run: |
+        echo "Sign is set to ${SIGNING_ENABLED}"
+        if [[ $SIGNING_ENABLED = "true" ]]
+        then
+          echo "Signing is enabled. Will attempt to sign"
+          echo "Installing jq"
+          sudo apt-get install jq
+          # Upload unsigned jars to S3 Bucket
+          echo "Obtaining version id and uploading unsigned jar files to S3 Bucket"
+          version=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout`
+        
+          ls -l ./target
+          echo "Path = ./target/neptune-export-${version}-all.jar"
+        
+          version_id=$( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body ./target/neptune-export-${version}-all.jar  --acl bucket-owner-full-control | jq '.VersionId' )
+          job_id=""
+          # Attempt to get Job ID from bucket tagging, will retry up to 3 times before exiting with a failure code.
+          # Will sleep for 5 seconds between retries.
+          echo "Attempt to get Job ID from bucket tagging, will retry up to 3 times before exiting with a failure code."
+          for (( i=0; i<3; i++ ))
+          do  
+            # Get job ID
+            id=$( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --version-id ${version_id} | jq -r '.TagSet[0].Value' )
+            if [ $id != "null" ]
+            then
+              job_id=$id
+              break
+            fi
+            echo "Will sleep for 5 seconds between retries."
+            sleep 5s
+          done
+          if [[ $job_id = "" ]]
+          then
+             echo "Exiting because unable to retrieve job ID"
+             exit 1
+          fi
+          # Poll signed S3 bucket to see if the signed artifact is there
+          echo "Poll signed S3 bucket to see if the signed artifact is there"
+          for (( i=0; i<8; i++ ))
+          do  
+            aws s3api wait object-exists --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-${job_id}.jar && break
+            echo "Will sleep for 5 seconds between retries."
+            sleep 5s
+          done
+          # Downloading signed jar from S3
+          echo "Downloading signed jar from S3"
+          aws s3api get-object --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-${job_id}.jar ./target/neptune-export-${version}-all-signed.jar
+          echo "Signing completed"
+        else
+          echo "Signing will be skipped"
+        fi
 
     - name: Copy artifacts
       run: |
