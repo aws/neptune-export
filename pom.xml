@@ -6,7 +6,7 @@
 
     <groupId>com.amazonaws</groupId>
     <artifactId>neptune-export</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.7</version>
 
     <licenses>
         <license>
