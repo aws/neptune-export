@@ -1,5 +1,11 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v1.1.0 (Release Date: TBD):
+
+### Bug Fixes:
+
+### New Features and Improvements:
+
 ## Neptune Export v1.0.7 (Release Date: September 27, 2023):
 
 ### New Features and Improvements:
