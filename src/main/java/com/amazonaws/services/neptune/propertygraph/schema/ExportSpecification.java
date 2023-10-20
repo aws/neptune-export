@@ -169,6 +169,14 @@ public class ExportSpecification {
         }
     }
 
+    public GraphElementType getGraphElementType() {
+        return graphElementType;
+    }
+
+    public LabelsFilter getLabelsFilter() {
+        return labelsFilter;
+    }
+
     private static class CreateSchemaHandler implements GraphElementHandler<Map<?, Object>> {
 
         private final GraphElementType graphElementType;

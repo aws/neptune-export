@@ -20,7 +20,7 @@ import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import java.io.IOException;
 import java.util.*;
 
-public class EdgeWriter implements LabelWriter<PGEdgeResult> {
+public class EdgeWriter implements LabelWriter<PGResult> {
 
     private final PropertyGraphPrinter propertyGraphPrinter;
     private final boolean hasFromAndToLabels;
@@ -31,7 +31,7 @@ public class EdgeWriter implements LabelWriter<PGEdgeResult> {
     }
 
     @Override
-    public void handle(PGEdgeResult edge, boolean allowTokens) throws IOException {
+    public void handle(PGResult edge, boolean allowTokens) throws IOException {
         String from = edge.getFrom();
         String to = edge.getTo();
         Map<?, Object> properties = edge.getProperties();
