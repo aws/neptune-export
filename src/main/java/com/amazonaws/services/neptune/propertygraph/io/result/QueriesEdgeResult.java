@@ -5,6 +5,7 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.T;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +30,7 @@ public class QueriesEdgeResult implements PGResult {
     }
 
     public List<String> getLabel() {
-        List<String> labels = new ArrayList<>(1);
-        labels.add(String.valueOf(edgeMap.get(T.label)));
-        return labels;
+        return Collections.singletonList(String.valueOf(edgeMap.get(T.label)));
     }
 
     @Override
@@ -46,25 +45,22 @@ public class QueriesEdgeResult implements PGResult {
 
     @Override
     public String getFrom() {
-        return String.valueOf(((Map<String, Object>)edgeMap.get(Direction.IN)).get(T.id));
-    }
-
-    @Override
-    public String getTo() {
         return String.valueOf(((Map<String, Object>)edgeMap.get(Direction.OUT)).get(T.id));
     }
 
     @Override
+    public String getTo() {
+        return String.valueOf(((Map<String, Object>)edgeMap.get(Direction.IN)).get(T.id));
+    }
+
+    @Override
     public List<String> getFromLabels() {
-        List<String> labels = new ArrayList<>(1);
-        labels.add(String.valueOf(((Map<String, Object>)edgeMap.get(Direction.IN)).get(T.label)));
-        return labels;
+        return Collections.singletonList(String.valueOf(((Map<String, Object>)edgeMap.get(Direction.OUT)).get(T.label)));
     }
 
     @Override
     public List<String> getToLabels() {
-        List<String> labels = new ArrayList<>(1);
-        labels.add(String.valueOf(((Map<String, Object>)edgeMap.get(Direction.OUT)).get(T.label)));
-        return labels;    }
+        return Collections.singletonList(String.valueOf(((Map<String, Object>)edgeMap.get(Direction.IN)).get(T.label)));
+    }
 
 }

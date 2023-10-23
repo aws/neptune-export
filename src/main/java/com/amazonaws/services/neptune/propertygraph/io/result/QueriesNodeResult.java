@@ -27,9 +27,7 @@ public class QueriesNodeResult implements PGResult {
     }
 
     public List<String> getLabel() {
-        List<String> labels = new ArrayList<>(1);
-        labels.add(String.valueOf(nodeMap.get(T.label)));
-        return labels;
+        return Collections.singletonList(String.valueOf(nodeMap.get(T.label)));
     }
 
     @Override
