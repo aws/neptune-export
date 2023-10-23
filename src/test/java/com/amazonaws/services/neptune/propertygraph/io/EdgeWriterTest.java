@@ -6,11 +6,15 @@ import com.amazonaws.services.neptune.propertygraph.EdgeLabelStrategy;
 import com.amazonaws.services.neptune.propertygraph.EdgesClient;
 import com.amazonaws.services.neptune.propertygraph.ExportStats;
 import com.amazonaws.services.neptune.propertygraph.GremlinFilters;
+import com.amazonaws.services.neptune.propertygraph.LabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.LabelsFilter;
 import com.amazonaws.services.neptune.propertygraph.Range;
 import com.amazonaws.services.neptune.propertygraph.io.result.PGEdgeResult;
 import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
+import com.amazonaws.services.neptune.propertygraph.io.result.QueriesEdgeResult;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,20 +29,21 @@ import static org.mockito.Mockito.when;
 public class EdgeWriterTest {
 
     private EdgesClient client;
+    private GraphTraversalSource gModern;
 
     @Before
     public void setup() {
-        GraphTraversalSource graphTraversalSource = TinkerFactory.createModern().traversal();
+        gModern = TinkerFactory.createModern().traversal();
         ExportStats mockStats = mock(ExportStats.class);
         FeatureToggles mockFeatures = mock(FeatureToggles.class);
         when(mockFeatures.containsFeature(Mockito.any())).thenReturn(false);
 
-        client = new EdgesClient(graphTraversalSource, false, mockStats, mockFeatures);
+        client = new EdgesClient(gModern, false, mockStats, mockFeatures);
     }
 
     @Test
-    public void testHandle() throws IOException {
-        PGEdgeResult edgeResult = getPGEdgeResult("7");
+    public void shouldHandlePGEdgeResultWithEdgeLabelsOnly() throws IOException {
+        PGEdgeResult edgeResult = getPGEdgeResult("7", new AllLabels(EdgeLabelStrategy.edgeLabelsOnly));
         PropertyGraphStringPrinter pgPrinter = new PropertyGraphStringPrinter();
         EdgeWriter edgeWriter = new EdgeWriter(pgPrinter, EdgeLabelStrategy.edgeLabelsOnly.getLabelFor(edgeResult));
 
@@ -50,7 +55,49 @@ public class EdgeWriterTest {
         assertEquals(expected, pgPrinter.getOutput());
     }
 
-    private PGEdgeResult getPGEdgeResult(String id) {
+    @Test
+    public void shouldHandlePGEdgeResultWithEdgeAndVertexLabels() throws IOException {
+        PGEdgeResult edgeResult = getPGEdgeResult("7", new AllLabels(EdgeLabelStrategy.edgeAndVertexLabels));
+        PropertyGraphStringPrinter pgPrinter = new PropertyGraphStringPrinter();
+        EdgeWriter edgeWriter = new EdgeWriter(pgPrinter, EdgeLabelStrategy.edgeAndVertexLabels.getLabelFor(edgeResult));
+
+        edgeWriter.handle(edgeResult, true);
+
+        String expected = "Start Row\n" +
+                "Edge[7, knows, 1, 2, fromLabels{person, }, toLabels{person, }] Properties{weight:0.5, } \n";
+
+        assertEquals(expected, pgPrinter.getOutput());
+    }
+
+    @Test
+    public void shouldHandleQueriesEdgeResultWithEdgeLabelsOnly() throws IOException {
+        QueriesEdgeResult edgeResult = getQueriesEdgeResult("7");
+        PropertyGraphStringPrinter pgPrinter = new PropertyGraphStringPrinter();
+        EdgeWriter edgeWriter = new EdgeWriter(pgPrinter, EdgeLabelStrategy.edgeLabelsOnly.getLabelFor(edgeResult));
+
+        edgeWriter.handle(edgeResult, true);
+
+        String expected = "Start Row\n" +
+                "Edge[7, knows, 1, 2] Properties{weight:0.5, } \n";
+
+        assertEquals(expected, pgPrinter.getOutput());
+    }
+
+    @Test
+    public void shouldHandleQueriesEdgeResultWithEdgeAndVertexLabels() throws IOException {
+        QueriesEdgeResult edgeResult = getQueriesEdgeResult("7");
+        PropertyGraphStringPrinter pgPrinter = new PropertyGraphStringPrinter();
+        EdgeWriter edgeWriter = new EdgeWriter(pgPrinter, EdgeLabelStrategy.edgeAndVertexLabels.getLabelFor(edgeResult));
+
+        edgeWriter.handle(edgeResult, true);
+
+        String expected = "Start Row\n" +
+                "Edge[7, knows, 1, 2, fromLabels{person, }, toLabels{person, }] Properties{weight:0.5, } \n";
+
+        assertEquals(expected, pgPrinter.getOutput());
+    }
+
+    private PGEdgeResult getPGEdgeResult(String id, LabelsFilter labelsFilter) {
         final PGEdgeResult[] result = {null};
         GraphElementHandler<PGResult> handler = new GraphElementHandler<PGResult>() {
             @Override
@@ -62,9 +109,13 @@ public class EdgeWriterTest {
             @Override
             public void close() throws Exception {}
         };
-        client.queryForValues(handler, Range.ALL, new AllLabels(EdgeLabelStrategy.edgeLabelsOnly),
+        client.queryForValues(handler, Range.ALL, labelsFilter,
                 GremlinFilters.EMPTY, new GraphElementSchemas());
         return result[0];
+    }
+
+    private QueriesEdgeResult getQueriesEdgeResult(String id) {
+        return new QueriesEdgeResult(gModern.E(id).elementMap().next());
     }
 
 }
