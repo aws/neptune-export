@@ -20,6 +20,18 @@ public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
     }
 
     @Test
+    public void testExportPgWithEdgeAndVertexLabels() {
+        final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
+                "--edge-label-strategy", "edgeAndVertexLabels"};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertEquivalentResults(new File("src/test/resources/IntegrationTest/testExportPgWithEdgeAndVertexLabels"), resultDir);
+    }
+
+    @Test
     public void testExportPgToCsvWithJanus() {
         final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(), "--janus"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);

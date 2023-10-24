@@ -97,23 +97,39 @@ public abstract class AbstractExportIntegrationTest {
 
         assertTrue("Expected path to a directory", expectedDir.isDirectory() && actualDir.isDirectory());
 
-        if(config.hasNodeSchemas()) {
-            GraphElementSchemas nodeSchemas = config.graphElementSchemasFor(GraphElementType.nodes);
-            for(Label l : nodeSchemas.labels()) {
-                String label = l.fullyQualifiedLabel();
+        GraphElementSchemas schemas;
 
-                if(!areLabelledDirContentsEquivalent(expectedDir, actualDir, label)) {
-                    return false;
-                }
+        if(expectedDir.getName().equals("nodes")) {
+            if(!config.hasNodeSchemas()) {
+                return true;
+            }
+            schemas = config.graphElementSchemasFor(GraphElementType.nodes);
+        } else if(expectedDir.getName().equals("edges")) {
+            if(!config.hasEdgeSchemas()) {
+                return true;
+            }
+            schemas = config.graphElementSchemasFor(GraphElementType.edges);
+        } else {
+            throw new IllegalArgumentException("directory must end in either /nodes or /edges");
+        }
+
+        for(Label l : schemas.labels()) {
+            String label = l.fullyQualifiedLabel();
+
+            if(!areLabelledDirContentsEquivalent(expectedDir, actualDir, label)) {
+                return false;
             }
         }
+
         return true;
     }
 
     protected boolean areLabelledDirContentsEquivalent(final File expectedDir, final File actualDir, final String label) {
+        final String escapedLabel = label.replaceAll("\\(", "%28").replaceAll("\\)", "%29");
+
         final List<String> expectedNodes = new ArrayList<>();
         final List<String> actualNodes = new ArrayList<>();
-        for(File file : expectedDir.listFiles((dir, name) -> name.startsWith(label))){
+        for(File file : expectedDir.listFiles((dir, name) -> name.startsWith(escapedLabel))){
             try {
                 CSVParser parser = CSVParser.parse(file, StandardCharsets.UTF_8, CSVFormat.RFC4180);
                 Collection<String> list = parser.stream()
@@ -125,7 +141,7 @@ public abstract class AbstractExportIntegrationTest {
             }
         }
 
-        for(File file : actualDir.listFiles((dir, name) -> name.startsWith(label))){
+        for(File file : actualDir.listFiles((dir, name) -> name.startsWith(escapedLabel))){
             try {
                 CSVParser parser = CSVParser.parse(file, StandardCharsets.UTF_8, CSVFormat.RFC4180);
                 Collection<String> list = parser.stream()
