@@ -23,7 +23,6 @@ import com.amazonaws.services.neptune.cluster.ConcurrencyConfig;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
 import com.amazonaws.services.neptune.propertygraph.NodeLabelStrategy;
 import com.amazonaws.services.neptune.propertygraph.schema.ExportSpecification;
-import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchema;
 import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import com.amazonaws.services.neptune.propertygraph.schema.MasterLabelSchemas;
@@ -32,7 +31,6 @@ import com.amazonaws.services.neptune.util.Timer;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.*;
