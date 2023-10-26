@@ -120,7 +120,7 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
 
                     Collection<ExportSpecification> exportSpecifications = scope.exportSpecifications(
                             graphSchema,
-                            new GremlinFilters(null, null, null),
+                            GremlinFilters.EMPTY,
                             exportStats,
                             featureToggles());
 

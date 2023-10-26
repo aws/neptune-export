@@ -1,0 +1,31 @@
+{
+  "stats" : {
+    "nodes" : 0,
+    "edges" : 1326,
+    "properties" : 1326,
+    "details" : {
+      "nodes" : [ ],
+      "edges" : [ {
+        "description" : "route",
+        "labels" : {
+          "edge" : [ "route" ]
+        },
+        "count" : 1326,
+        "properties" : [ {
+          "name" : "dist",
+          "count" : 1326,
+          "numberOfRecords" : 1326,
+          "minCardinality" : 1,
+          "maxCardinality" : 1,
+          "isNullable" : false,
+          "dataTypes" : {
+            "inferred" : "Integer",
+            "counts" : [ {
+              "Integer" : 1326
+            } ]
+          }
+        } ]
+      } ]
+    }
+  }
+}

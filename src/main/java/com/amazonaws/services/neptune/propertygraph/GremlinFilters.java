@@ -29,18 +29,20 @@ import java.util.List;
 
 public class GremlinFilters {
 
-    public static final GremlinFilters EMPTY = new GremlinFilters(null, null, null);
+    public static final GremlinFilters EMPTY = new GremlinFilters(null, null, null, false);
 
     private final String gremlinFilter;
     private final String gremlinNodeFilter;
     private final String gremlinEdgeFilter;
+    private final boolean filterEdgesEarly;
 
     private static final List<String> INVALID_OPERATORS = Arrays.asList("addV", "addE", "write", "drop", "sideEffect", "property");
 
-    public GremlinFilters(String gremlinFilter, String gremlinNodeFilter, String gremlinEdgeFilter) {
+    public GremlinFilters(String gremlinFilter, String gremlinNodeFilter, String gremlinEdgeFilter, boolean filterEdgesEarly) {
         this.gremlinFilter = gremlinFilter;
         this.gremlinNodeFilter = gremlinNodeFilter;
         this.gremlinEdgeFilter = gremlinEdgeFilter;
+        this.filterEdgesEarly = filterEdgesEarly;
     }
 
     public GraphTraversal<? extends Element, ?> applyToNodes(GraphTraversal<? extends Element, ?> t) {
@@ -61,6 +63,10 @@ public class GremlinFilters {
         } else {
             return t;
         }
+    }
+
+    public boolean filterEdgesEarly() {
+        return filterEdgesEarly;
     }
 
     private GraphTraversal<? extends Element, ?> apply(GraphTraversal<? extends Element, ?> t, String gremlin) {

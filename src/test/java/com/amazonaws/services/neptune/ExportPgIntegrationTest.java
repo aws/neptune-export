@@ -41,4 +41,28 @@ public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
 
         assertEquivalentResults(new File("src/test/resources/IntegrationTest/testExportPgToCsvWithGremlinFilter"), resultDir);
     }
+
+    @Test
+    public void testExportEdgesToCsvWithGremlinFilter() {
+        final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
+                "--gremlin-filter", "hasLabel(\"route\")"};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertEquivalentResults(new File("src/test/resources/IntegrationTest/testExportEdgesToCsvWithGremlinFilter"), resultDir);
+    }
+
+    @Test
+    public void testExportEdgesToCsvWithGremlinFilterWithEarlyGremlinFilter() {
+        final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
+                "--gremlin-filter", "hasLabel(\"route\")", "--filter-edges-early"};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertEquivalentResults(new File("src/test/resources/IntegrationTest/testExportEdgesToCsvWithGremlinFilter"), resultDir);
+    }
 }

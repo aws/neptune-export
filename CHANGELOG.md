@@ -6,6 +6,8 @@
 
 ### New Features and Improvements:
 
+- Add --filter-edges-early option to property graph exports. This option forces gremlinFilters to apply before the range() step which breaks up concurrent traversals. This may lead to improved performance in cases where the gremlinFilters are efficient and filter out the majority of edges.
+
 ## Neptune Export v1.0.7 (Release Date: September 27, 2023):
 
 ### New Features and Improvements:

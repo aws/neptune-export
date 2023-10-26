@@ -15,7 +15,8 @@
                     [ {-e | --endpoint} <endpoint>... ]
                     [ --edge-label-strategy <edgeLabelStrategy> ]
                     [ {-el | --edge-label} <edgeLabels>... ]
-                    [ --export-id <exportId> ] [ --format <format> ]
+                    [ --export-id <exportId> ] [ --filter-edges-early ]
+                    [ --format <format> ]
                     [ --gremlin-edge-filter <gremlinEdgeFilter> ]
                     [ --gremlin-filter <gremlinFilter> ]
                     [ --gremlin-node-filter <gremlinNodeFilter> ] [ --janus ]
@@ -227,6 +228,12 @@
                 This option may occur a maximum of 1 times
     
     
+            --filter-edges-early
+                Forces gremlinFilters to apply before the range() step which breaks up
+                concurrent traversals. This may lead to improved performance in cases where the
+                gremlinFilters are efficient and filter out the majority of edges.
+
+
             --format <format>
                 Output format (optional, default 'csv').
     

@@ -89,10 +89,19 @@ public class EdgesClient implements GraphClient<PGResult> {
                 g.withSideEffect("x", new HashMap<String, Object>()).E() :
                 g.E();
 
-        GraphTraversal<? extends Element, ?> t2 = range.applyRange(labelsFilter.apply(t1, featureToggles, GraphElementType.edges));
+        GraphTraversal<? extends Element, ?> t2 = labelsFilter.apply(t1, featureToggles, GraphElementType.edges);
+
+        if(!gremlinFilters.filterEdgesEarly()) {
+            t2 = range.applyRange(t2);
+        }
+
         GraphTraversal<? extends Element, ?> t3 = filterByPropertyKeys(t2, labelsFilter, graphElementSchemas);
 
         GraphTraversal<? extends Element, ?> t4 = gremlinFilters.applyToEdges(t3);
+
+        if(gremlinFilters.filterEdgesEarly()) {
+            t4 = range.applyRange(t4);
+        }
 
         GraphTraversal<? extends Element, Map<String, Object>> t5 = t4.
                 project("~id", labelsFilter.addAdditionalColumnNames("~label", "properties", "~from", "~to")).
@@ -143,7 +152,11 @@ public class EdgesClient implements GraphClient<PGResult> {
         System.err.println(String.format("Counting %s...", description));
 
         return Timer.timedActivity(String.format("counting %s", description), (Activity.Callable<Long>) () -> {
-            GraphTraversal<? extends Element, Long> t = traversal(Range.ALL, labelsFilter).count();
+            GraphTraversal<? extends Element, ?> traversal = traversal(Range.ALL, labelsFilter);
+            if(gremlinFilters.filterEdgesEarly()) {
+                traversal = gremlinFilters.applyToEdges(traversal);
+            }
+            GraphTraversal<? extends Element, Long> t = traversal.count();
             logger.info(GremlinQueryDebugger.queryAsString(t));
 
             Long count = t.next();
