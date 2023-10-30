@@ -218,3 +218,11 @@ The Lambda function expects a number of parameters, which you can supply either 
 | `CONFIG_FILE_S3_PATH` | `configFileS3Path` | S3 location of a JSON config file to be used when exporting a property graph from a config file | Optional |
 | `COMPLETION_FILE_S3_PATH` | `completionFileS3Path` | S3 location to which a completion file should be written once all export files have been copied to S3 | Optional |
 | `SSE_KMS_KEY_ID` | `sseKmsKeyId` | ID of the customer managed AWS-KMS symmetric encryption key to used for server-side encryption when exporting to S3 | Optional |
+
+## Samples
+
+### [AWS CDK Wrapper for Machine Learning](https://github.com/aws-samples/aws-cdk-wrapper-for-amazon-neptune-export-for-fake-news-detection)
+
+A CDK Wrapper around Neptune Export and Neptune ML CloudFormation stacks to run [fake news detection jobs](https://github.com/aws-samples/amazon-neptune-ml-fake-news-detection).
+
+
