@@ -15,17 +15,23 @@ package com.amazonaws.services.neptune.propertygraph.io;
 import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.io.Status;
 import com.amazonaws.services.neptune.io.StatusOutputFormat;
+import com.amazonaws.services.neptune.propertygraph.AllLabels;
+import com.amazonaws.services.neptune.propertygraph.EdgeLabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.LabelsFilter;
 import com.amazonaws.services.neptune.propertygraph.NamedQuery;
 import com.amazonaws.services.neptune.cluster.ConcurrencyConfig;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
+import com.amazonaws.services.neptune.propertygraph.NodeLabelStrategy;
 import com.amazonaws.services.neptune.propertygraph.schema.ExportSpecification;
 import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
+import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import com.amazonaws.services.neptune.propertygraph.schema.MasterLabelSchemas;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,9 +79,22 @@ public class QueryJob {
 
         ExecutorService taskExecutor = Executors.newFixedThreadPool(concurrencyConfig.concurrency());
 
-        Collection<Future<FileSpecificLabelSchemas>> futures = new ArrayList<>();
+        Collection<Future<Map<GraphElementType, FileSpecificLabelSchemas>>> futures = new ArrayList<>();
 
-        Collection<FileSpecificLabelSchemas> fileSpecificLabelSchemas = new ArrayList<>();
+        Collection<FileSpecificLabelSchemas> nodesFileSpecificLabelSchemas = new ArrayList<>();
+        Collection<FileSpecificLabelSchemas> edgesFileSpecificLabelSchemas = new ArrayList<>();
+
+        LabelsFilter nodeLabelFilter = new AllLabels(NodeLabelStrategy.nodeLabelsOnly);
+        LabelsFilter edgeLabelFilter = new AllLabels(EdgeLabelStrategy.edgeLabelsOnly);
+
+        for(ExportSpecification exportSpecification : exportSpecifications) {
+            if (exportSpecification.getGraphElementType() == GraphElementType.nodes) {
+                nodeLabelFilter = exportSpecification.getLabelsFilter();
+            }
+            else {
+                edgeLabelFilter = exportSpecification.getLabelsFilter();
+            }
+        }
 
         AtomicInteger fileIndex = new AtomicInteger();
 
@@ -88,7 +107,9 @@ public class QueryJob {
                     timeoutMillis,
                     status,
                     fileIndex,
-                    structuredOutput);
+                    structuredOutput,
+                    nodeLabelFilter,
+                    edgeLabelFilter);
             futures.add(taskExecutor.submit(queryTask));
         }
 
@@ -101,23 +122,31 @@ public class QueryJob {
             throw new RuntimeException(e);
         }
 
-        for (Future<FileSpecificLabelSchemas> future : futures) {
+        for (Future<Map<GraphElementType, FileSpecificLabelSchemas>> future : futures) {
             if (future.isCancelled()) {
                 throw new IllegalStateException("Unable to complete job because at least one task was cancelled");
             }
             if (!future.isDone()) {
                 throw new IllegalStateException("Unable to complete job because at least one task has not completed");
             }
-            fileSpecificLabelSchemas.add(future.get());
+            Map<GraphElementType, FileSpecificLabelSchemas> result = future.get();
+            nodesFileSpecificLabelSchemas.add(result.get(GraphElementType.nodes));
+            edgesFileSpecificLabelSchemas.add(result.get(GraphElementType.edges));
         }
 
         RewriteCommand rewriteCommand = targetConfig.createRewriteCommand(concurrencyConfig, featureToggles);
-        MasterLabelSchemas masterLabelSchemas = exportSpecifications.iterator().next().createMasterLabelSchemas(fileSpecificLabelSchemas);
 
-        try {
-            rewriteCommand.execute(masterLabelSchemas);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        for(ExportSpecification exportSpecification : exportSpecifications) {
+            MasterLabelSchemas masterLabelSchemas = exportSpecification.createMasterLabelSchemas(
+                    exportSpecification.getGraphElementType().equals(GraphElementType.nodes) ?
+                            nodesFileSpecificLabelSchemas : edgesFileSpecificLabelSchemas
+            );
+            try {
+                rewriteCommand.execute(masterLabelSchemas);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
+
     }
 }

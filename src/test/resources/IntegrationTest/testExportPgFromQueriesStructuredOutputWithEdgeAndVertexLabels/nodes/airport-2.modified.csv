@@ -1,0 +1,47 @@
+~id,~label,country:string,code:string,longest:int,city:string,lon:double,type:string,elev:int,icao:string,region:string,runways:int,lat:double,desc:string
+1,airport,US,ATL,12390,Atlanta,-84.4281005859375,airport,1026,KATL,US-GA,5,33.6366996765137,Hartsfield - Jackson Atlanta International Airport
+2,airport,US,ANC,12400,Anchorage,-149.996002197266,airport,151,PANC,US-AK,3,61.1744003295898,Anchorage Ted Stevens
+3,airport,US,AUS,12250,Austin,-97.6698989868164,airport,542,KAUS,US-TX,2,30.1944999694824,Austin Bergstrom International Airport
+4,airport,US,BNA,11030,Nashville,-86.6781997680664,airport,599,KBNA,US-TN,4,36.1245002746582,Nashville International Airport
+5,airport,US,BOS,10083,Boston,-71.00520325,airport,19,KBOS,US-MA,6,42.36429977,Boston Logan
+6,airport,US,BWI,10502,Baltimore,-76.66829681,airport,143,KBWI,US-MD,3,39.17539978,Baltimore/Washington International Airport
+7,airport,US,DCA,7169,Washington D.C.,-77.0376968383789,airport,14,KDCA,US-DC,3,38.8521003723145,Ronald Reagan Washington National Airport
+8,airport,US,DFW,13401,Dallas,-97.0380020141602,airport,607,KDFW,US-TX,7,32.896800994873,Dallas/Fort Worth International Airport
+9,airport,US,FLL,9000,Fort Lauderdale,-80.152702331543,airport,64,KFLL,US-FL,2,26.0725994110107,Fort Lauderdale/Hollywood International Airport
+10,airport,US,IAD,11500,Washington D.C.,-77.45580292,airport,313,KIAD,US-VA,4,38.94449997,Washington Dulles International Airport
+11,airport,US,IAH,12001,Houston,-95.3414001464844,airport,96,KIAH,US-TX,5,29.9843997955322,George Bush Intercontinental
+12,airport,US,JFK,14511,New York,-73.77890015,airport,12,KJFK,US-NY,4,40.63980103,New York John F. Kennedy International Airport
+13,airport,US,LAX,12091,Los Angeles,-118.4079971,airport,127,KLAX,US-CA,4,33.94250107,Los Angeles International Airport
+14,airport,US,LGA,7003,New York,-73.87259674,airport,20,KLGA,US-NY,2,40.77719879,New York La Guardia
+15,airport,US,MCO,12005,Orlando,-81.3089981079102,airport,96,KMCO,US-FL,4,28.4293994903564,Orlando International Airport
+16,airport,US,MIA,13016,Miami,-80.2906036376953,airport,8,KMIA,US-FL,4,25.7931995391846,Miami International Airport
+17,airport,US,MSP,11006,Minneapolis,-93.2218017578,airport,841,KMSP,US-MN,4,44.8819999695,Minneapolis-St.Paul International Airport
+18,airport,US,ORD,13000,Chicago,-87.90480042,airport,672,KORD,US-IL,8,41.97859955,Chicago O'Hare International Airport
+19,airport,US,PBI,10000,West Palm Beach,-80.0955963134766,airport,19,KPBI,US-FL,3,26.6832008361816,Palm Beach International Airport
+20,airport,US,PHX,11489,Phoenix,-112.012001037598,airport,1135,KPHX,US-AZ,3,33.4342994689941,Phoenix Sky Harbor International Airport
+21,airport,US,RDU,10000,Raleigh,-78.7874984741211,airport,435,KRDU,US-NC,3,35.8776016235352,Raleigh-Durham
+22,airport,US,SEA,11901,Seattle,-122.30899810791,airport,432,KSEA,US-WA,3,47.4490013122559,Seattle-Tacoma
+23,airport,US,SFO,11870,San Francisco,-122.375,airport,13,KSFO,US-CA,4,37.6189994812012,San Francisco International Airport
+24,airport,US,SJC,11000,San Jose,-121.929000854492,airport,62,KSJC,US-CA,3,37.3625984191895,Norman Y. Mineta San Jose International Airport
+25,airport,US,TPA,11002,Tampa,-82.533203125,airport,26,KTPA,US-FL,3,27.9755001068115,Tampa International Airport
+26,airport,US,SAN,9400,San Diego,-117.190002441,airport,16,KSAN,US-CA,1,32.7336006165,San Diego Lindbergh
+27,airport,US,LGB,10003,Long Beach,-118.1520004,airport,60,KLGB,US-CA,3,33.81769943,Long Beach Airport
+28,airport,US,SNA,5701,Santa Ana,-117.8679962,airport,56,KSNA,US-CA,2,33.67570114,"Orange County/Santa Ana, John Wayne"
+29,airport,US,SLC,12002,Salt Lake City,-111.977996826172,airport,56,KSLC,US-UT,4,40.7883987426758,Salt Lake City
+30,airport,US,LAS,14512,Las Vegas,-115.1520004,airport,2181,KLAS,US-NV,4,36.08010101,Las Vegas Mc Carran
+31,airport,US,DEN,16000,Denver,-104.672996520996,airport,5433,KDEN,US-CO,6,39.8616981506348,Denver International Airport
+32,airport,US,HPN,6549,White Plains,-73.7076034545898,airport,439,KHPN,US-NY,2,41.0670013427734,Westchester County
+33,airport,US,SAT,8505,San Antonio,-98.4698028564453,airport,809,KSAT,US-TX,3,29.5337009429932,San Antonio
+34,airport,US,MSY,10104,New Orleans,-90.2580032348633,airport,3,KMSY,US-LA,2,29.9934005737305,New Orleans L. Armstrong
+35,airport,US,EWR,11000,Newark,-74.168701171875,airport,17,KEWR,US-NY,3,40.6925010681152,"Newark, Liberty"
+36,airport,US,CID,8600,Cedar Rapids,-91.7108001708984,airport,869,KCID,US-IA,2,41.8847007751465,The Eastern Iowa Airport
+37,airport,US,HNL,12312,Honolulu,-157.921997070312,airport,13,PHNL,US-HI,4,21.3187007904053,Honolulu International Airport
+38,airport,US,HOU,7602,Houston,-95.27890015,airport,46,KHOU,US-TX,4,29.64539909,Houston Hobby
+39,airport,US,ELP,12020,El Paso,-106.3779984,airport,3961,KELP,US-TX,3,31.80719948,El Paso International Airport
+40,airport,PR,SJU,10400,San Juan,-66.0018005371,airport,9,TJSJ,PR-U-A,2,18.4393997192,"Puerto Rico, Luis Munoz International Airport"
+41,airport,US,CLE,9956,Cleveland,-81.8498001099,airport,799,KCLE,US-OH,3,41.4117012024,"Cleveland, Hopkins International Airport"
+42,airport,US,OAK,10520,Oakland,-122.221000671387,airport,9,KOAK,US-CA,4,37.7212982177734,Oakland
+43,airport,US,TUS,10996,Tucson,-110.94100189209,airport,2643,KTUS,US-AZ,3,32.1161003112793,Tucson International Airport
+44,airport,US,SAF,8366,Santa Fe,-106.088996887,airport,6348,KSAF,US-NM,3,35.617099762,Santa Fe
+45,airport,US,PHL,10506,Philadelphia,-75.241096496582,airport,36,KPHL,US-PA,4,39.871898651123,Philadelphia International Airport
+46,airport,US,DTW,12003,Detroit,-83.353401184082,airport,645,KDTW,US-MI,6,42.2123985290527,"Detroit Metropolitan, Wayne County"

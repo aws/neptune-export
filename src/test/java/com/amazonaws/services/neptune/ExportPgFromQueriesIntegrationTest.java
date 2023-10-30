@@ -32,8 +32,24 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
     public void testExportPgFromQueriesWithStructuredOutput() {
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
-                "-q", "airport=g.V().hasLabel('airport').elementMap()",
+                "-q", "airport=g.V().union(hasLabel('airport'), outE()).elementMap()",
                 "--include-type-definitions",
+                "--structured-output"
+        };
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertEquivalentStructuredOutput(new File("src/test/resources/IntegrationTest/testExportPgFromQueriesStructuredOutput"), resultDir);
+    }
+
+    @Test
+    public void testExportPgFromQueriesWithStructuredOutputWithEdgeAndVertexLabels() {
+        final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
+                "-d", outputDir.getPath(),
+                "-q", "airport=g.V().union(hasLabel('airport'), outE()).elementMap()",
+                "--include-type-definitions", "--edge-label-strategy", "edgeAndVertexLabels",
                 "--structured-output"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);

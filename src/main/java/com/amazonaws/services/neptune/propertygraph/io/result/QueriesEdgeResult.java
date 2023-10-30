@@ -1,38 +1,41 @@
 package com.amazonaws.services.neptune.propertygraph.io.result;
 
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.T;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
-public class QueriesNodeResult implements PGResult {
-    private final Map<?, ?> nodeMap;
+public class QueriesEdgeResult implements PGResult {
+    private final Map<?, ?> edgeMap;
 
     private final Map<?, ?> properties;
 
-    public QueriesNodeResult(Map<?, ?> input) {
-        nodeMap = input;
+    public QueriesEdgeResult(Map<?, ?> input) {
+        edgeMap = input;
         properties = new HashMap<>(input);
         properties.remove(T.label);
         properties.remove(T.id);
+        properties.remove(Direction.OUT);
+        properties.remove(Direction.IN);
     }
 
     @Override
     public GraphElementType getGraphElementType() {
-        return GraphElementType.nodes;
+        return GraphElementType.edges;
     }
 
     public List<String> getLabel() {
-        return Collections.singletonList(String.valueOf(nodeMap.get(T.label)));
+        return Collections.singletonList(String.valueOf(edgeMap.get(T.label)));
     }
 
     @Override
     public String getId() {
-        return String.valueOf(nodeMap.get(T.id));
+        return String.valueOf(edgeMap.get(T.id));
     }
 
     @Override
@@ -42,22 +45,22 @@ public class QueriesNodeResult implements PGResult {
 
     @Override
     public String getFrom() {
-        throw new IllegalStateException("Illegal attempt to getFrom() from a Node Result");
+        return String.valueOf(((Map<String, Object>)edgeMap.get(Direction.OUT)).get(T.id));
     }
 
     @Override
     public String getTo() {
-        throw new IllegalStateException("Illegal attempt to getTo() from a Node Result");
+        return String.valueOf(((Map<String, Object>)edgeMap.get(Direction.IN)).get(T.id));
     }
 
     @Override
     public List<String> getFromLabels() {
-        throw new IllegalStateException("Illegal attempt to getFromLabels() from a Node Result");
+        return Collections.singletonList(String.valueOf(((Map<String, Object>)edgeMap.get(Direction.OUT)).get(T.label)));
     }
 
     @Override
     public List<String> getToLabels() {
-        throw new IllegalStateException("Illegal attempt to getToLabels() from a Node Result");
+        return Collections.singletonList(String.valueOf(((Map<String, Object>)edgeMap.get(Direction.IN)).get(T.label)));
     }
 
 }

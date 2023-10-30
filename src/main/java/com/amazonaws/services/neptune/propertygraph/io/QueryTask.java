@@ -15,10 +15,14 @@ package com.amazonaws.services.neptune.propertygraph.io;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.Status;
 import com.amazonaws.services.neptune.propertygraph.AllLabels;
+import com.amazonaws.services.neptune.propertygraph.EdgeLabelStrategy;
 import com.amazonaws.services.neptune.propertygraph.Label;
+import com.amazonaws.services.neptune.propertygraph.LabelsFilter;
 import com.amazonaws.services.neptune.propertygraph.NamedQuery;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
 import com.amazonaws.services.neptune.propertygraph.NodeLabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.io.result.PGEdgeResult;
+import com.amazonaws.services.neptune.propertygraph.io.result.QueriesEdgeResult;
 import com.amazonaws.services.neptune.propertygraph.io.result.QueriesNodeResult;
 import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
@@ -28,6 +32,7 @@ import com.amazonaws.services.neptune.util.Activity;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 import org.apache.tinkerpop.gremlin.driver.ResultSet;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +43,7 @@ import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class QueryTask implements Callable<FileSpecificLabelSchemas> {
+public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLabelSchemas>> {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryTask.class);
 
@@ -50,6 +55,8 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
     private final Status status;
     private final AtomicInteger index;
     private final boolean structuredOutput;
+    private final LabelsFilter nodeLabelFilter;
+    private final LabelsFilter edgeLabelFilter;
 
     public QueryTask(Queue<NamedQuery> queries,
                      NeptuneGremlinClient.QueryClient queryClient,
@@ -58,7 +65,9 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
                      Long timeoutMillis,
                      Status status,
                      AtomicInteger index,
-                     boolean structuredOutput) {
+                     boolean structuredOutput,
+                     LabelsFilter nodeLabelFilter,
+                     LabelsFilter edgeLabelFilter) {
 
         this.queries = queries;
         this.queryClient = queryClient;
@@ -68,14 +77,19 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
         this.status = status;
         this.index = index;
         this.structuredOutput = structuredOutput;
+        this.nodeLabelFilter = nodeLabelFilter;
+        this.edgeLabelFilter = edgeLabelFilter;
     }
 
     @Override
-    public FileSpecificLabelSchemas call() throws Exception {
+    public Map<GraphElementType, FileSpecificLabelSchemas> call() throws Exception {
 
         QueriesWriterFactory writerFactory = new QueriesWriterFactory();
         Map<Label, LabelWriter<Map<?, ?>>> labelWriters = new HashMap<>();
-        FileSpecificLabelSchemas fileSpecificLabelSchemas = new FileSpecificLabelSchemas();
+
+        Map<GraphElementType, FileSpecificLabelSchemas> fileSpecificLabelSchemasMap = new HashMap<>();
+        fileSpecificLabelSchemasMap.put(GraphElementType.nodes, new FileSpecificLabelSchemas());
+        fileSpecificLabelSchemasMap.put(GraphElementType.edges, new FileSpecificLabelSchemas());
 
         try {
 
@@ -96,7 +110,7 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
 
                         Timer.timedActivity(String.format("executing query [%s]", namedQuery.query()),
                                 (CheckedActivity.Runnable) () ->
-                                        executeQuery(namedQuery, writerFactory, labelWriters, graphElementSchemas, fileSpecificLabelSchemas));
+                                        executeQuery(namedQuery, writerFactory, labelWriters, graphElementSchemas, fileSpecificLabelSchemasMap));
 
                     } else {
                         status.halt();
@@ -117,7 +131,7 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
             }
         }
 
-        return fileSpecificLabelSchemas;
+        return fileSpecificLabelSchemasMap;
 
     }
 
@@ -135,7 +149,7 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
                               QueriesWriterFactory writerFactory,
                               Map<Label, LabelWriter<Map<?, ?>>> labelWriters,
                               GraphElementSchemas graphElementSchemas,
-                              FileSpecificLabelSchemas fileSpecificLabelSchemas) {
+                              Map<GraphElementType, FileSpecificLabelSchemas> fileSpecificLabelSchemasMap) {
 
         ResultSet results = queryClient.submit(namedQuery.query(), timeoutMillis);
 
@@ -145,7 +159,7 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
             handler = new QueriesResultWrapperHandler(
                     new CountingHandler<QueriesNodeResult>(
                         new ExportPGTaskHandler<QueriesNodeResult>(
-                                fileSpecificLabelSchemas,
+                                fileSpecificLabelSchemasMap.get(GraphElementType.nodes),
                                 graphElementSchemas,
                                 targetConfig,
                                 (WriterFactory<QueriesNodeResult>) GraphElementType.nodes.writerFactory(),
@@ -153,8 +167,21 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
                                 null,
                                 status,
                                 index,
-                                new AllLabels(NodeLabelStrategy.nodeLabelsOnly))
-            ));
+                                nodeLabelFilter)
+                    ),
+                    new CountingHandler<QueriesEdgeResult>(
+                            new ExportPGTaskHandler<QueriesEdgeResult>(
+                                    fileSpecificLabelSchemasMap.get(GraphElementType.edges),
+                                    graphElementSchemas,
+                                    targetConfig,
+                                    (WriterFactory<QueriesEdgeResult>) GraphElementType.edges.writerFactory(),
+                                    new LabelWriters<>(new AtomicInteger(),0),
+                                    null,
+                                    status,
+                                    index,
+                                    edgeLabelFilter)
+                    )
+            );
         }
         else {
             ResultsHandler resultsHandler = new ResultsHandler(
@@ -261,24 +288,39 @@ public class QueryTask implements Callable<FileSpecificLabelSchemas> {
 
     private static class QueriesResultWrapperHandler implements GraphElementHandler<Map<?, ?>> {
 
-        private final GraphElementHandler<QueriesNodeResult> parent;
+        private final GraphElementHandler<QueriesNodeResult> nodeParent;
+        private final GraphElementHandler<QueriesEdgeResult> edgeParent;
 
-        private QueriesResultWrapperHandler(GraphElementHandler<QueriesNodeResult> parent) {
-            this.parent = parent;
+        private QueriesResultWrapperHandler(GraphElementHandler<QueriesNodeResult> nodeParent, GraphElementHandler<QueriesEdgeResult> edgeParent) {
+            this.nodeParent = nodeParent;
+            this.edgeParent = edgeParent;
         }
 
         @Override
         public void handle(Map<?, ?> input, boolean allowTokens) throws IOException {
-            parent.handle(getQueriesResult(input), allowTokens);
+            if(isEdge(input)) {
+                edgeParent.handle(getQueriesEdgeResult(input), allowTokens);
+            }
+            else {
+                nodeParent.handle(getQueriesNodeResult(input), allowTokens);
+            }
         }
 
         @Override
         public void close() throws Exception {
-            parent.close();
+            nodeParent.close();
         }
 
-        private QueriesNodeResult getQueriesResult(Map<?, ?> map) {
+        private boolean isEdge(Map<?, ?> input) {
+            return input.containsKey(Direction.IN) && input.containsKey(Direction.OUT);
+        }
+
+        private QueriesNodeResult getQueriesNodeResult(Map<?, ?> map) {
             return new QueriesNodeResult(map);
+        }
+
+        private QueriesEdgeResult getQueriesEdgeResult(Map<?, ?> map) {
+            return new QueriesEdgeResult(map);
         }
     }
 }

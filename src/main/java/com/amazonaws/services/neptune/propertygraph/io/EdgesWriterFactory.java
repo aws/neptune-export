@@ -20,7 +20,7 @@ import com.amazonaws.services.neptune.propertygraph.schema.LabelSchema;
 import java.io.IOException;
 import java.util.Map;
 
-public class EdgesWriterFactory implements WriterFactory<PGEdgeResult> {
+public class EdgesWriterFactory implements WriterFactory<PGResult> {
 
     @Override
     public PropertyGraphPrinter createPrinter(String name, LabelSchema labelSchema, PropertyGraphTargetConfig targetConfig) throws IOException {
@@ -38,7 +38,7 @@ public class EdgesWriterFactory implements WriterFactory<PGEdgeResult> {
     }
 
     @Override
-    public LabelWriter<PGEdgeResult> createLabelWriter(PropertyGraphPrinter propertyGraphPrinter, Label label) {
+    public LabelWriter<PGResult> createLabelWriter(PropertyGraphPrinter propertyGraphPrinter, Label label) {
         return new EdgeWriter(propertyGraphPrinter, label);
     }
 }
