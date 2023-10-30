@@ -29,7 +29,12 @@ public class GremlinFiltersModule {
     @Once
     private String gremlinFilter;
 
+    @Option(name = {"--filter-edges-early"}, description = "Configures edge exports to apply all filters to the " +
+            "traversal before adding range() steps for concurrency. Results in faster exports for simple fast filters which remove most results.")
+    @Once
+    private boolean filterEdgesEarly = false;
+
     public GremlinFilters filters(){
-        return new GremlinFilters(gremlinFilter, gremlinNodeFilter, gremlinEdgeFilter);
+        return new GremlinFilters(gremlinFilter, gremlinNodeFilter, gremlinEdgeFilter, filterEdgesEarly);
     }
 }

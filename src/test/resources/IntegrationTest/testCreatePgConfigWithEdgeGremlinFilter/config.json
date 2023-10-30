@@ -1,0 +1,13 @@
+{
+  "edges" : [ {
+    "label" : "route",
+    "properties" : [ {
+      "property" : "dist",
+      "dataType" : "Integer",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "Integer" ]
+    } ]
+  } ],
+  "nodes" : [ ]
+}
