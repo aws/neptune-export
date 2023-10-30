@@ -123,6 +123,12 @@ For large datasets, we recommend running this tool against a standalone database
 
 The latest version of _neptune-export_ uses the [GraphBinary](http://tinkerpop.apache.org/docs/3.4.0/upgrade/#_graphbinary) serialization format introduced in Gremlin 3.4.x. Previous versions of _neptune-export_ used Gryo. To revert to using Gryo, supply `--serializer GRYO_V3D0`.
 
+### Character Encoding
+
+_neptune-export_ attempts to use the JVM system default text encoding for all output files. This can be configured manually if needed by setting the `file.encoding` system property.
+
+```java -Dfile.encoding=UTF8 -jar neptune-export.jar ...```
+
 ## Exporting the Results of User-Supplied Queries
 
 _neptune-export_'s [`export-pg-from-queries`](docs/export-pg-from-queries.md) command allows you to supply groups of Gremlin queries and export the results to CSV or JSON.
