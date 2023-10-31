@@ -1,6 +1,6 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.1.0 (Release Date: TBD):
+## Neptune Export v1.1.0 (Release Date: October 31, 2023):
 
 ### Bug Fixes:
 
@@ -8,7 +8,12 @@
 
 ### New Features and Improvements:
 
-- Add --filter-edges-early option to property graph exports. This option forces gremlinFilters to apply before the range() step which breaks up concurrent traversals. This may lead to improved performance in cases where the gremlinFilters are efficient and filter out the majority of edges.
+- Introduce `--structured-output` CLI option to `export-pg-from-queries`. This option, when used in conjunction with
+  `--format csv`, will produce CSV output matching the structure of the [Neptune bulk loader's gremlin data format](https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load-tutorial-format-gremlin.html).
+  This is the same format as produced by `export-pg --format csv`. The use of this option requires that queries produce
+  elementMap()'s of nodes and edges.
+
+- Add `--filter-edges-early` option to property graph exports. This option forces `gremlinFilters` to apply before the range() step which breaks up concurrent traversals. This may lead to improved performance in cases where the gremlinFilters are efficient and filter out the majority of edges.
 
 ## Neptune Export v1.0.7 (Release Date: September 27, 2023):
 

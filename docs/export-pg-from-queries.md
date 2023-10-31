@@ -27,9 +27,9 @@
                     [ --stream-large-record-strategy <largeStreamRecordHandlingStrategy> ]
                     [ --stream-name <streamName> ] [ --stream-role-arn <streamRoleArn> ]
                     [ --stream-role-external-id <streamRoleExternalId> ]
-                    [ --stream-role-session-name <streamRoleSessionName> ] [ {-t | --tag} <tag> ]
-                    [ --timeout-millis <timeoutMillis> ] [ --two-pass-analysis ]
-                    [ --use-iam-auth ] [ --use-ssl ]
+                    [ --stream-role-session-name <streamRoleSessionName> ] [ --structured-output ]
+                    [ {-t | --tag} <tag> ] [ --timeout-millis <timeoutMillis> ]
+                    [ --two-pass-analysis ] [ --use-iam-auth ] [ --use-ssl ]
     
     OPTIONS
             --alb-endpoint <applicationLoadBalancerEndpoint>
@@ -387,6 +387,12 @@
                 Session name to be used when assuming the role defined by --stream-role-arn
 
                 This option may occur a maximum of 1 times
+
+
+            --structured-output
+                When used with --format csv, enables structured CSV output which matches export-pg, following
+                the Neptune bulk loader's gremlin data format (see: https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load-tutorial-format-gremlin.html).
+                Structured output required that queries produce elementMap's of nodes and/or edges.
 
     
             -t <tag>, --tag <tag>
