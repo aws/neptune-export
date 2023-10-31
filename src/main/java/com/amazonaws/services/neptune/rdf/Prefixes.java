@@ -12,6 +12,8 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.rdf;
 
+import com.amazonaws.services.neptune.export.FeatureToggle;
+import com.amazonaws.services.neptune.export.FeatureToggles;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -30,25 +32,30 @@ public class Prefixes {
     private final Map<String, String> prefixes = new HashMap<>();
     private final int offset;
 
-    public Prefixes() {
+    private final boolean inferPrefixes;
+
+    public Prefixes(FeatureToggles featureToggles) {
         prefixes.put("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
         //prefixes.put("http://www.w3.org/2000/01/rdf-schema#", "rdfs");
         prefixes.put("http://www.w3.org/2001/XMLSchema#", "xsd");
 
         offset = prefixes.size();
+
+        inferPrefixes = featureToggles.containsFeature(FeatureToggle.Infer_RDF_Prefixes);
     }
 
     public void parse(String s, RDFWriter writer) {
+        if(inferPrefixes) {
+            int i = s.indexOf("#");
 
-        int i = s.indexOf("#");
+            if (i > 0 && i < (s.length() - 1)) {
+                String uri = s.substring(0, i + 1);
 
-        if (i > 0 && i < (s.length() - 1)) {
-            String uri = s.substring(0, i + 1);
-
-            if (!prefixes.containsKey(uri)) {
-                String prefix = "s" + (prefixes.size() - offset);
-                prefixes.put(uri, prefix);
-                writer.handleNamespace(prefix, uri);
+                if (!prefixes.containsKey(uri)) {
+                    String prefix = "s" + (prefixes.size() - offset);
+                    prefixes.put(uri, prefix);
+                    writer.handleNamespace(prefix, uri);
+                }
             }
         }
     }

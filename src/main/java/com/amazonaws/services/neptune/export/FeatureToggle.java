@@ -20,4 +20,5 @@ public enum FeatureToggle {
     Inject_Fault,
     Simulate_Cloned_Cluster,
     Keep_Rewritten_Files,
+    Infer_RDF_Prefixes,
 }

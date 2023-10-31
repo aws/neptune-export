@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.rdf.io;
 
+import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.KinesisConfig;
 import com.amazonaws.services.neptune.io.OutputWriter;
@@ -41,8 +42,8 @@ public class RdfTargetConfig {
                 kinesisConfig);
     }
 
-    public RDFWriter createRDFWriter(OutputWriter outputWriter) {
-        return format.createWriter(outputWriter, new Prefixes());
+    public RDFWriter createRDFWriter(OutputWriter outputWriter, FeatureToggles featureToggles) {
+        return format.createWriter(outputWriter, new Prefixes(featureToggles));
     }
 
     public RdfExportFormat format() {
