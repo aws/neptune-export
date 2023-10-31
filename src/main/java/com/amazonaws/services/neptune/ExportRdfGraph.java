@@ -71,7 +71,7 @@ public class ExportRdfGraph extends NeptuneExportCommand implements Runnable {
                     GetLastEventIdStrategy getLastEventIdStrategy = streams.lastEventIdStrategy(cluster, eventIdFileResource);
                     getLastEventIdStrategy.saveLastEventId("sparql");
 
-                    try (NeptuneSparqlClient client = NeptuneSparqlClient.create(cluster.connectionConfig())) {
+                    try (NeptuneSparqlClient client = NeptuneSparqlClient.create(cluster.connectionConfig(), featureToggles())) {
 
                         ExportRdfJob job = exportScope.createJob(client, target.config(directories));
                         job.execute();

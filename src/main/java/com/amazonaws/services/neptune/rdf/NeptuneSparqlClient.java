@@ -15,6 +15,7 @@ package com.amazonaws.services.neptune.rdf;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.neptune.auth.NeptuneSigV4SignerException;
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
+import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.io.OutputWriter;
 import com.amazonaws.services.neptune.rdf.io.NeptuneExportSparqlRepository;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
@@ -41,7 +42,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
 
     private static final ParserConfig PARSER_CONFIG = new ParserConfig().addNonFatalError(BasicParserSettings.VERIFY_URI_SYNTAX);
 
-    public static NeptuneSparqlClient create(ConnectionConfig config) {
+    public static NeptuneSparqlClient create(ConnectionConfig config, FeatureToggles featureToggles) {
 
         String serviceRegion = config.useIamAuth() ? EnvironmentVariableUtils.getMandatoryEnv("SERVICE_REGION") : null;
         AWSCredentialsProvider credentialsProvider = config.useIamAuth() ? config.getCredentialsProvider() : null;
@@ -61,7 +62,8 @@ public class NeptuneSparqlClient implements AutoCloseable {
                                 }
                         )
                         .peek(AbstractRepository::init)
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList()),
+                featureToggles);
     }
 
     private static SPARQLRepository updateParser(SPARQLRepository repository) {
@@ -100,9 +102,11 @@ public class NeptuneSparqlClient implements AutoCloseable {
 
     private final List<SPARQLRepository> repositories;
     private final Random random = new Random(DateTime.now().getMillis());
+    private final FeatureToggles featureToggles;
 
-    private NeptuneSparqlClient(List<SPARQLRepository> repositories) {
+    private NeptuneSparqlClient(List<SPARQLRepository> repositories, FeatureToggles featureToggles) {
         this.repositories = repositories;
+        this.featureToggles = featureToggles;
     }
 
     public void executeTupleQuery(String sparql, RdfTargetConfig targetConfig) throws IOException {
@@ -112,7 +116,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
         try (RepositoryConnection connection = repository.getConnection();
              OutputWriter outputWriter = targetConfig.createOutputWriter()) {
 
-            RDFWriter writer = targetConfig.createRDFWriter(outputWriter);
+            RDFWriter writer = targetConfig.createRDFWriter(outputWriter, featureToggles);
 
             connection.prepareTupleQuery(sparql).evaluate(new TupleQueryHandler(writer, factory));
 
@@ -132,7 +136,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
         try (RepositoryConnection connection = repository.getConnection();
              OutputWriter outputWriter = targetConfig.createOutputWriter()) {
 
-            RDFWriter writer = targetConfig.createRDFWriter(outputWriter);
+            RDFWriter writer = targetConfig.createRDFWriter(outputWriter, featureToggles);
 
             connection.prepareGraphQuery(sparql).evaluate(new GraphQueryHandler(writer));
 

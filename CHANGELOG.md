@@ -4,6 +4,8 @@
 
 ### Bug Fixes:
 
+- Resolves issue in which RDF outputs may contain unexpected and potentially faulty prefixes.
+
 ### New Features and Improvements:
 
 - Add --filter-edges-early option to property graph exports. This option forces gremlinFilters to apply before the range() step which breaks up concurrent traversals. This may lead to improved performance in cases where the gremlinFilters are efficient and filter out the majority of edges.
