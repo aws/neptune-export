@@ -25,10 +25,12 @@ import org.eclipse.rdf4j.http.client.HttpClientSessionManager;
 import org.eclipse.rdf4j.http.client.RDF4JProtocolSession;
 import org.eclipse.rdf4j.http.client.SPARQLProtocolSession;
 import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.base.AbstractRepository;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 import org.eclipse.rdf4j.rio.ParserConfig;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.helpers.BasicParserSettings;
 import org.joda.time.DateTime;
@@ -79,6 +81,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
             public SPARQLProtocolSession createSPARQLProtocolSession(String s, String s1) {
                 SPARQLProtocolSession session = sessionManager.createSPARQLProtocolSession(s, s1);
                 session.setParserConfig(PARSER_CONFIG);
+                session.setPreferredTupleQueryResultFormat(TupleQueryResultFormat.JSON);
 
                 return session;
             }
