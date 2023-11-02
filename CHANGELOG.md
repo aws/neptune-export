@@ -4,6 +4,8 @@
 
 ### Bug Fixes:
 
+- Resolves issue where certain special characters would cause RDF export jobs to fail.
+
 ### New Features and Improvements:
 
 ## Neptune Export v1.1.0 (Release Date: October 31, 2023):
