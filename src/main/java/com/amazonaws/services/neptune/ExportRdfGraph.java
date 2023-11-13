@@ -73,7 +73,7 @@ public class ExportRdfGraph extends NeptuneExportCommand implements Runnable {
 
                     try (NeptuneSparqlClient client = NeptuneSparqlClient.create(cluster.connectionConfig(), featureToggles())) {
 
-                        ExportRdfJob job = exportScope.createJob(client, target.config(directories));
+                        ExportRdfJob job = exportScope.createJob(client, target.config(directories), cluster.connectionConfig());
                         job.execute();
                     }
 

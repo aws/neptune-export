@@ -154,7 +154,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
     }
 
 
-    private SPARQLRepository chooseRepository() {
+    SPARQLRepository chooseRepository() {
         return repositories.get(random.nextInt(repositories.size()));
     }
 

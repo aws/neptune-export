@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cli;
 
+import com.amazonaws.services.neptune.cluster.ConnectionConfig;
 import com.amazonaws.services.neptune.rdf.*;
 import com.amazonaws.services.neptune.rdf.io.*;
 import com.github.rvesse.airline.annotations.Option;
@@ -30,9 +31,9 @@ public class RdfExportScopeModule {
     @Once
     private String query;
 
-    public ExportRdfJob createJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig){
+    public ExportRdfJob createJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig, ConnectionConfig connectionConfig){
         if (scope == RdfExportScope.graph){
-            return new ExportRdfGraphJob(client, targetConfig);
+            return new ExportRdfGraphJob(client, targetConfig, connectionConfig);
         } else if (scope == RdfExportScope.edges){
             return new ExportRdfEdgesJob(client, targetConfig);
         } else if (scope == RdfExportScope.query){
