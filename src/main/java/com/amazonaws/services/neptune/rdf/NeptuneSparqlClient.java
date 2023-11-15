@@ -168,12 +168,12 @@ public class NeptuneSparqlClient implements AutoCloseable {
         } else {
             HttpClient httpClient = chooseRepository().getHttpClient();
             HttpUriRequest request = new HttpGet(getGSPEndpoint("default"));
-            request.addHeader("Accept", "application/n-quads");
+            request.addHeader("Accept", "application/n-triples");
 
             org.apache.http.HttpResponse response = httpClient.execute(request);
             InputStream responseBody = response.getEntity().getContent();
 
-            RDFParser rdfParser = Rio.createParser(RDFFormat.NQUADS);
+            RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
             OutputWriter outputWriter = targetConfig.createOutputWriter();
             RDFWriter writer = targetConfig.createRDFWriter(outputWriter, new FeatureToggles(Collections.emptyList()));
             rdfParser.setRDFHandler(writer);
