@@ -79,7 +79,7 @@ public enum Target implements CommandWriter {
             File file = filePath.toFile();
 
             return new FileToStreamOutputWriter(
-                    new KinesisStreamPrintOutputWriter(file.getAbsolutePath(), new FileWriter(file)),
+                    new KinesisStreamPrintOutputWriter(file.getAbsolutePath(), new BufferedWriter(new FileWriter(file))),
                     filePath,
                     kinesisConfig);
         }

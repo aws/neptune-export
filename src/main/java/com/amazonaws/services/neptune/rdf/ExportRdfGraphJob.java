@@ -31,7 +31,7 @@ public class ExportRdfGraphJob implements ExportRdfJob {
         Timer.timedActivity("exporting RDF as " + targetConfig.format().description(),
                 (CheckedActivity.Runnable) () -> {
                     System.err.println("Creating statement files");
-                    client.executeTupleQuery("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } }", targetConfig);
+                    client.executeCompleteExport(targetConfig);
                 });
     }
 }

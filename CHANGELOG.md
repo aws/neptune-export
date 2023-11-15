@@ -1,5 +1,13 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v1.1.2 (Release Date: TDB):
+
+### Bug Fixes:
+
+### New Features and Improvements:
+
+- Use Graph Store Protocol for complete RDF graph exports, improving performance for large exports.
+
 ## Neptune Export v1.1.1 (Release Date: November 3, 2023):
 
 ### Bug Fixes:
