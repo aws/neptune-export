@@ -168,7 +168,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
         } else {
             HttpClient httpClient = chooseRepository().getHttpClient();
             HttpUriRequest request = new HttpGet(getGSPEndpoint("default"));
-            request.addHeader("Content-Type", "application/n-quads");
+            request.addHeader("Accept", "application/n-quads");
 
             org.apache.http.HttpResponse response = httpClient.execute(request);
             InputStream responseBody = response.getEntity().getContent();
