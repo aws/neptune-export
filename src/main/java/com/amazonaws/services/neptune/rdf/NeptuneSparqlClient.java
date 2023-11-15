@@ -15,12 +15,15 @@ package com.amazonaws.services.neptune.rdf;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.neptune.auth.NeptuneSigV4SignerException;
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
+import com.amazonaws.services.neptune.export.FeatureToggle;
 import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.io.OutputWriter;
 import com.amazonaws.services.neptune.rdf.io.NeptuneExportSparqlRepository;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.EnvironmentVariableUtils;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.rdf4j.http.client.HttpClientSessionManager;
 import org.eclipse.rdf4j.http.client.RDF4JProtocolSession;
 import org.eclipse.rdf4j.http.client.SPARQLProtocolSession;
@@ -31,11 +34,15 @@ import org.eclipse.rdf4j.repository.base.AbstractRepository;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 import org.eclipse.rdf4j.rio.ParserConfig;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.RDFWriter;
+import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.BasicParserSettings;
 import org.joda.time.DateTime;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -65,7 +72,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
                         )
                         .peek(AbstractRepository::init)
                         .collect(Collectors.toList()),
-                featureToggles);
+                featureToggles, config);
     }
 
     private static SPARQLRepository updateParser(SPARQLRepository repository) {
@@ -106,10 +113,12 @@ public class NeptuneSparqlClient implements AutoCloseable {
     private final List<SPARQLRepository> repositories;
     private final Random random = new Random(DateTime.now().getMillis());
     private final FeatureToggles featureToggles;
+    private final ConnectionConfig connectionConfig;
 
-    private NeptuneSparqlClient(List<SPARQLRepository> repositories, FeatureToggles featureToggles) {
+    private NeptuneSparqlClient(List<SPARQLRepository> repositories, FeatureToggles featureToggles, ConnectionConfig connectionConfig) {
         this.repositories = repositories;
         this.featureToggles = featureToggles;
+        this.connectionConfig = connectionConfig;
     }
 
     public void executeTupleQuery(String sparql, RdfTargetConfig targetConfig) throws IOException {
@@ -153,6 +162,34 @@ public class NeptuneSparqlClient implements AutoCloseable {
         }
     }
 
+    public void executeCompleteExport(RdfTargetConfig targetConfig) throws IOException {
+        if(featureToggles.containsFeature(FeatureToggle.No_GSP)) {
+            executeTupleQuery("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } }", targetConfig);
+        } else {
+            HttpClient httpClient = chooseRepository().getHttpClient();
+            HttpUriRequest request = new HttpGet(getGSPEndpoint("default"));
+            request.addHeader("Content-Type", "application/n-quads");
+
+            org.apache.http.HttpResponse response = httpClient.execute(request);
+            InputStream responseBody = response.getEntity().getContent();
+
+            RDFParser rdfParser = Rio.createParser(RDFFormat.NQUADS);
+            OutputWriter outputWriter = targetConfig.createOutputWriter();
+            RDFWriter writer = targetConfig.createRDFWriter(outputWriter, new FeatureToggles(Collections.emptyList()));
+            rdfParser.setRDFHandler(writer);
+
+            try {
+                rdfParser.parse(responseBody);
+            }
+            catch (IOException e) {
+                throw e;
+            }
+            finally {
+                responseBody.close();
+            }
+        }
+    }
+
 
     SPARQLRepository chooseRepository() {
         return repositories.get(random.nextInt(repositories.size()));
@@ -161,6 +198,13 @@ public class NeptuneSparqlClient implements AutoCloseable {
     @Override
     public void close() {
         repositories.forEach(AbstractRepository::shutDown);
+    }
+
+    private String getGSPEndpoint(String graphName) {
+        return String.format("https://%s:%s/sparql/gsp/?%s",
+                connectionConfig.endpoints().iterator().next(),
+                connectionConfig.port(),
+                graphName);
     }
 
 }

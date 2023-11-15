@@ -31,9 +31,9 @@ public class RdfExportScopeModule {
     @Once
     private String query;
 
-    public ExportRdfJob createJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig, ConnectionConfig connectionConfig){
+    public ExportRdfJob createJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig){
         if (scope == RdfExportScope.graph){
-            return new ExportRdfGraphJob(client, targetConfig, connectionConfig);
+            return new ExportRdfGraphJob(client, targetConfig);
         } else if (scope == RdfExportScope.edges){
             return new ExportRdfEdgesJob(client, targetConfig);
         } else if (scope == RdfExportScope.query){

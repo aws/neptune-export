@@ -21,4 +21,5 @@ public enum FeatureToggle {
     Simulate_Cloned_Cluster,
     Keep_Rewritten_Files,
     Infer_RDF_Prefixes,
+    No_GSP,
 }
