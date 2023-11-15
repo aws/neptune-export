@@ -11,7 +11,7 @@ permissions and limitations under the License.
 */
 
 package com.amazonaws.services.neptune.rdf;
-q
+
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
