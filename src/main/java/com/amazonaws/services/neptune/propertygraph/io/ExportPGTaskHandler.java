@@ -2,9 +2,9 @@ package com.amazonaws.services.neptune.propertygraph.io;
 
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.Status;
-import com.amazonaws.services.neptune.propertygraph.GraphClient;
 import com.amazonaws.services.neptune.propertygraph.Label;
 import com.amazonaws.services.neptune.propertygraph.LabelsFilter;
+import com.amazonaws.services.neptune.propertygraph.StatsContainer;
 import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
 import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class ExportPGTaskHandler<T extends PGResult> implements GraphElementHandler<T> {
@@ -25,7 +24,7 @@ class ExportPGTaskHandler<T extends PGResult> implements GraphElementHandler<T> 
     private final PropertyGraphTargetConfig targetConfig;
     private final WriterFactory<T> writerFactory;
     private final LabelWriters<T> labelWriters;
-    private final GraphClient<T> graphClient;
+    private final StatsContainer statsContainer;
     private final Status status;
     private final AtomicInteger index;
 
@@ -36,7 +35,7 @@ class ExportPGTaskHandler<T extends PGResult> implements GraphElementHandler<T> 
                         PropertyGraphTargetConfig targetConfig,
                         WriterFactory<T> writerFactory,
                         LabelWriters<T> labelWriters,
-                        GraphClient<T> graphClient,
+                        StatsContainer statsContainer,
                         Status status,
                         AtomicInteger index,
                         LabelsFilter labelsFilter) {
@@ -45,7 +44,7 @@ class ExportPGTaskHandler<T extends PGResult> implements GraphElementHandler<T> 
         this.targetConfig = targetConfig;
         this.writerFactory = writerFactory;
         this.labelWriters = labelWriters;
-        this.graphClient = graphClient;
+        this.statsContainer = statsContainer;
         this.status = status;
         this.index = index;
         this.labelsFilter = labelsFilter;
@@ -58,8 +57,8 @@ class ExportPGTaskHandler<T extends PGResult> implements GraphElementHandler<T> 
         if (!labelWriters.containsKey(label)) {
             createWriterFor(label);
         }
-        if(graphClient != null) {
-            graphClient.updateStats(label);
+        if(statsContainer != null) {
+            statsContainer.updateStats(label);
         }
         labelWriters.get(label).handle(input, allowTokens);
     }

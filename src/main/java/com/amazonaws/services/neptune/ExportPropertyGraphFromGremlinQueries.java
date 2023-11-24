@@ -14,6 +14,7 @@ package com.amazonaws.services.neptune;
 
 import com.amazonaws.services.neptune.cli.*;
 import com.amazonaws.services.neptune.cluster.Cluster;
+import com.amazonaws.services.neptune.cluster.EventId;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.DirectoryStructure;
 import com.amazonaws.services.neptune.propertygraph.ExportStats;
@@ -58,6 +59,9 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
 
     @Inject
     private PropertyGraphTargetModule target = new PropertyGraphTargetModule();
+
+    @Inject
+    private PrinterOptionsModule printerOptions = new PrinterOptionsModule();
 
     @Inject
     private PropertyGraphConcurrencyModule concurrency = new PropertyGraphConcurrencyModule();
@@ -108,11 +112,14 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                     JsonResource<NamedQueriesCollection, Object> queriesResource = queriesFile != null ?
                             new JsonResource<>("Queries file", queriesFile, NamedQueriesCollection.class) :
                             directories.queriesResource();
+                    JsonResource<GraphSchema, Boolean> configFileResource = directories.configFileResource();
+                    JsonResource<ExportStats, GraphSchema> statsFileResource = directories.statsFileResource();
 
                     CsvPrinterOptions csvPrinterOptions = CsvPrinterOptions.builder().setIncludeTypeDefinitions(includeTypeDefinitions).build();
                     JsonPrinterOptions jsonPrinterOptions = JsonPrinterOptions.builder().setStrictCardinality(true).build();
+                    new PrinterOptions(csvPrinterOptions, jsonPrinterOptions);
 
-                    PropertyGraphTargetConfig targetConfig = target.config(directories, new PrinterOptions(csvPrinterOptions, jsonPrinterOptions));
+                    PropertyGraphTargetConfig targetConfig = target.config(directories, printerOptions.config());
                     NamedQueriesCollection namedQueries = getNamedQueriesCollection(queries, queriesFile, queriesResource);
 
                     GraphSchema graphSchema = new GraphSchema();
@@ -141,15 +148,17 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                                 exportSpecifications,
                                 featureToggles(),
                                 structuredOutput);
-                        queryJob.execute();
+                        graphSchema = queryJob.execute();
                     }
 
                     directories.writeResultsDirectoryPathAsMessage(target.description(), target);
 
                     queriesResource.writeResourcePathAsMessage(target);
+                    configFileResource.save(graphSchema, false);
+                    statsFileResource.save(exportStats, graphSchema);
 
                     directories.writeRootDirectoryPathAsReturnValue(target);
-                    onExportComplete(directories, exportStats, cluster);
+                    onExportComplete(directories, exportStats, cluster, graphSchema);
 
                 }
             });

@@ -18,7 +18,7 @@ import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
 import java.util.Collection;
 import java.util.Map;
 
-public interface GraphClient<T> {
+public interface GraphClient<T> extends StatsContainer {
     String description();
 
     void queryForSchema(GraphElementHandler<Map<?, Object>> handler, Range range, LabelsFilter labelsFilter, GremlinFilters gremlinFilters);
@@ -30,6 +30,4 @@ public interface GraphClient<T> {
     Collection<Label> labels(LabelStrategy labelStrategy);
 
     Label getLabelFor(T input, LabelsFilter labelsFilter);
-
-    void updateStats(Label label);
 }

@@ -16,11 +16,19 @@ import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.Status;
 import com.amazonaws.services.neptune.propertygraph.AllLabels;
 import com.amazonaws.services.neptune.propertygraph.EdgeLabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.ExportStats;
+import com.amazonaws.services.neptune.propertygraph.GraphClient;
+import com.amazonaws.services.neptune.propertygraph.GremlinFilters;
 import com.amazonaws.services.neptune.propertygraph.Label;
+import com.amazonaws.services.neptune.propertygraph.LabelStrategy;
 import com.amazonaws.services.neptune.propertygraph.LabelsFilter;
 import com.amazonaws.services.neptune.propertygraph.NamedQuery;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
 import com.amazonaws.services.neptune.propertygraph.NodeLabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.NodesClient;
+import com.amazonaws.services.neptune.propertygraph.Range;
+import com.amazonaws.services.neptune.propertygraph.RangeConfig;
+import com.amazonaws.services.neptune.propertygraph.StatsContainer;
 import com.amazonaws.services.neptune.propertygraph.io.result.PGEdgeResult;
 import com.amazonaws.services.neptune.propertygraph.io.result.QueriesEdgeResult;
 import com.amazonaws.services.neptune.propertygraph.io.result.QueriesNodeResult;
@@ -37,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -57,6 +66,7 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
     private final boolean structuredOutput;
     private final LabelsFilter nodeLabelFilter;
     private final LabelsFilter edgeLabelFilter;
+    private final ExportStats exportStats;
 
     public QueryTask(Queue<NamedQuery> queries,
                      NeptuneGremlinClient.QueryClient queryClient,
@@ -67,7 +77,8 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
                      AtomicInteger index,
                      boolean structuredOutput,
                      LabelsFilter nodeLabelFilter,
-                     LabelsFilter edgeLabelFilter) {
+                     LabelsFilter edgeLabelFilter,
+                     ExportStats exportStats) {
 
         this.queries = queries;
         this.queryClient = queryClient;
@@ -79,6 +90,7 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
         this.structuredOutput = structuredOutput;
         this.nodeLabelFilter = nodeLabelFilter;
         this.edgeLabelFilter = edgeLabelFilter;
+        this.exportStats = exportStats;
     }
 
     @Override
@@ -163,8 +175,8 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
                                 graphElementSchemas,
                                 targetConfig,
                                 (WriterFactory<QueriesNodeResult>) GraphElementType.nodes.writerFactory(),
-                                new LabelWriters<>(new AtomicInteger(),0),
-                                null,
+                                new LabelWriters<>(new AtomicInteger(), 0),
+                                new ExportStatsWrapper(exportStats, GraphElementType.nodes),
                                 status,
                                 index,
                                 nodeLabelFilter)
@@ -175,8 +187,8 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
                                     graphElementSchemas,
                                     targetConfig,
                                     (WriterFactory<QueriesEdgeResult>) GraphElementType.edges.writerFactory(),
-                                    new LabelWriters<>(new AtomicInteger(),0),
-                                    null,
+                                    new LabelWriters<>(new AtomicInteger(), 0),
+                                    new ExportStatsWrapper(exportStats, GraphElementType.edges),
                                     status,
                                     index,
                                     edgeLabelFilter)
@@ -321,6 +333,25 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
 
         private QueriesEdgeResult getQueriesEdgeResult(Map<?, ?> map) {
             return new QueriesEdgeResult(map);
+        }
+    }
+
+    private class ExportStatsWrapper implements StatsContainer {
+        private final ExportStats exportStats;
+        private final GraphElementType graphElementType;
+
+        public ExportStatsWrapper(ExportStats exportStats, GraphElementType graphElementType) {
+            this.exportStats = exportStats;
+            this.graphElementType = graphElementType;
+        }
+
+        @Override
+        public void updateStats(Label label) {
+            if(graphElementType.equals(GraphElementType.nodes)) {
+                exportStats.incrementNodeStats(label);
+            } else {
+                exportStats.incrementEdgeStats(label);
+            }
         }
     }
 }

@@ -173,6 +173,10 @@ public class ExportSpecification {
         return graphElementType;
     }
 
+    public ExportStats getExportStats() {
+        return stats;
+    }
+
     public LabelsFilter getLabelsFilter() {
         return labelsFilter;
     }
