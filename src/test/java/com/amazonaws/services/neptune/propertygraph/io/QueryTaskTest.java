@@ -4,6 +4,7 @@ import com.amazonaws.services.neptune.io.Status;
 import com.amazonaws.services.neptune.io.StatusOutputFormat;
 import com.amazonaws.services.neptune.propertygraph.AllLabels;
 import com.amazonaws.services.neptune.propertygraph.EdgeLabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.ExportStats;
 import com.amazonaws.services.neptune.propertygraph.Label;
 import com.amazonaws.services.neptune.propertygraph.NamedQuery;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
@@ -106,7 +107,8 @@ public class QueryTaskTest {
                 new AtomicInteger(),
                 structuredOutput,
                 new AllLabels(NodeLabelStrategy.nodeLabelsOnly),
-                new AllLabels(EdgeLabelStrategy.edgeLabelsOnly)
+                new AllLabels(EdgeLabelStrategy.edgeLabelsOnly),
+                new ExportStats()
         );
     }
 

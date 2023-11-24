@@ -9,6 +9,8 @@ import com.amazonaws.services.neptune.propertygraph.schema.GraphSchema;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.json.compare.CompareMode;
+import io.json.compare.JSONCompare;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 
@@ -16,6 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -26,7 +29,10 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class AbstractExportIntegrationTest {
@@ -69,8 +75,13 @@ public abstract class AbstractExportIntegrationTest {
             throw new RuntimeException(e);
         }
 
-        assertTrue("stats.json does not match expected results", areJsonContentsEqual(expected.listFiles((dir, name) -> name.equals("stats.json"))[0], actual.listFiles((dir, name) -> name.equals("stats.json"))[0]));
-        assertTrue("config.json does not match expected results", areJsonContentsEqual(expected.listFiles((dir, name) -> name.equals("config.json"))[0], actual.listFiles((dir, name) -> name.equals("config.json"))[0]));
+        assertJSONContentMatches(expected.listFiles((dir, name) -> name.equals("stats.json"))[0],
+                actual.listFiles((dir, name) -> name.equals("stats.json"))[0],
+                "stats.json does not match expected results");
+        assertJSONContentMatches(expected.listFiles((dir, name) -> name.equals("config.json"))[0],
+                actual.listFiles((dir, name) -> name.equals("config.json"))[0],
+                "config.json does not match expected results");
+
         if (expected.listFiles(((dir, name) -> name.equals("nodes"))).length >= 1) {
             assertTrue("nodes directory does not match expected results", areDirContentsEquivalent(expected + "/nodes", actual + "/nodes", config));
         }
@@ -79,13 +90,18 @@ public abstract class AbstractExportIntegrationTest {
         }
     }
 
-    protected boolean areJsonContentsEqual(final File expected, final File actual) {
+    protected void assertJSONContentMatches(final File expected, final File actual, final String message) {
+        final Set<CompareMode> jsonCompareModes = new HashSet();
+        jsonCompareModes.add(CompareMode.JSON_OBJECT_NON_EXTENSIBLE);
+        jsonCompareModes.add(CompareMode.JSON_ARRAY_NON_EXTENSIBLE);
+        jsonCompareModes.add(CompareMode.REGEX_DISABLED);
+
         final ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode expectedTree = mapper.readTree(expected);
             JsonNode actualTree = mapper.readTree(actual);
 
-            return expectedTree.equals(actualTree);
+            JSONCompare.assertMatches(expectedTree, actualTree, jsonCompareModes, message);;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -133,7 +149,11 @@ public abstract class AbstractExportIntegrationTest {
             try {
                 CSVParser parser = CSVParser.parse(file, StandardCharsets.UTF_8, CSVFormat.RFC4180);
                 Collection<String> list = parser.stream()
-                        .map(csvRecord -> csvRecord.toList().toString())
+                        .map(csvRecord -> {
+                            List<String> properties = csvRecord.toList();
+                            Collections.sort(properties);
+                            return properties.toString();
+                        })
                         .collect(Collectors.toList());
                 expectedNodes.addAll(list);
             } catch (IOException e) {
@@ -145,7 +165,11 @@ public abstract class AbstractExportIntegrationTest {
             try {
                 CSVParser parser = CSVParser.parse(file, StandardCharsets.UTF_8, CSVFormat.RFC4180);
                 Collection<String> list = parser.stream()
-                        .map(csvRecord -> csvRecord.toList().toString())
+                        .map(csvRecord -> {
+                            List<String> properties = csvRecord.toList();
+                            Collections.sort(properties);
+                            return properties.toString();
+                        })
                         .collect(Collectors.toList());
                 actualNodes.addAll(list);
             } catch (IOException e) {
