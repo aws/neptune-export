@@ -1,0 +1,70 @@
+{
+  "version" : "v2.0",
+  "query_engine" : "gremlin",
+  "graph" : {
+    "nodes" : [ {
+      "file_name" : "nodes/version.consolidated.csv",
+      "separator" : ",",
+      "node" : [ "~id", "version" ],
+      "features" : [ {
+        "feature" : [ "type", "type", "auto" ]
+      }, {
+        "feature" : [ "code", "code", "auto" ]
+      }, {
+        "feature" : [ "desc", "desc", "auto" ]
+      } ]
+    }, {
+      "file_name" : "nodes/airport.consolidated.csv",
+      "separator" : ",",
+      "node" : [ "~id", "airport" ],
+      "features" : [ {
+        "feature" : [ "country", "country", "auto" ]
+      }, {
+        "feature" : [ "code", "code", "auto" ]
+      }, {
+        "feature" : [ "longest", "longest", "numerical" ],
+        "norm" : "min-max",
+        "imputer" : "median"
+      }, {
+        "feature" : [ "city", "city", "auto" ]
+      }, {
+        "feature" : [ "elev", "elev", "numerical" ],
+        "norm" : "min-max",
+        "imputer" : "median"
+      }, {
+        "feature" : [ "icao", "icao", "auto" ]
+      }, {
+        "feature" : [ "lon", "lon", "numerical" ],
+        "norm" : "min-max",
+        "imputer" : "median"
+      }, {
+        "feature" : [ "type", "type", "auto" ]
+      }, {
+        "feature" : [ "region", "region", "auto" ]
+      }, {
+        "feature" : [ "runways", "runways", "numerical" ],
+        "norm" : "min-max",
+        "imputer" : "median"
+      }, {
+        "feature" : [ "lat", "lat", "numerical" ],
+        "norm" : "min-max",
+        "imputer" : "median"
+      }, {
+        "feature" : [ "desc", "desc", "auto" ]
+      } ]
+    } ],
+    "edges" : [ {
+      "file_name" : "edges/%28airport%29-route-%28airport%29.consolidated.csv",
+      "separator" : ",",
+      "source" : [ "~from", "airport" ],
+      "relation" : [ "", "route" ],
+      "dest" : [ "~to", "airport" ],
+      "features" : [ {
+        "feature" : [ "dist", "dist", "numerical" ],
+        "norm" : "min-max",
+        "imputer" : "median"
+      } ]
+    } ]
+  },
+  "warnings" : [ ]
+}

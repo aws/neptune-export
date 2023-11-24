@@ -36,6 +36,7 @@ public class ExportServiceIntegrationTest extends AbstractExportIntegrationTest{
     public void testExportPgFromQueriesML() {
         exit.expectSystemExitWithStatus(0);
         exit.checkAssertionAfterwards(new EquivalentResultsAssertion("src/test/resources/IntegrationTest/testExportPgWithEdgeAndVertexLabelsWithoutTypes"));
+        exit.checkAssertionAfterwards(new EquivalentTrainingConfigAssertion("src/test/resources/IntegrationTest/ml-training-data-configs/v2.json"));
 
         final String[] command = {
                 "nesvc",
@@ -78,6 +79,25 @@ public class ExportServiceIntegrationTest extends AbstractExportIntegrationTest{
         public void checkAssertion() throws Exception {
             final File resultDir = outputDir.listFiles()[0].listFiles()[0];
             assertEquivalentResults(new File(expectedResultsPath), resultDir);
+        }
+    }
+
+    private class EquivalentTrainingConfigAssertion implements Assertion {
+        private String expectedTrainingConfigJsonPath;
+
+        public EquivalentTrainingConfigAssertion(String expectedTrainingConfigJsonPath) {
+            this.expectedTrainingConfigJsonPath = expectedTrainingConfigJsonPath;
+        }
+
+        @Override
+        public void checkAssertion() throws Exception {
+            final File resultDir = outputDir.listFiles()[0].listFiles()[0];
+
+            assertJSONContentMatches(
+                    new File(expectedTrainingConfigJsonPath),
+                    resultDir.listFiles((dir, name) -> name.equals("training-data-configuration.json"))[0],
+                    "training-data-configuration.json does not match expected results"
+            );
         }
     }
 
