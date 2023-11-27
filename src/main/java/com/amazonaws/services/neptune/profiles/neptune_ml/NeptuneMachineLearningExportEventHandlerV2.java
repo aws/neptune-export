@@ -144,7 +144,8 @@ public class NeptuneMachineLearningExportEventHandlerV2 implements NeptuneExport
     @Override
     public void onExportComplete(Directories directories, ExportStats stats, Cluster cluster, GraphSchema graphSchema) throws Exception {
 
-        PropertyName propertyName = args.contains("--exclude-type-definitions") ?
+        PropertyName propertyName = args.contains("--exclude-type-definitions") ||
+                (args.contains("export-pg-from-queries") && !args.contains("--include-type-definitions")) ?
                 PropertyGraphTrainingDataConfigWriterV2.COLUMN_NAME_WITHOUT_DATATYPE :
                 PropertyGraphTrainingDataConfigWriterV2.COLUMN_NAME_WITH_DATATYPE;
 

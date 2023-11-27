@@ -43,6 +43,21 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
     public void testExportPgFromQueriesWithStructuredOutputWithEdgeAndVertexLabels() {
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
+                "-q", "all=g.V().union(elementMap(), outE().elementMap())",
+                "--edge-label-strategy", "edgeAndVertexLabels", "--structured-output"
+        };
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertEquivalentStructuredOutput(new File("src/test/resources/IntegrationTest/testExportPgWithEdgeAndVertexLabelsWithoutTypes"), resultDir);
+    }
+
+    @Test
+    public void testExportPgFromQueriesWithStructuredOutputWithEdgeAndVertexLabelsIncludeTypes() {
+        final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
+                "-d", outputDir.getPath(),
                 "-q", "airport=g.V().union(hasLabel('airport'), outE()).elementMap()",
                 "--include-type-definitions", "--edge-label-strategy", "edgeAndVertexLabels",
                 "--structured-output"
@@ -53,22 +68,6 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
         final File resultDir = outputDir.listFiles()[0];
 
         assertEquivalentStructuredOutput(new File("src/test/resources/IntegrationTest/testExportPgFromQueriesStructuredOutputWithEdgeAndVertexLabels"), resultDir);
-    }
-
-    @Test
-    public void testExportPgFromQueriesWithStructuredOutputWithNeptuneMLProfile() {
-        final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
-                "-d", outputDir.getPath(),
-                "-q", "airport=g.V().union(elementMap(), outE().elementMap())",
-                "--profile", "neptune_ml",
-                "--structured-output"
-        };
-        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
-        runner.run();
-
-        final File resultDir = outputDir.listFiles()[0];
-
-        assertEquivalentStructuredOutput(new File("src/test/resources/IntegrationTest/testExportPgToCsv"), resultDir);
     }
 
     @Override

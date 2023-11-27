@@ -32,8 +32,13 @@ public enum NeptuneMLSourceDataModel {
     PropertyGraph {
         @Override
         void updateArgsBeforeExport(Args args, Collection<TrainingDataWriterConfigV2> trainingJobWriterConfigCollection) {
-            if (!args.contains("--exclude-type-definitions")) {
+            if (!args.contains("--exclude-type-definitions") && !args.contains("export-pg-from-queries")) {
+                // export-pg-from-queries does not support --exclude-type-definitions, it uses --include-type-definitions instead.
                 args.addFlag("--exclude-type-definitions");
+            }
+
+            if (args.contains("--include-type-definitions")) {
+                args.removeOptions("--include-type-definitions");
             }
 
             if (args.contains("--edge-label-strategy", EdgeLabelStrategy.edgeLabelsOnly.name())) {

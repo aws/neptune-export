@@ -101,7 +101,7 @@ public abstract class AbstractExportIntegrationTest {
             JsonNode expectedTree = mapper.readTree(expected);
             JsonNode actualTree = mapper.readTree(actual);
 
-            JSONCompare.assertMatches(expectedTree, actualTree, jsonCompareModes, message);;
+            JSONCompare.assertMatches(expectedTree, actualTree, jsonCompareModes, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -61,9 +61,6 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
     private PropertyGraphTargetModule target = new PropertyGraphTargetModule();
 
     @Inject
-    private PrinterOptionsModule printerOptions = new PrinterOptionsModule();
-
-    @Inject
     private PropertyGraphConcurrencyModule concurrency = new PropertyGraphConcurrencyModule();
 
     @Inject
@@ -117,9 +114,8 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
 
                     CsvPrinterOptions csvPrinterOptions = CsvPrinterOptions.builder().setIncludeTypeDefinitions(includeTypeDefinitions).build();
                     JsonPrinterOptions jsonPrinterOptions = JsonPrinterOptions.builder().setStrictCardinality(true).build();
-                    new PrinterOptions(csvPrinterOptions, jsonPrinterOptions);
 
-                    PropertyGraphTargetConfig targetConfig = target.config(directories, printerOptions.config());
+                    PropertyGraphTargetConfig targetConfig = target.config(directories, new PrinterOptions(csvPrinterOptions, jsonPrinterOptions));
                     NamedQueriesCollection namedQueries = getNamedQueriesCollection(queries, queriesFile, queriesResource);
 
                     GraphSchema graphSchema = new GraphSchema();
