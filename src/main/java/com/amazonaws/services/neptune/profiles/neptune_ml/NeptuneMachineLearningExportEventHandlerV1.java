@@ -147,10 +147,6 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
                 args.addOption("--edge-label-strategy", EdgeLabelStrategy.edgeAndVertexLabels.name());
             }
 
-            if (args.containsAny("--config", "--filter", "-c", "--config-file", "--filter-config-file")){
-                args.replace("export-pg", "export-pg-from-config");
-            }
-
             if (!args.contains("--merge-files")) {
                 args.addFlag("--merge-files");
             }
