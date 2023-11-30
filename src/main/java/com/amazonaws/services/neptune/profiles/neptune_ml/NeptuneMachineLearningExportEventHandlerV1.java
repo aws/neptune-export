@@ -150,6 +150,10 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
             if (!args.contains("--merge-files")) {
                 args.addFlag("--merge-files");
             }
+
+            if (!args.contains("--structured-output")) {
+                args.addFlag("--structured-output");
+            }
         }
 
         if (args.contains("--export-id")) {

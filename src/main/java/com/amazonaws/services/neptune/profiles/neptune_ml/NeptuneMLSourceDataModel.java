@@ -57,6 +57,10 @@ public enum NeptuneMLSourceDataModel {
                     args.containsAny("--config", "--filter", "-c", "--config-file", "--filter-config-file")) {
                 args.replace("export-pg", "export-pg-from-config");
             }
+
+            if (args.contains("export-pg-from-queries") && !args.contains("--structured-output")) {
+                args.addFlag("--structured-output");
+            }
         }
 
         @Override

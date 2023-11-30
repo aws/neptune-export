@@ -51,6 +51,7 @@ public class NeptuneMachineLearningExportEventHandlerV1Test {
         assertTrue(!args.contains("--exclude-type-definitions"));
         assertTrue(args.contains("--edge-label-strategy", EdgeLabelStrategy.edgeAndVertexLabels.name()));
         assertTrue(args.contains("--merge-files"));
+        assertTrue(args.contains("--structured-output"));
     }
 
     @Test
