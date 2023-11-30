@@ -28,6 +28,7 @@
         <amazon.neptune.sparql.java.sigv4.version>2.4.0</amazon.neptune.sparql.java.sigv4.version>
         <netty.version>4.1.52.Final</netty.version>
         <kinesis.producer.version>0.14.0</kinesis.producer.version>
+        <jackson.version>2.15.3</jackson.version>
     </properties>
 
     <dependencies>
@@ -148,13 +149,13 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.12.7.1</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-cbor</artifactId>
-            <version>2.14.1</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
@@ -267,6 +268,13 @@
             <groupId>org.apache.tinkerpop</groupId>
             <artifactId>tinkergraph-gremlin</artifactId>
             <version>${gremlin.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.fslev</groupId>
+            <artifactId>json-compare</artifactId>
+            <version>6.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

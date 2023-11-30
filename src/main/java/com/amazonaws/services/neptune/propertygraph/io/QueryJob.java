@@ -24,13 +24,16 @@ import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
 import com.amazonaws.services.neptune.propertygraph.NodeLabelStrategy;
 import com.amazonaws.services.neptune.propertygraph.schema.ExportSpecification;
 import com.amazonaws.services.neptune.propertygraph.schema.FileSpecificLabelSchemas;
+import com.amazonaws.services.neptune.propertygraph.schema.GraphElementSchemas;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
+import com.amazonaws.services.neptune.propertygraph.schema.GraphSchema;
 import com.amazonaws.services.neptune.propertygraph.schema.MasterLabelSchemas;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -67,11 +70,14 @@ public class QueryJob {
         this.structuredOutput = structuredOutput;
     }
 
-    public void execute() throws Exception {
-        Timer.timedActivity("exporting results from queries", (CheckedActivity.Runnable) this::export);
+    public GraphSchema execute() throws Exception {
+        Map<GraphElementType, GraphElementSchemas> graphElementSchemas = Timer.timedActivity("exporting results from queries",
+                (CheckedActivity.Callable<Map<GraphElementType, GraphElementSchemas>>) this::export);
+
+        return new GraphSchema(graphElementSchemas);
     }
 
-    private void export() throws ExecutionException, InterruptedException {
+    private Map<GraphElementType, GraphElementSchemas> export() throws ExecutionException, InterruptedException {
 
         System.err.println("Writing query results to " + targetConfig.output().name() + " as " + targetConfig.format().description());
 
@@ -109,7 +115,8 @@ public class QueryJob {
                     fileIndex,
                     structuredOutput,
                     nodeLabelFilter,
-                    edgeLabelFilter);
+                    edgeLabelFilter,
+                    exportSpecifications.iterator().next().getExportStats());
             futures.add(taskExecutor.submit(queryTask));
         }
 
@@ -135,6 +142,7 @@ public class QueryJob {
         }
 
         RewriteCommand rewriteCommand = targetConfig.createRewriteCommand(concurrencyConfig, featureToggles);
+        Map<GraphElementType, GraphElementSchemas> graphElementSchemas = new HashMap<>();
 
         for(ExportSpecification exportSpecification : exportSpecifications) {
             MasterLabelSchemas masterLabelSchemas = exportSpecification.createMasterLabelSchemas(
@@ -142,11 +150,11 @@ public class QueryJob {
                             nodesFileSpecificLabelSchemas : edgesFileSpecificLabelSchemas
             );
             try {
-                rewriteCommand.execute(masterLabelSchemas);
+                graphElementSchemas.put(exportSpecification.getGraphElementType(), rewriteCommand.execute(masterLabelSchemas).toGraphElementSchemas());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-
+        return graphElementSchemas;
     }
 }

@@ -134,6 +134,26 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
             if (!args.contains("--merge-files")) {
                 args.addFlag("--merge-files");
             }
+        } else if (args.contains("export-pg-from-queries")) {
+            if (args.contains("--include-type-definitions")) {
+                args.removeOptions("--include-type-definitions");
+            }
+
+            if (args.contains("--edge-label-strategy", EdgeLabelStrategy.edgeLabelsOnly.name())) {
+                args.removeOptions("--edge-label-strategy");
+            }
+
+            if (!args.contains("--edge-label-strategy", EdgeLabelStrategy.edgeAndVertexLabels.name())) {
+                args.addOption("--edge-label-strategy", EdgeLabelStrategy.edgeAndVertexLabels.name());
+            }
+
+            if (!args.contains("--merge-files")) {
+                args.addFlag("--merge-files");
+            }
+
+            if (!args.contains("--structured-output")) {
+                args.addFlag("--structured-output");
+            }
         }
 
         if (args.contains("--export-id")) {

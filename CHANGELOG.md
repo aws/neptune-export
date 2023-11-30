@@ -6,6 +6,8 @@
 
 ### New Features and Improvements:
 
+- Add support for `neptune_ml` profile to `export-pg-from-queries`.
+
 ## Neptune Export v1.1.2 (Release Date: November 15, 2023):
 
 ### New Features and Improvements:

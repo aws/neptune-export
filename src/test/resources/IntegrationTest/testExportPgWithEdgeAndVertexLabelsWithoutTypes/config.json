@@ -14,6 +14,27 @@
     } ]
   } ],
   "nodes" : [ {
+    "label" : "version",
+    "properties" : [ {
+      "property" : "type",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "code",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    }, {
+      "property" : "desc",
+      "dataType" : "String",
+      "isMultiValue" : false,
+      "isNullable" : false,
+      "allTypes" : [ "String" ]
+    } ]
+  }, {
     "label" : "airport",
     "properties" : [ {
       "property" : "country",
