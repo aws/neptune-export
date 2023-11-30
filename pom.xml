@@ -415,6 +415,37 @@
                     <outputFile>${project.build.directory}/attribution.xml</outputFile>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <version>0.13</version>
+                <executions>
+                    <execution>
+                        <id>rat-checks</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludeSubProjects>false</excludeSubProjects>
+                    <excludes>
+                        <exclude>.github/**</exclude>
+                        <exclude>**/.idea/**</exclude>
+                        <exclude>**/target/**</exclude>
+                        <exclude>*.md</exclude>
+                        <exclude>*.json</exclude>
+                        <exclude>docs/**</exclude>
+                        <exclude>bin/neptune-export.sh</exclude>
+                        <exclude>**/src/test/resources/**</exclude>
+                        <exclude>**/src/main/static/**</exclude>
+                    </excludes>
+                    <licenses>
+                        <license implementation="org.apache.rat.analysis.license.ApacheSoftwareLicense20"/>
+                    </licenses>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
