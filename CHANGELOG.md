@@ -4,6 +4,8 @@
 
 ### Bug Fixes:
 
+- Update `--gremlin-filters` to block use of mutating steps `mergeV()` and `mergeE()`
+
 ### New Features and Improvements:
 
 ## Neptune Export v1.1.3 (Release Date: November 30, 2023):

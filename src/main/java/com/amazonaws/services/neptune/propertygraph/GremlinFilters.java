@@ -36,7 +36,7 @@ public class GremlinFilters {
     private final String gremlinEdgeFilter;
     private final boolean filterEdgesEarly;
 
-    private static final List<String> INVALID_OPERATORS = Arrays.asList("addV", "addE", "write", "drop", "sideEffect", "property");
+    private static final List<String> INVALID_OPERATORS = Arrays.asList("addV", "addE", "write", "drop", "sideEffect", "property", "mergeV", "mergeE");
 
     public GremlinFilters(String gremlinFilter, String gremlinNodeFilter, String gremlinEdgeFilter, boolean filterEdgesEarly) {
         this.gremlinFilter = gremlinFilter;
