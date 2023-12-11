@@ -20,7 +20,7 @@
         <javac.target>1.8</javac.target>
         <uberjar.name>neptune-export-${project.version}-all</uberjar.name>
         <aws.sdk.version>1.12.359</aws.sdk.version>
-        <gremlin.version>3.6.2</gremlin.version>
+        <gremlin.version>3.7.1</gremlin.version>
         <slf4j.version>2.0.5</slf4j.version>
         <rdf4j.version>3.5.0</rdf4j.version>
         <amazon.neptune.sigv4.signer.version>2.4.0</amazon.neptune.sigv4.signer.version>
