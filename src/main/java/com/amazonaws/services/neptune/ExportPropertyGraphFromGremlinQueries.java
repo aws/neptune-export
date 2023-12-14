@@ -16,14 +16,22 @@ import com.amazonaws.services.neptune.cli.*;
 import com.amazonaws.services.neptune.cluster.Cluster;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.DirectoryStructure;
+import com.amazonaws.services.neptune.propertygraph.AllLabels;
+import com.amazonaws.services.neptune.propertygraph.EdgeLabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.EdgesClient;
 import com.amazonaws.services.neptune.propertygraph.ExportStats;
 import com.amazonaws.services.neptune.propertygraph.GremlinFilters;
+import com.amazonaws.services.neptune.propertygraph.LazyQueriesRangeFactoryProvider;
 import com.amazonaws.services.neptune.propertygraph.NamedQueries;
 import com.amazonaws.services.neptune.propertygraph.NamedQueriesCollection;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
+import com.amazonaws.services.neptune.propertygraph.NodeLabelStrategy;
+import com.amazonaws.services.neptune.propertygraph.NodesClient;
+import com.amazonaws.services.neptune.propertygraph.RangeFactory;
 import com.amazonaws.services.neptune.propertygraph.airline.NameQueriesTypeConverter;
 import com.amazonaws.services.neptune.propertygraph.io.*;
 import com.amazonaws.services.neptune.propertygraph.schema.ExportSpecification;
+import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphSchema;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
@@ -31,6 +39,7 @@ import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.help.Examples;
 import com.github.rvesse.airline.annotations.restrictions.Once;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -38,6 +47,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Examples(examples = {
         "bin/neptune-export.sh export-pg-from-queries -e neptunedbcluster-xxxxxxxxxxxx.cluster-yyyyyyyyyyyy.us-east-1.neptune.amazonaws.com -d /home/ec2-user/output -q person=\"g.V().hasLabel('Person').has('birthday', lt('1985-01-01')).project('id', 'first_name', 'last_name', 'birthday').by(id).by('firstName').by('lastName').by('birthday');g.V().hasLabel('Person').has('birthday', gte('1985-01-01')).project('id', 'first_name', 'last_name', 'birthday').by(id).by('firstName').by('lastName').by('birthday')\" -q post=\"g.V().hasLabel('Post').has('imageFile').range(0, 250000).project('id', 'image_file', 'creation_date', 'creator_id').by(id).by('imageFile').by('creationDate').by(in('CREATED').id());g.V().hasLabel('Post').has('imageFile').range(250000, 500000).project('id', 'image_file', 'creation_date', 'creator_id').by(id).by('imageFile').by('creationDate').by(in('CREATED').id());g.V().hasLabel('Post').has('imageFile').range(500000, 750000).project('id', 'image_file', 'creation_date', 'creator_id').by(id).by('imageFile').by('creationDate').by(in('CREATED').id());g.V().hasLabel('Post').has('imageFile').range(750000, -1).project('id', 'image_file', 'creation_date', 'creator_id').by(id).by('imageFile').by('creationDate').by(in('CREATED').id())\" --concurrency 6",
@@ -68,6 +78,9 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
     @Inject
     private PropertyGraphScopeModule scope = new PropertyGraphScopeModule();
 
+    @Inject
+    private PropertyGraphRangeModule range = new PropertyGraphRangeModule();
+
     @Option(name = {"-q", "--queries", "--query", "--gremlin"}, description = "Gremlin queries (format: name=\"semi-colon-separated list of queries\" OR \"semi-colon-separated list of queries\").",
             arity = 1, typeConverterProvider = NameQueriesTypeConverter.class)
     private List<NamedQueries> queries = new ArrayList<>();
@@ -92,6 +105,11 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
             "according to schema.")
     @Once
     private boolean structuredOutput = false;
+
+    @Option(name = {"--split-queries"}, description = "Uses `range()` steps to split provided queries into `--concurrency` queries to run concurrently. " +
+            "`range()` steps will be injected at the beginning of the queries. May lead to altered results for certain queries.")
+    @Once
+    private boolean splitQueries = false;
 
     @Override
     public void run() {
@@ -131,7 +149,24 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                     }
 
                     try (NeptuneGremlinClient client = NeptuneGremlinClient.create(cluster, serialization.config());
-                         NeptuneGremlinClient.QueryClient queryClient = client.queryClient()) {
+                         NeptuneGremlinClient.QueryClient queryClient = client.queryClient();
+                         GraphTraversalSource g = client.newTraversalSource()) {
+
+                        Optional<ExportSpecification> nodeSpecification = exportSpecifications.stream()
+                                .filter(e -> e.getGraphElementType().equals(GraphElementType.nodes)).findFirst();
+                        Optional<ExportSpecification> edgeSpecification = exportSpecifications.stream()
+                                .filter(e -> e.getGraphElementType().equals(GraphElementType.edges)).findFirst();
+
+
+                        if (splitQueries) {
+                            namedQueries.splitQueries(new LazyQueriesRangeFactoryProvider(
+                                    range.config(),
+                                    concurrency.config(),
+                                    client,
+                                    exportSpecifications,
+                                    featureToggles()
+                            ));
+                        }
 
                         QueryJob queryJob = new QueryJob(
                                 namedQueries.flatten(),

@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph;
 
+import com.amazonaws.services.neptune.cluster.ConcurrencyConfig;
 import com.amazonaws.services.neptune.propertygraph.io.Jsonizable;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -68,6 +69,14 @@ public class NamedQueriesCollection implements Jsonizable<Object> {
         }
 
         return json;
+    }
+
+    /**
+     * Splits each query into n smaller queries.
+     */
+    public void splitQueries(LazyQueriesRangeFactoryProvider rangeFactoryProvider) {
+        Collection<NamedQueries> splitQueries = new ArrayList<>();
+        namedQueries.forEach(q -> q.split(rangeFactoryProvider));
     }
 
 }

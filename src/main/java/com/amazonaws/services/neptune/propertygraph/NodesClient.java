@@ -147,7 +147,9 @@ public class NodesClient implements GraphClient<PGResult> {
             logger.info(GremlinQueryDebugger.queryAsString(t));
 
             Long count = t.next();
-            stats.setNodeCount(count);
+            if(stats != null) {
+                stats.setNodeCount(count);
+            }
             return count;
         });
     }
