@@ -88,6 +88,12 @@ public class NamedQueries {
             if (rangeFactory != null) {
                 while (!rangeFactory.isExhausted()) {
                     Range range = rangeFactory.nextRange();
+                    if (range.isAll()) {
+                        // Keep unaltered query if range is all. This works-around an issue where range(0,-1) does not
+                        // produce any results in some versions of Neptune.
+                        splitQueries.add(q);
+                        break;
+                    }
                     if (q.startsWith("g.V()")) {
                         splitQueries.add(q.replaceFirst("g.V\\(\\)", "g.V()."+range.toString()));
                     } else if (q.startsWith("g.E()")) {
