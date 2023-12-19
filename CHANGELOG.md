@@ -6,6 +6,8 @@
 
 ### New Features and Improvements:
 
+- Add --split-queries option to export-pg-from-queries. When invoked, `range()` steps will be injected in the beginning of queries, and they will be split according to the configured concurrency.
+
 ## Neptune Export v1.1.3 (Release Date: November 30, 2023):
 
 ### New Features and Improvements:
