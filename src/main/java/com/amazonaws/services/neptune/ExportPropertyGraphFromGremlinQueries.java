@@ -18,6 +18,7 @@ import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.DirectoryStructure;
 import com.amazonaws.services.neptune.propertygraph.ExportStats;
 import com.amazonaws.services.neptune.propertygraph.GremlinFilters;
+import com.amazonaws.services.neptune.propertygraph.LazyQueriesRangeFactoryProvider;
 import com.amazonaws.services.neptune.propertygraph.NamedQueries;
 import com.amazonaws.services.neptune.propertygraph.NamedQueriesCollection;
 import com.amazonaws.services.neptune.propertygraph.NeptuneGremlinClient;
@@ -68,6 +69,9 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
     @Inject
     private PropertyGraphScopeModule scope = new PropertyGraphScopeModule();
 
+    @Inject
+    private PropertyGraphRangeModule range = new PropertyGraphRangeModule();
+
     @Option(name = {"-q", "--queries", "--query", "--gremlin"}, description = "Gremlin queries (format: name=\"semi-colon-separated list of queries\" OR \"semi-colon-separated list of queries\").",
             arity = 1, typeConverterProvider = NameQueriesTypeConverter.class)
     private List<NamedQueries> queries = new ArrayList<>();
@@ -92,6 +96,11 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
             "according to schema.")
     @Once
     private boolean structuredOutput = false;
+
+    @Option(name = {"--split-queries"}, description = "Uses `range()` steps to split provided queries into `--concurrency` queries to run concurrently. " +
+            "`range()` steps will be injected at the beginning of the queries. May lead to altered results for certain queries.")
+    @Once
+    private boolean splitQueries = false;
 
     @Override
     public void run() {
@@ -132,6 +141,16 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
 
                     try (NeptuneGremlinClient client = NeptuneGremlinClient.create(cluster, serialization.config());
                          NeptuneGremlinClient.QueryClient queryClient = client.queryClient()) {
+
+                        if (splitQueries) {
+                            namedQueries.splitQueries(new LazyQueriesRangeFactoryProvider(
+                                    range.config(),
+                                    concurrency.config(),
+                                    client,
+                                    exportSpecifications,
+                                    featureToggles()
+                            ));
+                        }
 
                         QueryJob queryJob = new QueryJob(
                                 namedQueries.flatten(),

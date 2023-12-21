@@ -45,7 +45,7 @@ public class NamedQueries {
 
     public NamedQueries(String name, Collection<String> queries) {
         this.name = name;
-        this.queries = queries;
+        this.queries = Collections.synchronizedCollection(queries);
     }
 
     public String name() {
@@ -70,5 +70,40 @@ public class NamedQueries {
         }
 
         return json;
+    }
+
+    /**
+     * Splits each query into n smaller queries.
+     */
+    public void split(LazyQueriesRangeFactoryProvider rangeFactoryProvider) {
+        Collection<String> splitQueries = Collections.synchronizedCollection(new ArrayList<>());
+        queries.forEach(q -> {
+            RangeFactory rangeFactory = null;
+            if (q.startsWith("g.V()")) {
+                rangeFactory = rangeFactoryProvider.getNodesRangeFactory();
+            } else if (q.startsWith("g.E()")) {
+                rangeFactory = rangeFactoryProvider.getEdgesRangeFactory();
+            }
+
+            if (rangeFactory != null) {
+                while (!rangeFactory.isExhausted()) {
+                    Range range = rangeFactory.nextRange();
+                    if (range.isAll()) {
+                        // Keep unaltered query if range is all. This works-around an issue where range(0,-1) does not
+                        // produce any results in some versions of Neptune.
+                        splitQueries.add(q);
+                        break;
+                    }
+                    if (q.startsWith("g.V()")) {
+                        splitQueries.add(q.replaceFirst("g.V\\(\\)", "g.V()."+range.toString()));
+                    } else if (q.startsWith("g.E()")) {
+                        splitQueries.add(q.replaceFirst("g.E\\(\\)", "g.E()."+range.toString()));
+                    }
+                }
+                rangeFactory.reset();
+            }
+        });
+        queries.clear();
+        queries.addAll(splitQueries);
     }
 }

@@ -70,4 +70,12 @@ public class NamedQueriesCollection implements Jsonizable<Object> {
         return json;
     }
 
+    /**
+     * Splits each query into n smaller queries.
+     */
+    public void splitQueries(LazyQueriesRangeFactoryProvider rangeFactoryProvider) {
+        Collection<NamedQueries> splitQueries = new ArrayList<>();
+        namedQueries.forEach(q -> q.split(rangeFactoryProvider));
+    }
+
 }

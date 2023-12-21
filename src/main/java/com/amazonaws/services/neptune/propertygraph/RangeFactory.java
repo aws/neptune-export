@@ -62,6 +62,7 @@ public class RangeFactory {
     private final long rangeUpperBound;
     private final AtomicLong currentEnd;
     private final long numberOfItemsToExport;
+    private final long skip;
 
     private RangeFactory(long rangeSize,
                          long limit,
@@ -71,6 +72,7 @@ public class RangeFactory {
         this.rangeSize = rangeSize;
         this.exportAll = limit == Long.MAX_VALUE;
         this.concurrency = concurrency;
+        this.skip = skip;
         if (exportAll){
             this.rangeUpperBound = estimatedNumberOfItemsInGraph;
             this.numberOfItemsToExport = estimatedNumberOfItemsInGraph - skip;
@@ -111,5 +113,9 @@ public class RangeFactory {
 
     public int concurrency() {
         return concurrency;
+    }
+
+    public void reset() {
+        currentEnd.set(skip);
     }
 }
