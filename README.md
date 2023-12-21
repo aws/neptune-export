@@ -107,7 +107,7 @@ For some offline use cases you may want to export only the structural data in th
  
 ### Parallel export
 
-The [`export-pg`](docs/export-pg.md) and [`export-pg-from-config`](docs/export-pg-from-config.md) commands support parallel export. You can supply a concurrency level, which determines the number of client threads used to perform the parallel export, and, optionally, a range or batch size, which determines how many nodes or edges will be queried by each thread at a time. If you specify a concurrency level, but don't supply a range, the tool will calculate a range such that each thread queries _(1/concurrency level) * number of nodes/edges_ nodes or edges.
+The [`export-pg`](docs/export-pg.md) and [`export-pg-from-config`](docs/export-pg-from-config.md) commands support parallel export. The [`export-pg-from-queries`](docs/export-pg-from-queries.md) command partially supports parallel (see [--split-queries](#split-queries)). You can supply a concurrency level, which determines the number of client threads used to perform the parallel export, and, optionally, a range or batch size, which determines how many nodes or edges will be queried by each thread at a time. If you specify a concurrency level, but don't supply a range, the tool will calculate a range such that each thread queries _(1/concurrency level) * number of nodes/edges_ nodes or edges.
 
 If using parallel export, we recommend setting the concurrency level to the number of vCPUs on your Neptune instance.
 
@@ -156,6 +156,22 @@ Sharding queries for concurrent execution can create a large number of queries, 
 ```
 
 This file can be given as a local path, or over https or s3.
+
+### Split Queries
+
+The `--split-queries` option may be used to automatically shard queries. When invoked, Neptune export will calculate ranges as described in the [parallel export](#parallel-export) section, and then split each query into `--concurrency` number of shards.
+
+The sharded queries use injected `range()` steps at the beginning of the query to divide the ranges. For example, `g.V().hasLabel("person")` may be sharded as:
+```groovy
+g.V().range(0, 250).hasLabel("person")
+g.V().range(250, 500).hasLabel("person")
+g.V().range(500, 750).hasLabel("person")
+g.V().range(750, -1).hasLabel("person")
+```
+
+This `range()`-based sharding may not be uniformly balanced, and may lead produce different results with certain queries. Any gremlin steps which operate on the entire input stream at once (such as `order()`, `dedup()`, and `group()`) should be used with caution as this sharding inevitably alters their inputs.
+
+For any queries which are incompatible with `range()`-based sharding, or in situations where more precise balancing is required, it is recommended to avoid using `--split-queries` and instead provide a `--queriesFile` with pre-sharded queries.
 
 ### Parallel execution of queries
 
