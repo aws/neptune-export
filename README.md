@@ -107,7 +107,7 @@ For some offline use cases you may want to export only the structural data in th
  
 ### Parallel export
 
-The [`export-pg`](docs/export-pg.md) and [`export-pg-from-config`](docs/export-pg-from-config.md) commands support parallel export. The [`export-pg-from-queries`](docs/export-pg-from-queries.md) command partially supports parallel (see [--split-queries](#split-queries)). You can supply a concurrency level, which determines the number of client threads used to perform the parallel export, and, optionally, a range or batch size, which determines how many nodes or edges will be queried by each thread at a time. If you specify a concurrency level, but don't supply a range, the tool will calculate a range such that each thread queries _(1/concurrency level) * number of nodes/edges_ nodes or edges.
+The [`export-pg`](docs/export-pg.md) and [`export-pg-from-config`](docs/export-pg-from-config.md) commands support parallel export. You can supply a concurrency level, which determines the number of client threads used to perform the parallel export, and, optionally, a range or batch size, which determines how many nodes or edges will be queried by each thread at a time. If you specify a concurrency level, but don't supply a range, the tool will calculate a range such that each thread queries _(1/concurrency level) * number of nodes/edges_ nodes or edges.
 
 If using parallel export, we recommend setting the concurrency level to the number of vCPUs on your Neptune instance.
 
@@ -159,7 +159,7 @@ This file can be given as a local path, or over https or s3.
 
 ### Split Queries
 
-The `--split-queries` option may be used to automatically shard queries. When invoked, Neptune export will calculate ranges as described in the [parallel export](#parallel-export) section, and then split each query into `--concurrency` number of shards.
+The `--split-queries` option may be used to automatically shard queries. When invoked, the tool will calculate ranges in the same manner as the `export-pg` command's [parallel export](#parallel-export), and then split each query into `--concurrency` number of shards.
 
 The sharded queries use injected `range()` steps at the beginning of the query to divide the ranges. For example, `g.V().hasLabel("person")` may be sharded as:
 ```groovy
