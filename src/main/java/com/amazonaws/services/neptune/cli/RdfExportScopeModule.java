@@ -19,6 +19,9 @@ import com.github.rvesse.airline.annotations.restrictions.AllowedEnumValues;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RdfExportScopeModule {
 
     @Option(name = {"--rdf-export-scope"}, description = "Export scope (optional, default 'graph').")
@@ -30,12 +33,22 @@ public class RdfExportScopeModule {
     @Once
     private String query;
 
+    //TODO:: Add parsing for space separated lists
+    @Option(name = {"--named-graphs"}, description = "Named Graphs to be exported. Can only be used with `--rdf-export-scope graph`")
+    private List<String> namedGraphs = new ArrayList<>();
+
     public ExportRdfJob createJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig){
         if (scope == RdfExportScope.graph){
-            return new ExportRdfGraphJob(client, targetConfig);
+            return new ExportRdfGraphJob(client, targetConfig, namedGraphs);
         } else if (scope == RdfExportScope.edges){
+            if (!namedGraphs.isEmpty()){
+                throw new IllegalStateException("`--named-graphs` can only be used with `--rdf-export-scope graph`");
+            }
             return new ExportRdfEdgesJob(client, targetConfig);
         } else if (scope == RdfExportScope.query){
+            if (!namedGraphs.isEmpty()){
+                throw new IllegalStateException("`--named-graphs` can only be used with `--rdf-export-scope graph`");
+            }
             if (StringUtils.isEmpty(query)){
                 throw new IllegalStateException("You must supply a SPARQL query if exporting from a query");
             }
