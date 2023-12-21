@@ -15,6 +15,7 @@ package com.amazonaws.services.neptune.rdf;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,16 +24,16 @@ public class ExportRdfGraphJob implements ExportRdfJob {
 
     private final NeptuneSparqlClient client;
     private final RdfTargetConfig targetConfig;
-    private final List<String> namedGraphs;
+    private final String namedGraph;
 
     public ExportRdfGraphJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig) {
-        this(client, targetConfig, Collections.emptyList());
+        this(client, targetConfig, null);
     }
 
-    public ExportRdfGraphJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig, List<String> namedGraphs) {
+    public ExportRdfGraphJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig, String namedGraph) {
         this.client = client;
         this.targetConfig = targetConfig;
-        this.namedGraphs = namedGraphs;
+        this.namedGraph = namedGraph;
     }
 
     @Override
@@ -40,12 +41,10 @@ public class ExportRdfGraphJob implements ExportRdfJob {
         Timer.timedActivity("exporting RDF as " + targetConfig.format().description(),
                 (CheckedActivity.Runnable) () -> {
                     System.err.println("Creating statement files");
-                    if(namedGraphs == null || namedGraphs.isEmpty()) {
+                    if(StringUtils.isEmpty(namedGraph)) {
                         client.executeCompleteExport(targetConfig);
                     } else {
-                        for(String namedGraph : namedGraphs) {
-                            client.executeNamedGraphExport(targetConfig, namedGraph);
-                        }
+                        client.executeNamedGraphExport(targetConfig, namedGraph);
                     }
                 });
     }

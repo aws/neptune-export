@@ -13,6 +13,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune;
 
 import com.amazonaws.services.neptune.export.NeptuneExportRunner;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
@@ -37,9 +38,33 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
         assertTrue("Returned statements don't match expected", areStatementsEqual("src/test/resources/IntegrationTest/testExportRdf/statements/statements.ttl", resultDir+"/statements/statements.ttl"));
     }
 
+    @Test
+    public void testExportRdfSingleNamedGraphVersion() {
+        final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
+                "--named-graph", "http://aws.amazon.com/neptune/csv2rdf/graph/version"};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertTrue("Returned statements don't match expected", areStatementsEqual("src/test/resources/IntegrationTest/testExportRdfVersionNamedGraph/statements/statements.ttl", resultDir+"/statements/statements.ttl"));
+    }
+
+    @Test
+    public void testExportRdfSingleNamedGraphDefault() {
+        final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
+                "--named-graph", "http://aws.amazon.com/neptune/vocab/v01/DefaultNamedGraph"};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertTrue("Returned statements don't match expected", areStatementsEqual("src/test/resources/IntegrationTest/testExportRdfDefaultNamedGraph/statements/statements.ttl", resultDir+"/statements/statements.ttl"));
+    }
+
     private boolean areStatementsEqual(final String expected, final String actual) {
-        final ArrayList expectedStatements = new ArrayList();
-        final ArrayList actualStatements = new ArrayList();
+        final ArrayList<Statement> expectedStatements = new ArrayList();
+        final ArrayList<Statement> actualStatements = new ArrayList();
         final RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
         rdfParser.setRDFHandler(new StatementCollector(expectedStatements));
         try {

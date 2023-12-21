@@ -189,7 +189,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
 
         RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
         OutputWriter outputWriter = targetConfig.createOutputWriter();
-        RDFWriter writer = targetConfig.createRDFWriter(outputWriter, new FeatureToggles(Collections.emptyList()));
+        RDFWriter writer = targetConfig.createRDFWriter(outputWriter, featureToggles);
         rdfParser.setRDFHandler(writer);
 
         try {
