@@ -42,7 +42,6 @@ import org.joda.time.DateTime;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -172,8 +171,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
 
     public void executeNamedGraphExport(RdfTargetConfig targetConfig, String namedGraph) throws IOException {
         if(featureToggles.containsFeature(FeatureToggle.No_GSP)) {
-            //TODO:: Needs testing
-            executeTupleQuery("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } } FROM "+namedGraph, targetConfig);
+            executeTupleQuery(String.format("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } FILTER(?g = <%s>) .}", namedGraph), targetConfig);
         } else {
             executeGSPExport(targetConfig, "graph="+namedGraph);
         }

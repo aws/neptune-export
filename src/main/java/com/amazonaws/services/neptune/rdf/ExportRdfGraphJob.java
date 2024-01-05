@@ -17,9 +17,6 @@ import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Collections;
-import java.util.List;
-
 public class ExportRdfGraphJob implements ExportRdfJob {
 
     private final NeptuneSparqlClient client;

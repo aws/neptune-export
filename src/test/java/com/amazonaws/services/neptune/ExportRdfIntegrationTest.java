@@ -62,6 +62,44 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
         assertTrue("Returned statements don't match expected", areStatementsEqual("src/test/resources/IntegrationTest/testExportRdfDefaultNamedGraph/statements/statements.ttl", resultDir+"/statements/statements.ttl"));
     }
 
+    @Test
+    public void testExportRdfNoGSP() {
+        final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
+                "--feature-toggle", "No_GSP"};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertTrue("Returned statements don't match expected", areStatementsEqual("src/test/resources/IntegrationTest/testExportRdf/statements/statements.ttl", resultDir+"/statements/statements.ttl"));
+    }
+
+    @Test
+    public void testExportRdfSingleNamedGraphVersionNoGSP() {
+        final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
+                "--named-graph", "http://aws.amazon.com/neptune/csv2rdf/graph/version",
+                "--feature-toggle", "No_GSP"};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertTrue("Returned statements don't match expected", areStatementsEqual("src/test/resources/IntegrationTest/testExportRdfVersionNamedGraph/statements/statements.ttl", resultDir+"/statements/statements.ttl"));
+    }
+
+    @Test
+    public void testExportRdfSingleNamedGraphDefaultNoGSP() {
+        final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
+                "--named-graph", "http://aws.amazon.com/neptune/vocab/v01/DefaultNamedGraph",
+                "--feature-toggle", "No_GSP"};
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertTrue("Returned statements don't match expected", areStatementsEqual("src/test/resources/IntegrationTest/testExportRdfDefaultNamedGraph/statements/statements.ttl", resultDir+"/statements/statements.ttl"));
+    }
+
     private boolean areStatementsEqual(final String expected, final String actual) {
         final ArrayList<Statement> expectedStatements = new ArrayList();
         final ArrayList<Statement> actualStatements = new ArrayList();

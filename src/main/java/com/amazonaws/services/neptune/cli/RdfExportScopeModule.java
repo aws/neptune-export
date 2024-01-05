@@ -19,9 +19,6 @@ import com.github.rvesse.airline.annotations.restrictions.AllowedEnumValues;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class RdfExportScopeModule {
 
     @Option(name = {"--rdf-export-scope"}, description = "Export scope (optional, default 'graph').")
