@@ -177,7 +177,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
         }
     }
 
-    private void executeGSPExport(RdfTargetConfig targetConfig, String graph) throws IOException {
+    void executeGSPExport(RdfTargetConfig targetConfig, String graph) throws IOException {
         HttpClient httpClient = chooseRepository().getHttpClient();
         HttpUriRequest request = new HttpGet(getGSPEndpoint(graph));
         request.addHeader("Accept", "application/n-triples");
