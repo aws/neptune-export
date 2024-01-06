@@ -161,7 +161,9 @@ public class EdgesClient implements GraphClient<PGResult> {
 
             Long count = t.next();
 
-            stats.setEdgeCount(count);
+            if(stats != null) {
+                stats.setEdgeCount(count);
+            }
             return count;
         });
     }

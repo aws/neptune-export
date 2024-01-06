@@ -157,6 +157,22 @@ Sharding queries for concurrent execution can create a large number of queries, 
 
 This file can be given as a local path, or over https or s3.
 
+### Split Queries
+
+The `--split-queries` option may be used to automatically shard queries. When invoked, the tool will calculate ranges in the same manner as the `export-pg` command's [parallel export](#parallel-export), and then split each query into `--concurrency` number of shards.
+
+The sharded queries use injected `range()` steps at the beginning of the query to divide the ranges. For example, `g.V().hasLabel("person")` may be sharded as:
+```groovy
+g.V().range(0, 250).hasLabel("person")
+g.V().range(250, 500).hasLabel("person")
+g.V().range(500, 750).hasLabel("person")
+g.V().range(750, -1).hasLabel("person")
+```
+
+This `range()`-based sharding may not be uniformly balanced, and may lead produce different results with certain queries. Any gremlin steps which operate on the entire input stream at once (such as `order()`, `dedup()`, and `group()`) should be used with caution as this sharding inevitably alters their inputs.
+
+For any queries which are incompatible with `range()`-based sharding, or in situations where more precise balancing is required, it is recommended to avoid using `--split-queries` and instead provide a `--queriesFile` with pre-sharded queries.
+
 ### Parallel execution of queries
 
 If using parallel export, we recommend setting the concurrency level to the number of vCPUs on your Neptune instance. When _neptune-export_ executes named groups of queries in parallel, it simply flattens all the queries into a queue, and spins up a pool of worker threads according to the concurrency level you have specified using `--concurrency`. Worker threads continue to take queries from the queue until the queue is exhausted.

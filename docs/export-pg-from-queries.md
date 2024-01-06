@@ -5,6 +5,8 @@
     SYNOPSIS
             neptune-export.sh export-pg-from-queries
                     [ --alb-endpoint <applicationLoadBalancerEndpoint> ]
+                    [ --approx-edge-count <approxEdgeCount> ]
+                    [ --approx-node-count <approxNodeCount> ]
                     [ {-b | --batch-size} <batchSize> ] [ --clone-cluster ]
                     [ --clone-cluster-correlation-id <cloneCorrelationId> ]
                     [ --clone-cluster-instance-type <cloneClusterInstanceType> ]
@@ -15,15 +17,17 @@
                     [ {-e | --endpoint} <endpoint>... ] [ --export-id <exportId> ]
                     [ {-f | --queries-file} <queriesFile> ] [ --format <format> ]
                     [ --include-type-definitions ] [ --janus ]
-                    [ --lb-port <loadBalancerPort> ] [ --log-level <log level> ]
+                    [ --lb-port <loadBalancerPort> ] [ --limit <limit> ]
+                    [ --log-level <log level> ]
                     [ --max-content-length <maxContentLength> ] [ --merge-files ]
                     [ --nlb-endpoint <networkLoadBalancerEndpoint> ]
                     [ {-o | --output} <output> ] [ {-p | --port} <port> ]
                     [ --partition-directories <partitionDirectories> ]
                     [ --per-label-directories ] [ --profile <profiles>... ]
                     [ {-q | --queries | --query | --gremlin} <queries>... ]
+                    [ {-r | --range | --range-size} <rangeSize> ]
                     [ {--region | --stream-region} <region> ]
-                    [ --serializer <serializer> ]
+                    [ --serializer <serializer> ] [ --skip <skip> ] [--split-queries]
                     [ --stream-large-record-strategy <largeStreamRecordHandlingStrategy> ]
                     [ --stream-name <streamName> ] [ --stream-role-arn <streamRoleArn> ]
                     [ --stream-role-external-id <streamRoleExternalId> ]
@@ -42,7 +46,19 @@
     
                 This option is part of the group 'load-balancer' from which only
                 one option may be specified
+
+
+            --approx-edge-count <approxEdgeCount>
+                Approximate number of edges in the graph.
+
+                This option may occur a maximum of 1 times
     
+    
+            --approx-node-count <approxNodeCount>
+                Approximate number of nodes in the graph.
+    
+                This option may occur a maximum of 1 times
+
     
             -b <batchSize>, --batch-size <batchSize>
                 Batch size (optional, default 64). Reduce this number if your
@@ -248,6 +264,12 @@
                 This options value represents a port and must fall in one of the
                 following port ranges: 1-1023, 1024-49151
     
+
+            --limit <limit>
+                Maximum number of items to export (optional).
+    
+                This option may occur a maximum of 1 times
+
     
             --log-level <log level>
                 Log level (optional, default 'error').
@@ -329,6 +351,13 @@
                 Gremlin queries (format: name="semi-colon-separated list of
                 queries" OR "semi-colon-separated list of queries").
     
+
+            -r <rangeSize>, --range <rangeSize>, --range-size <rangeSize>
+                Number of items to fetch per request (optional).
+    
+                This option may occur a maximum of 1 times
+
+
             --region <region>, --stream-region <region>
                 AWS Region in which your Amazon Kinesis Data Stream is located.
     
@@ -350,6 +379,21 @@
     
                 This option may occur a maximum of 1 times
     
+
+            --skip <skip>
+                Number of items to skip (optional).
+    
+                This option may occur a maximum of 1 times
+
+
+            --split-queries
+                Uses `range()` steps to split provided queries into
+                `--concurrency` queries to run concurrently. `range()` steps
+                will be injected at the beginning of the queries. May lead to
+                altered results for certain queries.
+
+                This option may occur a maximum of 1 times
+
     
             --stream-large-record-strategy <largeStreamRecordHandlingStrategy>
                 Strategy for dealing with records to be sent to Amazon Kinesis that
