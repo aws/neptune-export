@@ -183,7 +183,15 @@ Queries whose results contain very large rows can sometimes trigger a `Corrupted
 
 ## Exporting an RDF Graph
               
-At present _neptune-export_ supports exporting an RDF dataset to Turtle with a single-threaded long-running query.
+At present _neptune-export_ supports exporting an RDF dataset to Turtle, NQuads, and NTriples with a single-threaded long-running query.
+
+### Exporting Named Graphs
+
+The default scope for `export-rdf` is to export the entire dataset (union of all named graphs). Use the `--named-graph <NamedGraphURI>` argument to limit the scope to a single named graph. This can only be used with the default `graph` scope (`--rdf-export-scope graph`).
+
+### Exporting from User-Supplied SPARQL query
+
+To export the results from a SPARQL query, use the `--rdf-export-scope query` and `--sparql <SPARQL Query>` arguments.
 
 ## Security
   
