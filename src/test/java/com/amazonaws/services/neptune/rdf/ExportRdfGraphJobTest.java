@@ -32,7 +32,7 @@ public class ExportRdfGraphJobTest {
         RdfTargetConfig mockTarget = mock(RdfTargetConfig.class);
         when(mockTarget.format()).thenReturn(mock(RdfExportFormat.class));
 
-        ExportRdfGraphJob job = new ExportRdfGraphJob(mockClient, mockTarget, "test");
+        ExportRdfGraphJob job = new ExportRdfGraphJob(mockClient, mockTarget, "http://example.com");
 
         try {
             job.execute();
@@ -40,7 +40,7 @@ public class ExportRdfGraphJobTest {
             //Swallow exceptions due to incomplete mocks
         }
 
-        verify(mockClient, Mockito.times(1)).executeNamedGraphExport(mockTarget, "test");
+        verify(mockClient, Mockito.times(1)).executeNamedGraphExport(mockTarget, "http://example.com");
         verify(mockClient, Mockito.times(0)).executeCompleteExport(Mockito.any());
 
         verifyNoMoreInteractions(mockClient);

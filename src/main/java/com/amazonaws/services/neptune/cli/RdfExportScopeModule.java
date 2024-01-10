@@ -19,6 +19,8 @@ import com.github.rvesse.airline.annotations.restrictions.AllowedEnumValues;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import org.apache.commons.lang.StringUtils;
 
+import java.net.URL;
+
 public class RdfExportScopeModule {
 
     @Option(name = {"--rdf-export-scope"}, description = "Export scope (optional, default 'graph').")
@@ -36,6 +38,14 @@ public class RdfExportScopeModule {
 
     public ExportRdfJob createJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig){
         if (scope == RdfExportScope.graph){
+            if (StringUtils.isNotEmpty(namedGraph)) {
+                //Test that namedGraph is a valid URI
+                try {
+                    new URL(namedGraph).toURI();
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Invalid named-graph URI provided", e);
+                }
+            }
             return new ExportRdfGraphJob(client, targetConfig, namedGraph);
         } else if (scope == RdfExportScope.edges){
             if (StringUtils.isNotEmpty(namedGraph)){

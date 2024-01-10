@@ -17,8 +17,6 @@ import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 import org.apache.commons.lang.StringUtils;
 
-import java.net.URL;
-
 public class ExportRdfGraphJob implements ExportRdfJob {
 
     private final NeptuneSparqlClient client;
@@ -43,12 +41,6 @@ public class ExportRdfGraphJob implements ExportRdfJob {
                     if(StringUtils.isEmpty(namedGraph)) {
                         client.executeCompleteExport(targetConfig);
                     } else {
-                        //Test that namedGraph is a valid URI
-                        try {
-                            new URL(namedGraph).toURI();
-                        } catch (Exception e) {
-                            throw new RuntimeException("Invalid named-graph URI provided", e);
-                        }
                         client.executeNamedGraphExport(targetConfig, namedGraph);
                     }
                 });
