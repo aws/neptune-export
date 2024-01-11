@@ -1,8 +1,6 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.1.4 (Release Date: TBD):
-
-### Bug Fixes:
+## Neptune Export v1.1.4 (Release Date: January 11, 2024):
 
 - Update `--gremlin-filters` to block use of mutating steps `mergeV()` and `mergeE()`
 
