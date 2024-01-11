@@ -15,15 +15,22 @@ package com.amazonaws.services.neptune.rdf;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
+import org.apache.commons.lang.StringUtils;
 
 public class ExportRdfGraphJob implements ExportRdfJob {
 
     private final NeptuneSparqlClient client;
     private final RdfTargetConfig targetConfig;
+    private final String namedGraph;
 
     public ExportRdfGraphJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig) {
+        this(client, targetConfig, "");
+    }
+
+    public ExportRdfGraphJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig, String namedGraph) {
         this.client = client;
         this.targetConfig = targetConfig;
+        this.namedGraph = namedGraph;
     }
 
     @Override
@@ -31,7 +38,11 @@ public class ExportRdfGraphJob implements ExportRdfJob {
         Timer.timedActivity("exporting RDF as " + targetConfig.format().description(),
                 (CheckedActivity.Runnable) () -> {
                     System.err.println("Creating statement files");
-                    client.executeCompleteExport(targetConfig);
+                    if(StringUtils.isEmpty(namedGraph)) {
+                        client.executeCompleteExport(targetConfig);
+                    } else {
+                        client.executeNamedGraphExport(targetConfig, namedGraph);
+                    }
                 });
     }
 }

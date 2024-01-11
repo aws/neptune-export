@@ -13,6 +13,7 @@
                     [ {-e | --endpoint} <endpoint>... ] [ --export-id <exportId> ]
                     [ --format <format> ] [ --include-last-event-id ]
                     [ --lb-port <loadBalancerPort> ] [ --log-level <log level> ]
+                    [ --named-graph <namedGraphURI> ]
                     [ --nlb-endpoint <networkLoadBalancerEndpoint> ]
                     [ {-o | --output} <output> ] [ {-p | --port} <port> ]
                     [ --partition-directories <partitionDirectories> ]
@@ -227,7 +228,14 @@
                     error
     
                 This option may occur a maximum of 1 times
-    
+
+
+            --named-graph <namedGraphURI>
+                Limit scope of export to a single named graph (optional).
+                Can only be used with `--rdf-export-scope graph`. 
+
+                This option may occur a maximum of 1 times
+
     
             --nlb-endpoint <networkLoadBalancerEndpoint>
                 Network load balancer endpoint (optional: use only if connecting to

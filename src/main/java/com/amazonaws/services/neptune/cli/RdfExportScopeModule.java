@@ -19,6 +19,8 @@ import com.github.rvesse.airline.annotations.restrictions.AllowedEnumValues;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import org.apache.commons.lang.StringUtils;
 
+import java.net.URL;
+
 public class RdfExportScopeModule {
 
     @Option(name = {"--rdf-export-scope"}, description = "Export scope (optional, default 'graph').")
@@ -30,12 +32,30 @@ public class RdfExportScopeModule {
     @Once
     private String query;
 
+    @Option(name = {"--named-graph"}, description = "Named Graph to be exported. Can only be used with `--rdf-export-scope graph`")
+    @Once
+    private String namedGraph;
+
     public ExportRdfJob createJob(NeptuneSparqlClient client, RdfTargetConfig targetConfig){
         if (scope == RdfExportScope.graph){
-            return new ExportRdfGraphJob(client, targetConfig);
+            if (StringUtils.isNotEmpty(namedGraph)) {
+                //Test that namedGraph is a valid URI
+                try {
+                    new URL(namedGraph).toURI();
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Invalid named-graph URI provided", e);
+                }
+            }
+            return new ExportRdfGraphJob(client, targetConfig, namedGraph);
         } else if (scope == RdfExportScope.edges){
+            if (StringUtils.isNotEmpty(namedGraph)){
+                throw new IllegalStateException("`--named-graph` can only be used with `--rdf-export-scope graph`");
+            }
             return new ExportRdfEdgesJob(client, targetConfig);
         } else if (scope == RdfExportScope.query){
+            if (StringUtils.isNotEmpty(namedGraph)){
+                throw new IllegalStateException("`--named-graph` can only be used with `--rdf-export-scope graph`");
+            }
             if (StringUtils.isEmpty(query)){
                 throw new IllegalStateException("You must supply a SPARQL query if exporting from a query");
             }

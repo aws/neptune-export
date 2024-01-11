@@ -42,7 +42,6 @@ import org.joda.time.DateTime;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -166,27 +165,39 @@ public class NeptuneSparqlClient implements AutoCloseable {
         if(featureToggles.containsFeature(FeatureToggle.No_GSP)) {
             executeTupleQuery("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } }", targetConfig);
         } else {
-            HttpClient httpClient = chooseRepository().getHttpClient();
-            HttpUriRequest request = new HttpGet(getGSPEndpoint("default"));
-            request.addHeader("Accept", "application/n-triples");
+            executeGSPExport(targetConfig, "default");
+        }
+    }
 
-            org.apache.http.HttpResponse response = httpClient.execute(request);
-            InputStream responseBody = response.getEntity().getContent();
+    public void executeNamedGraphExport(RdfTargetConfig targetConfig, String namedGraph) throws IOException {
+        if(featureToggles.containsFeature(FeatureToggle.No_GSP)) {
+            executeTupleQuery(String.format("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } FILTER(?g = <%s>) .}", namedGraph), targetConfig);
+        } else {
+            executeGSPExport(targetConfig, "graph="+namedGraph);
+        }
+    }
 
-            RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
-            OutputWriter outputWriter = targetConfig.createOutputWriter();
-            RDFWriter writer = targetConfig.createRDFWriter(outputWriter, new FeatureToggles(Collections.emptyList()));
-            rdfParser.setRDFHandler(writer);
+    void executeGSPExport(RdfTargetConfig targetConfig, String graph) throws IOException {
+        HttpClient httpClient = chooseRepository().getHttpClient();
+        HttpUriRequest request = new HttpGet(getGSPEndpoint(graph));
+        request.addHeader("Accept", "application/n-triples");
 
-            try {
-                rdfParser.parse(responseBody);
-            }
-            catch (IOException e) {
-                throw e;
-            }
-            finally {
-                responseBody.close();
-            }
+        org.apache.http.HttpResponse response = httpClient.execute(request);
+        InputStream responseBody = response.getEntity().getContent();
+
+        RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
+        OutputWriter outputWriter = targetConfig.createOutputWriter();
+        RDFWriter writer = targetConfig.createRDFWriter(outputWriter, featureToggles);
+        rdfParser.setRDFHandler(writer);
+
+        try {
+            rdfParser.parse(responseBody);
+        }
+        catch (IOException e) {
+            throw e;
+        }
+        finally {
+            responseBody.close();
         }
     }
 
