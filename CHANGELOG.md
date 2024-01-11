@@ -4,6 +4,8 @@
 
 ### Bug Fixes:
 
+- Update `--gremlin-filters` to block use of mutating steps `mergeV()` and `mergeE()`
+
 ### New Features and Improvements:
 
 - Add `--split-queries` option to `export-pg-from-queries`. When invoked, `range()` steps will be injected in the beginning of queries, and they will be split according to the configured concurrency.
