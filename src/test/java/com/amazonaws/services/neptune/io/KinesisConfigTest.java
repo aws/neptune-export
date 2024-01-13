@@ -12,6 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.io;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.cli.AbstractTargetModule;
 import org.junit.Before;
@@ -69,7 +70,9 @@ public class KinesisConfigTest {
     public void shouldUseProvidedCredentialsProvider() {
         when(target.getStreamName()).thenReturn("test");
         when(target.getRegion()).thenReturn("us-west-2");
+        AWSCredentials mockedCreds = mock(AWSCredentials.class);
         AWSCredentialsProvider mockedCredsProvider = mock(AWSCredentialsProvider.class);
+        when(mockedCredsProvider.getCredentials()).thenReturn(mockedCreds);
         when(target.getCredentialsProvider()).thenReturn(mockedCredsProvider);
 
         KinesisConfig config = new KinesisConfig(target);
