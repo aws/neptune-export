@@ -4,6 +4,7 @@
     SYNOPSIS
             neptune-export.sh add-clone
                     [ --clone-cluster-correlation-id <cloneCorrelationId> ]
+                    [ --clone-cluster-enable-audit-logs ]
                     [ --clone-cluster-id <targetClusterId> ]
                     [ --clone-cluster-instance-type <cloneClusterInstanceType> ]
                     [ --clone-cluster-replica-count <replicaCount> ]
@@ -17,6 +18,12 @@
                 This option may occur a maximum of 1 times
     
     
+            --clone-cluster-enable-audit-logs
+                Enables audit logging on the cloned cluster
+
+                This option may occur a maximum of 1 times
+
+
             --clone-cluster-id <targetClusterId>
                 Cluster ID of the cloned Amazon Neptune database cluster.
     
