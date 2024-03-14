@@ -25,19 +25,22 @@ public class CloneCluster implements CloneClusterStrategy {
     private final int maxConcurrency;
     private final String engineVersion;
     private final String cloneCorrelationId;
+    private final boolean enableAuditLogs;
 
     public CloneCluster(NeptuneClusterMetadata originalClusterMetadata,
                         String cloneClusterInstanceType,
                         int replicaCount,
                         int maxConcurrency,
                         String engineVersion,
-                        String cloneCorrelationId) {
+                        String cloneCorrelationId,
+                        boolean enableAuditLogs) {
         this.originalClusterMetadata = originalClusterMetadata;
         this.cloneClusterInstanceType = cloneClusterInstanceType;
         this.replicaCount = replicaCount;
         this.maxConcurrency = maxConcurrency;
         this.engineVersion = engineVersion;
         this.cloneCorrelationId = cloneCorrelationId;
+        this.enableAuditLogs = enableAuditLogs;
     }
 
     @Override
@@ -57,7 +60,8 @@ public class CloneCluster implements CloneClusterStrategy {
                 replicaCount,
                 engineVersion,
                 originalClusterMetadata.clientSupplier(),
-                cloneCorrelationId);
+                cloneCorrelationId,
+                enableAuditLogs);
 
         NeptuneClusterMetadata targetClusterMetadata = addCloneTask.execute();
 

@@ -37,6 +37,7 @@ public class AddCloneTask {
     private final String engineVersion;
     private final Supplier<AmazonNeptune> amazonNeptuneClientSupplier;
     private final String cloneCorrelationId;
+    private final boolean enableAuditLogs;
 
     public AddCloneTask(String sourceClusterId,
                         String targetClusterId,
@@ -44,7 +45,8 @@ public class AddCloneTask {
                         int replicaCount,
                         String engineVersion,
                         Supplier<AmazonNeptune> amazonNeptuneClientSupplier,
-                        String cloneCorrelationId) {
+                        String cloneCorrelationId,
+                        boolean enableAuditLogs) {
         this.sourceClusterId = sourceClusterId;
         this.targetClusterId = targetClusterId;
         this.cloneClusterInstanceType = cloneClusterInstanceType;
@@ -52,6 +54,7 @@ public class AddCloneTask {
         this.engineVersion = engineVersion;
         this.amazonNeptuneClientSupplier = amazonNeptuneClientSupplier;
         this.cloneCorrelationId = cloneCorrelationId;
+        this.enableAuditLogs = enableAuditLogs;
     }
 
     public NeptuneClusterMetadata execute() {
@@ -159,6 +162,10 @@ public class AddCloneTask {
                 .withVpcSecurityGroupIds(sourceClusterMetadata.vpcSecurityGroupIds())
                 .withTags(getTags(sourceClusterMetadata.clusterId()));
 
+        if (this.enableAuditLogs) {
+            cloneClusterRequest = cloneClusterRequest.withEnableCloudwatchLogsExports("audit");
+        }
+
         DBCluster targetDbCluster = neptune.restoreDBClusterToPointInTime(cloneClusterRequest);
 
         String clusterStatus = targetDbCluster.getStatus();
@@ -257,8 +264,7 @@ public class AddCloneTask {
         String neptuneStreamsParameterValue = sourceClusterMetadata.isStreamEnabled() ? "1" : "0";
 
         try {
-
-            neptune.modifyDBClusterParameterGroup(new ModifyDBClusterParameterGroupRequest()
+            ModifyDBClusterParameterGroupRequest request = new ModifyDBClusterParameterGroupRequest()
                     .withDBClusterParameterGroupName(dbClusterParameterGroup.getDBClusterParameterGroupName())
                     .withParameters(
                             new Parameter()
@@ -272,9 +278,18 @@ public class AddCloneTask {
                             new Parameter()
                                     .withParameterName("neptune_streams")
                                     .withParameterValue(neptuneStreamsParameterValue)
-                                    .withApplyMethod(ApplyMethod.PendingReboot)));
+                                    .withApplyMethod(ApplyMethod.PendingReboot));
+
+            if (this.enableAuditLogs) {
+                request = request.withParameters(new Parameter()
+                        .withParameterName("neptune_enable_audit_log")
+                        .withParameterValue("1")
+                        .withApplyMethod(ApplyMethod.PendingReboot));
+            }
+
+            neptune.modifyDBClusterParameterGroup(request);
         } catch (AmazonNeptuneException e) {
-            neptune.modifyDBClusterParameterGroup(new ModifyDBClusterParameterGroupRequest()
+            ModifyDBClusterParameterGroupRequest request = new ModifyDBClusterParameterGroupRequest()
                     .withDBClusterParameterGroupName(dbClusterParameterGroup.getDBClusterParameterGroupName())
                     .withParameters(
                             new Parameter()
@@ -284,7 +299,16 @@ public class AddCloneTask {
                             new Parameter()
                                     .withParameterName("neptune_streams")
                                     .withParameterValue(neptuneStreamsParameterValue)
-                                    .withApplyMethod(ApplyMethod.PendingReboot)));
+                                    .withApplyMethod(ApplyMethod.PendingReboot));
+
+            if (this.enableAuditLogs) {
+                request = request.withParameters(new Parameter()
+                        .withParameterName("neptune_enable_audit_log")
+                        .withParameterValue("1")
+                        .withApplyMethod(ApplyMethod.PendingReboot));
+            }
+
+            neptune.modifyDBClusterParameterGroup(request);
         }
 
         List<Parameter> dbClusterParameters = neptune.describeDBClusterParameters(

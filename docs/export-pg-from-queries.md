@@ -9,6 +9,7 @@
                     [ --approx-node-count <approxNodeCount> ]
                     [ {-b | --batch-size} <batchSize> ] [ --clone-cluster ]
                     [ --clone-cluster-correlation-id <cloneCorrelationId> ]
+                    [ --clone-cluster-enable-audit-logs ]
                     [ --clone-cluster-instance-type <cloneClusterInstanceType> ]
                     [ --clone-cluster-replica-count <replicaCount> ]
                     [ {--cluster-id | --cluster | --clusterid} <clusterId> ]
@@ -71,12 +72,18 @@
                 Clone an Amazon Neptune cluster.
     
                 This option may occur a maximum of 1 times
-    
+
     
             --clone-cluster-correlation-id <cloneCorrelationId>
                 Correlation ID to be added to a correlation-id tag on the cloned
                 cluster.
     
+                This option may occur a maximum of 1 times
+
+
+            --clone-cluster-enable-audit-logs
+                Enables audit logging on the cloned cluster
+
                 This option may occur a maximum of 1 times
     
     

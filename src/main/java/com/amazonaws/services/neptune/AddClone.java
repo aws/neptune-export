@@ -132,10 +132,14 @@ public class AddClone implements Runnable {
     @Once
     private String cloneCorrelationId;
 
+    @Option(name = {"--clone-cluster-enable-audit-logs"}, description = "Enables audit logging on the cloned cluster")
+    @Once
+    private boolean enableAuditLogs;
+
     @Override
     public void run() {
         try {
-            AddCloneTask addCloneTask = new AddCloneTask(sourceClusterId, targetClusterId, cloneClusterInstanceType, replicaCount, engineVersion, awsCli, cloneCorrelationId);
+            AddCloneTask addCloneTask = new AddCloneTask(sourceClusterId, targetClusterId, cloneClusterInstanceType, replicaCount, engineVersion, awsCli, cloneCorrelationId, enableAuditLogs);
             NeptuneClusterMetadata clusterMetadata = addCloneTask.execute();
 
             GetClusterInfo.printClusterDetails(clusterMetadata);

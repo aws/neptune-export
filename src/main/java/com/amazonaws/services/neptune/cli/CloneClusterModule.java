@@ -122,6 +122,10 @@ public class CloneClusterModule {
     @Once
     private String cloneCorrelationId;
 
+    @Option(name = {"--clone-cluster-enable-audit-logs"}, description = "Enables audit logging on the cloned cluster")
+    @Once
+    private boolean enableAuditLogs;
+
 
     public CloneClusterModule() {
     }
@@ -144,7 +148,8 @@ public class CloneClusterModule {
                         replicaCount,
                         maxConcurrency,
                         engineVersion,
-                        cloneCorrelationId);
+                        cloneCorrelationId,
+                        enableAuditLogs);
                 return command.cloneCluster(connectionConfig, concurrencyConfig);
             }
         } else {

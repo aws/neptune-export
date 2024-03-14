@@ -6,6 +6,8 @@
 
 ### New Features and Improvements:
 
+- Add '--clone-cluster-enable-audit-logs' argument which enables audit logging on cloned clusters. Audit logging is disabled by default, which aligns with previous behavior.
+
 ## Neptune Export v1.1.4 (Release Date: January 11, 2024):
 
 ### Bug Fixes:
