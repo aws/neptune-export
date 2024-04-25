@@ -136,7 +136,11 @@ public class NeptuneClusterMetadata {
 
             if (StringUtils.isNotEmpty(engineVersion) && engineVersion.contains(".")) {
                 int v = Integer.parseInt(engineVersion.split("\\.")[1]);
-                dbParameterGroupFamily = v > 1 ? "neptune1.2" : "neptune1";
+                if (v == 3) {
+                    dbParameterGroupFamily = "neptune1.3";
+                } else {
+                    dbParameterGroupFamily = v > 1 ? "neptune1.2" : "neptune1";
+                }
             } else {
                 dbParameterGroupFamily = "neptune1";
             }
