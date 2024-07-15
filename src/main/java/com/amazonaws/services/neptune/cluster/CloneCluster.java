@@ -52,7 +52,13 @@ public class CloneCluster implements CloneClusterStrategy {
         }
 
         String clusterId = originalClusterMetadata.clusterId();
-        String targetClusterIdSuffix = System.getenv("AWS_BATCH_JOB_ID"); // Use AWS Batch job id if running in Neptune Export Service
+        String targetClusterIdSuffix = null;
+        try {
+            targetClusterIdSuffix = System.getenv("AWS_BATCH_JOB_ID"); // Use AWS Batch job id if running in Neptune Export Service
+        }
+        catch (SecurityException e) {
+            // Do nothing, will generate new ID if targetClusterIdSuffix is not set.
+        }
         if (StringUtils.isEmpty(targetClusterIdSuffix)) {
             targetClusterIdSuffix = UUID.randomUUID().toString().substring(0, 5);
         }
