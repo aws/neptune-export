@@ -205,7 +205,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
             } catch(RDFParseException e) {
                 String serverErrorMessage = getErrorMessageFromTrailers(response);
                 if (StringUtils.isNotEmpty(serverErrorMessage)) {
-                    throw new AmazonServiceException(getErrorMessageFromTrailers(response), e);
+                    throw new AmazonServiceException(serverErrorMessage, e);
                 } else {
                     throw new RuntimeException("Failed to parse RDF response. This may indicate malformed data in the " +
                             "results, or a corrupted response from the server potentially due to query execution failure.", e);
