@@ -322,8 +322,8 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
     private void uploadExportFilesToS3(TransferManager transferManager, File directory, S3ObjectInfo outputS3ObjectInfo) {
 
         if (directory == null || !directory.exists()) {
-            logger.warn("Ignoring request to upload files to S3 because upload directory from which to upload files does not exist");
-            return;
+            logger.error("Request to upload files to S3 failed because upload directory from which to upload files does not exist");
+            throw new RuntimeException("Failed to upload files to S3 because upload directory from which to upload files does not exist");
         }
 
         boolean allowRetry = true;
@@ -331,7 +331,6 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
         while (allowRetry){
             try {
-
                 ObjectMetadataProvider metadataProvider = (file, objectMetadata) -> {
                     S3ObjectInfo.createObjectMetadata(file.length(), sseKmsKeyId, objectMetadata);
                 };

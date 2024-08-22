@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 - Disable client-side verification of URI syntax for export-rdf
+- Throws exception in cases where S3 Handler cannot find local files
 
 ### New Features and Improvements:
 
