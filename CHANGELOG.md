@@ -1,5 +1,13 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v1.1.8 (Release Date: TBD):
+
+### Bug Fixes
+
+- Disable client-side verification of URI syntax for export-rdf
+
+### New Features and Improvements:
+
 ## Neptune Export v1.1.7 (Release Date: July 15, 2024):
 
 ### Bug Fixes

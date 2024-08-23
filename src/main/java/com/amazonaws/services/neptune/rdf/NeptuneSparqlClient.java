@@ -57,7 +57,10 @@ import java.util.stream.Collectors;
 
 public class NeptuneSparqlClient implements AutoCloseable {
 
-    private static final ParserConfig PARSER_CONFIG = new ParserConfig().addNonFatalError(BasicParserSettings.VERIFY_URI_SYNTAX);
+    // Disable client-side URI Syntax verification, defer to Neptune for validation.
+    private static final ParserConfig PARSER_CONFIG = new ParserConfig()
+            .addNonFatalError(BasicParserSettings.VERIFY_URI_SYNTAX)
+            .set(BasicParserSettings.VERIFY_URI_SYNTAX, false);
 
     public static NeptuneSparqlClient create(ConnectionConfig config, FeatureToggles featureToggles) {
 
@@ -195,11 +198,11 @@ public class NeptuneSparqlClient implements AutoCloseable {
         org.apache.http.HttpResponse response = httpClient.execute(request);
         InputStream responseBody = response.getEntity().getContent();
         RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
+        rdfParser.setParserConfig(PARSER_CONFIG);
 
         try (OutputWriter outputWriter = targetConfig.createOutputWriter()) {
             RDFWriter writer = targetConfig.createRDFWriter(outputWriter, featureToggles);
             rdfParser.setRDFHandler(writer);
-
             try {
                 rdfParser.parse(responseBody);
             } catch(RDFParseException e) {
