@@ -15,7 +15,7 @@ package com.amazonaws.services.neptune.rdf;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ExportRdfGraphJob implements ExportRdfJob {
 

@@ -12,13 +12,14 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.util;
 
-import com.amazonaws.services.s3.Headers;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.SSEAlgorithm;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 
 import java.io.File;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 public class S3ObjectInfo {
     private final String bucket;
@@ -42,23 +43,31 @@ public class S3ObjectInfo {
         return key;
     }
 
-    public static ObjectMetadata createObjectMetadata(long contentLength, String sseKmsKeyId, ObjectMetadata objectMetadata){
-        objectMetadata.setContentLength(contentLength);
+    public static PutObjectRequest.Builder configureServerSideEncryption(PutObjectRequest.Builder putObjectRequestBuilder, String sseKmsKeyId) {
         if (!StringUtils.isBlank(sseKmsKeyId)) {
-            objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
-            objectMetadata.setHeader(
-                    Headers.SERVER_SIDE_ENCRYPTION_AWS_KMS_KEYID,
+            return putObjectRequestBuilder
+                    .serverSideEncryption(ServerSideEncryption.AWS_KMS)
+                    .ssekmsKeyId(sseKmsKeyId);
+        }
+        return putObjectRequestBuilder.serverSideEncryption(ServerSideEncryption.AES256);
+    }
+
+    public static Map<String, String> createObjectMetadata(long contentLength, String sseKmsKeyId, Map<String, String> objectMetadata){
+        objectMetadata.put("Content-Length", String.valueOf(contentLength));
+        if (!StringUtils.isBlank(sseKmsKeyId)) {
+            objectMetadata.put("x-amz-server-side-encryption", "aws:kms");
+            objectMetadata.put(
+                    "x-amz-server-side-encryption-aws-kms-key-id",
                     sseKmsKeyId
             );
         } else {
-            objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+            objectMetadata.put("x-amz-server-side-encryption", "AES256");
         }
         return objectMetadata;
-
     }
 
-    public static ObjectMetadata createObjectMetadata(long contentLength, String sseKmsKeyId) {
-        return createObjectMetadata(contentLength, sseKmsKeyId, new ObjectMetadata());
+    public static Map<String, String> createObjectMetadata(long contentLength, String sseKmsKeyId) {
+        return createObjectMetadata(contentLength, sseKmsKeyId, new HashMap<>());
     }
 
     public File createDownloadFile(String parent) {

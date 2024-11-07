@@ -12,36 +12,40 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.export;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.profiles.incremental_export.IncrementalExportEventHandler;
 import com.amazonaws.services.neptune.profiles.neptune_ml.NeptuneMachineLearningExportEventHandlerV1;
 import com.amazonaws.services.neptune.profiles.neptune_ml.NeptuneMachineLearningExportEventHandlerV2;
 import com.amazonaws.services.neptune.util.EnvironmentVariableUtils;
 import com.amazonaws.services.neptune.util.S3ObjectInfo;
 import com.amazonaws.services.neptune.util.TransferManagerWrapper;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.Tag;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.TransferManager;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionException;
 
 
 public class NeptuneExportService {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(NeptuneExportService.class);
 
-    public static final List<Tag> NEPTUNE_EXPORT_TAGS = Collections.singletonList(new Tag("application", "neptune-export"));
+    public static final List<Tag> NEPTUNE_EXPORT_TAGS = Collections.singletonList(
+            Tag.builder().key("application").value("neptune-export").build());
     public static final String NEPTUNE_ML_PROFILE_NAME = "neptune_ml";
     public static final String INCREMENTAL_EXPORT_PROFILE_NAME = "incremental_export";
     public static final int MAX_FILE_DESCRIPTOR_COUNT = 9000;
@@ -62,7 +66,7 @@ public class NeptuneExportService {
     private final String s3Region;
     private final int maxFileDescriptorCount;
     private final String sseKmsKeyId;
-    private final AWSCredentialsProvider s3CredentialsProvider;
+    private final AwsCredentialsProvider s3CredentialsProvider;
 
     public NeptuneExportService(String cmd,
                                 String localOutputPath,
@@ -80,7 +84,7 @@ public class NeptuneExportService {
                                 String s3Region,
                                 int maxFileDescriptorCount,
                                 String sseKmsKeyId,
-                                AWSCredentialsProvider s3CredentialsProvider) {
+                                AwsCredentialsProvider s3CredentialsProvider) {
         this.cmd = cmd;
         this.localOutputPath = localOutputPath;
         this.cleanOutputPath = cleanOutputPath;
@@ -245,16 +249,17 @@ public class NeptuneExportService {
     }
 
     private void checkS3OutputIsEmpty() {
-        AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+        S3Client s3 = S3Client.builder().build();
         S3ObjectInfo s3ObjectInfo = new S3ObjectInfo(outputS3Path);
-        ObjectListing listing = s3.listObjects(
-                new ListObjectsRequest(
-                        s3ObjectInfo.bucket(),
-                        s3ObjectInfo.key(),
-                        null,
-                        null,
-                        1));
-        if (!listing.getObjectSummaries().isEmpty()) {
+        ListObjectsResponse listing = s3.listObjects(
+                ListObjectsRequest.builder()
+                        .bucket(s3ObjectInfo.bucket())
+                        .prefix(s3ObjectInfo.key())
+                        .maxKeys(1)
+                        .build()
+        );
+
+        if (listing.hasContents()) {
             throw new IllegalStateException(String.format("S3 destination contains existing objects: %s. Set 'overwriteExisting' parameter to 'true' to allow overwriting existing objects.", outputS3Path));
         }
     }
@@ -272,7 +277,7 @@ public class NeptuneExportService {
         }
     }
 
-    private File downloadFile(TransferManager transferManager, String s3Path) {
+    private File downloadFile(S3TransferManager transferManager, String s3Path) {
 
         if (StringUtils.isEmpty(s3Path)) {
             return null;
@@ -285,13 +290,19 @@ public class NeptuneExportService {
         logger.info("Key   : " + configFileS3ObjectInfo.key());
         logger.info("File  : " + file);
 
-        Download download = transferManager.download(
-                configFileS3ObjectInfo.bucket(),
-                configFileS3ObjectInfo.key(),
-                file);
+        DownloadFileRequest downloadRequest = DownloadFileRequest.builder()
+                .getObjectRequest(GetObjectRequest.builder()
+                        .bucket(configFileS3ObjectInfo.bucket())
+                        .key(configFileS3ObjectInfo.key())
+                        .build())
+                .destination(file.toPath())
+                .build();
+
+        FileDownload download = transferManager.downloadFile(downloadRequest);
+
         try {
-            download.waitForCompletion();
-        } catch (InterruptedException e) {
+            download.completionFuture().join();
+        } catch (CancellationException | CompletionException e) {
             logger.warn(e.getMessage());
             Thread.currentThread().interrupt();
         }

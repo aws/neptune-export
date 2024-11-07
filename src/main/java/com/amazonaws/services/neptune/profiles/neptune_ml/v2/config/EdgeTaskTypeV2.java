@@ -14,7 +14,7 @@ package com.amazonaws.services.neptune.profiles.neptune_ml.v2.config;
 
 import com.amazonaws.services.neptune.profiles.neptune_ml.common.parsing.ParsingContext;
 import com.amazonaws.services.neptune.propertygraph.Label;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public enum EdgeTaskTypeV2 {
     classification,

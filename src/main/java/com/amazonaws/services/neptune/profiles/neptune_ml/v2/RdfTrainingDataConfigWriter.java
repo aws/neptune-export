@@ -17,7 +17,7 @@ import com.amazonaws.services.neptune.profiles.neptune_ml.v2.config.LabelConfigV
 import com.amazonaws.services.neptune.profiles.neptune_ml.v2.config.RdfTaskTypeV2;
 import com.amazonaws.services.neptune.profiles.neptune_ml.v2.config.TrainingDataWriterConfigV2;
 import com.fasterxml.jackson.core.JsonGenerator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;

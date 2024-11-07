@@ -12,7 +12,6 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.profiles.neptune_ml;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.cluster.Cluster;
 import com.amazonaws.services.neptune.export.Args;
 import com.amazonaws.services.neptune.export.ExportToS3NeptuneExportEventHandler;
@@ -31,19 +30,18 @@ import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.S3ObjectInfo;
 import com.amazonaws.services.neptune.util.Timer;
 import com.amazonaws.services.neptune.util.TransferManagerWrapper;
-import com.amazonaws.services.s3.Headers;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.SSEAlgorithm;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.Upload;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -52,8 +50,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionException;
 
 import static com.amazonaws.services.neptune.export.NeptuneExportService.NEPTUNE_ML_PROFILE_NAME;
+import static com.amazonaws.services.neptune.util.S3ObjectInfo.configureServerSideEncryption;
 
 public class NeptuneMachineLearningExportEventHandlerV2 implements NeptuneExportServiceEventHandler {
 
@@ -69,7 +70,7 @@ public class NeptuneMachineLearningExportEventHandlerV2 implements NeptuneExport
     private final PrinterOptions printerOptions;
     private final boolean includeEdgeFeatures;
     private final String sseKmsKeyId;
-    private final AWSCredentialsProvider s3CredentialsProvider;
+    private final AwsCredentialsProvider s3CredentialsProvider;
 
     public NeptuneMachineLearningExportEventHandlerV2(String outputS3Path,
                                                       String s3Region,
@@ -78,7 +79,7 @@ public class NeptuneMachineLearningExportEventHandlerV2 implements NeptuneExport
                                                       Args args,
                                                       Collection<String> profiles,
                                                       String sseKmsKeyId,
-                                                      AWSCredentialsProvider s3CredentialsProvider) {
+                                                      AwsCredentialsProvider s3CredentialsProvider) {
         logger.info("Adding neptune_ml event handler");
 
         CsvPrinterOptions csvPrinterOptions = CsvPrinterOptions.builder()
@@ -221,25 +222,27 @@ public class NeptuneMachineLearningExportEventHandlerV2 implements NeptuneExport
     }
 
     private void uploadTrainingJobConfigurationFileToS3(String filename,
-                                                        TransferManager transferManager,
+                                                        S3TransferManager transferManager,
                                                         File trainingJobConfigurationFile,
-                                                        S3ObjectInfo outputS3ObjectInfo) throws IOException {
+                                                        S3ObjectInfo outputS3ObjectInfo) {
 
         S3ObjectInfo s3ObjectInfo = outputS3ObjectInfo.withNewKeySuffix(filename);
 
-        try (InputStream inputStream = new FileInputStream(trainingJobConfigurationFile)) {
+        try {
+            UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                    .source(trainingJobConfigurationFile)
+                    .putObjectRequest(configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId)
+                            .bucket(s3ObjectInfo.bucket())
+                            .key(s3ObjectInfo.key())
+                            .tagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles))
+                            .build())
+                    .build();
 
-            PutObjectRequest putObjectRequest = new PutObjectRequest(s3ObjectInfo.bucket(),
-                    s3ObjectInfo.key(),
-                    inputStream,
-                    S3ObjectInfo.createObjectMetadata(trainingJobConfigurationFile.length(),sseKmsKeyId))
-                    .withTagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles));
+            FileUpload upload = transferManager.uploadFile(uploadFileRequest);
 
-            Upload upload = transferManager.upload(putObjectRequest);
+            upload.completionFuture().join();
 
-            upload.waitForUploadResult();
-
-        } catch (InterruptedException e) {
+        } catch (CompletionException | CancellationException e) {
             logger.warn(e.getMessage());
             Thread.currentThread().interrupt();
         }

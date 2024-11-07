@@ -40,7 +40,7 @@ class SimpleResponseHandler implements HttpResponseHandler<HttpResponse> {
             throw ase;
         }
 
-        String contentType = response.getHeaderValues("content-type").get(0);
+        String contentType = response.getHeader("content-type");
 
         return new HttpResponse(status, content, contentType);
     }

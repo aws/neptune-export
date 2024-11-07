@@ -12,12 +12,12 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.export;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.cluster.Cluster;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.propertygraph.ExportStats;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -42,7 +42,7 @@ public class ExportToS3NeptuneExportEventHandlerTest {
                 Collections.EMPTY_SET,
                 Collections.EMPTY_SET,
                 "",
-                mock(AWSCredentialsProvider.class)
+                mock(AwsCredentialsProvider.class)
         );
 
         Directories mockDir = mock(Directories.class);

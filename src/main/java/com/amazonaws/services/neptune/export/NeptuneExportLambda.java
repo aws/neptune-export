@@ -19,10 +19,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.util.AWSCredentialsUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -31,6 +30,7 @@ import com.amazonaws.services.neptune.util.S3ObjectInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import static com.amazonaws.services.neptune.RunNeptuneExportSvc.DEFAULT_MAX_FILE_DESCRIPTOR_COUNT;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -132,7 +132,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 sseKmsKeyId.substring(0, sseKmsKeyId.length()/4) +
                         sseKmsKeyId.substring(sseKmsKeyId.length()/4).replaceAll("\\w","*");
 
-        AWSCredentialsProvider s3CredentialsProvider = getS3CredentialsProvider(json, params, s3Region);
+        AwsCredentialsProvider s3CredentialsProvider = getS3CredentialsProvider(json, params, s3Region);
 
         logger.log("cmd                       : " + cmd);
         logger.log("params                    : " + params.toPrettyString());
@@ -189,7 +189,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
         }
     }
 
-    private AWSCredentialsProvider getS3CredentialsProvider(JsonNode json, ObjectNode params, String region) {
+    private AwsCredentialsProvider getS3CredentialsProvider(JsonNode json, ObjectNode params, String region) {
         String s3RoleArn = json.has("s3RoleArn") ?
                 json.path("s3RoleArn").textValue() :
                 EnvironmentVariableUtils.getOptionalEnv("S3_ROLE_ARN", "");
@@ -210,7 +210,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 params.path("credentials-config-file").textValue() :
                 EnvironmentVariableUtils.getOptionalEnv("CREDENTIALS_CONFIG_FILE", "");
 
-        AWSCredentialsProvider sourceCredentialsProvider = AWSCredentialsUtil.getProfileCredentialsProvider(credentialsProfile, credentialsConfigFilePath);
+        AwsCredentialsProvider sourceCredentialsProvider = AWSCredentialsUtil.getProfileCredentialsProvider(credentialsProfile, credentialsConfigFilePath);
 
         if (StringUtils.isEmpty(s3RoleArn)) {
             return sourceCredentialsProvider;

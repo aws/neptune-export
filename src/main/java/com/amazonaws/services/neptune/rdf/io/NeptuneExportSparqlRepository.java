@@ -12,7 +12,6 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.rdf.io;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.neptune.auth.NeptuneApacheHttpSigV4Signer;
 import com.amazonaws.neptune.auth.NeptuneSigV4Signer;
 import com.amazonaws.neptune.auth.NeptuneSigV4SignerException;
@@ -30,6 +29,7 @@ import org.apache.http.impl.io.ChunkedInputStream;
 import org.apache.http.protocol.HttpContext;
 import org.eclipse.rdf4j.http.client.util.HttpClientBuilders;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -40,13 +40,13 @@ import java.util.Map;
 
 public class NeptuneExportSparqlRepository extends SPARQLRepository {
     private final String regionName;
-    private final AWSCredentialsProvider awsCredentialsProvider;
+    private final AwsCredentialsProvider awsCredentialsProvider;
     private final ConnectionConfig config;
     private NeptuneSigV4Signer<HttpUriRequest> v4Signer;
 
     private HttpContext lastContext;
 
-    public NeptuneExportSparqlRepository(String endpointUrl, AWSCredentialsProvider awsCredentialsProvider, String regionName, ConnectionConfig config) throws NeptuneSigV4SignerException {
+    public NeptuneExportSparqlRepository(String endpointUrl, AwsCredentialsProvider awsCredentialsProvider, String regionName, ConnectionConfig config) throws NeptuneSigV4SignerException {
         super(getSparqlEndpoint(endpointUrl));
         if (config == null) {
             throw new IllegalArgumentException("ConnectionConfig is required to be non-null");

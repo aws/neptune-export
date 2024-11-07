@@ -12,14 +12,14 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cli;
 
-import com.amazonaws.services.neptune.AmazonNeptune;
+import software.amazon.awssdk.services.neptune.NeptuneClient;
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
 import com.amazonaws.services.neptune.cluster.NeptuneClusterMetadata;
 import com.amazonaws.services.neptune.cluster.ProxyConfig;
 import com.amazonaws.services.neptune.export.EndpointValidator;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -87,9 +87,9 @@ public class CommonConnectionModule {
     @Once
     private boolean removeProxyHostHeader = false;
 
-    private final Supplier<AmazonNeptune> amazonNeptuneClientSupplier;
+    private final Supplier<NeptuneClient> amazonNeptuneClientSupplier;
 
-    public CommonConnectionModule(Supplier<AmazonNeptune> amazonNeptuneClientSupplier) {
+    public CommonConnectionModule(Supplier<NeptuneClient> amazonNeptuneClientSupplier) {
         this.amazonNeptuneClientSupplier = amazonNeptuneClientSupplier;
     }
 
