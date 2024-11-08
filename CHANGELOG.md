@@ -1,5 +1,11 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v1.1.9 (Release Date: TBD):
+
+### Bug Fixes
+
+### New Features and Improvements:
+
 ## Neptune Export v1.1.8 (Release Date: August 27, 2024):
 
 ### Bug Fixes
@@ -7,8 +13,6 @@
 - Fix RDF GSP error extraction
 - Disable client-side verification of URI syntax for export-rdf
 - Throws exception in cases where S3 Handler cannot find local files
-
-### New Features and Improvements:
 
 ## Neptune Export v1.1.7 (Release Date: July 15, 2024):
 
