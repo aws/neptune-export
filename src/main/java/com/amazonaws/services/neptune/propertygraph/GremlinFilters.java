@@ -31,24 +31,47 @@ public class GremlinFilters {
 
     public static final GremlinFilters EMPTY = new GremlinFilters(null, null, null, false);
 
-    private final String gremlinFilter;
-    private final String gremlinNodeFilter;
-    private final String gremlinEdgeFilter;
+    private final Traversal.Admin<?, ?> gremlinFilter;
+    private final Traversal.Admin<?, ?> gremlinNodeFilter;
+    private final Traversal.Admin<?, ?> gremlinEdgeFilter;
     private final boolean filterEdgesEarly;
 
     private static final List<String> INVALID_OPERATORS = Arrays.asList("addV", "addE", "write", "drop", "sideEffect", "property", "mergeV", "mergeE");
 
     public GremlinFilters(String gremlinFilter, String gremlinNodeFilter, String gremlinEdgeFilter, boolean filterEdgesEarly) {
-        this.gremlinFilter = gremlinFilter;
-        this.gremlinNodeFilter = gremlinNodeFilter;
-        this.gremlinEdgeFilter = gremlinEdgeFilter;
         this.filterEdgesEarly = filterEdgesEarly;
+
+        CachedGremlinScriptEngineManager scriptEngineManager = new CachedGremlinScriptEngineManager();
+        GremlinScriptEngine engine = scriptEngineManager.getEngineByName("gremlin-groovy");
+        Bindings engineBindings = engine.createBindings();
+        engineBindings.put("datetime", new DatetimeConverter());
+
+        try {
+            this.gremlinFilter = StringUtils.isNotEmpty(gremlinFilter) ?
+                    (Traversal.Admin) engine.eval(gremlinFilter, engineBindings) : null;
+        } catch (ScriptException e) {
+            throw new IllegalStateException(String.format("Invalid Gremlin filter: %s. %s", gremlinFilter, e.getMessage()), e);
+        }
+
+        try {
+            this.gremlinNodeFilter = StringUtils.isNotEmpty(gremlinNodeFilter) ?
+                    (Traversal.Admin) engine.eval(gremlinNodeFilter, engineBindings) : null;
+        } catch (ScriptException e) {
+            throw new IllegalStateException(String.format("Invalid Gremlin node filter: %s. %s", gremlinNodeFilter, e.getMessage()), e);
+        }
+
+        try {
+            this.gremlinEdgeFilter = StringUtils.isNotEmpty(gremlinEdgeFilter) ?
+                    (Traversal.Admin) engine.eval(gremlinEdgeFilter, engineBindings) : null;
+        } catch (ScriptException e) {
+            throw new IllegalStateException(String.format("Invalid Gremlin edge filter: %s. %s", gremlinEdgeFilter, e.getMessage()), e);
+        }
     }
 
     public GraphTraversal<? extends Element, ?> applyToNodes(GraphTraversal<? extends Element, ?> t) {
-        if (StringUtils.isNotEmpty(gremlinNodeFilter)) {
+        if (gremlinNodeFilter != null) {
             return apply(t, gremlinNodeFilter);
-        } else if (StringUtils.isNotEmpty(gremlinFilter)) {
+        } else if (gremlinFilter != null) {
             return apply(t, gremlinFilter);
         } else {
             return t;
@@ -56,9 +79,9 @@ public class GremlinFilters {
     }
 
     public GraphTraversal<? extends Element, ?> applyToEdges(GraphTraversal<? extends Element, ?> t) {
-        if (StringUtils.isNotEmpty(gremlinEdgeFilter)) {
+        if (gremlinEdgeFilter != null) {
             return apply(t, gremlinEdgeFilter);
-        } else if (StringUtils.isNotEmpty(gremlinFilter)) {
+        } else if (gremlinFilter != null) {
             return apply(t, gremlinFilter);
         } else {
             return t;
@@ -69,19 +92,8 @@ public class GremlinFilters {
         return filterEdgesEarly;
     }
 
-    private GraphTraversal<? extends Element, ?> apply(GraphTraversal<? extends Element, ?> t, String gremlin) {
-        CachedGremlinScriptEngineManager scriptEngineManager = new CachedGremlinScriptEngineManager();
-        GremlinScriptEngine engine = scriptEngineManager.getEngineByName("gremlin-groovy");
-        Bindings engineBindings = engine.createBindings();
-        engineBindings.put("datetime", new DatetimeConverter());
-
-        Traversal.Admin<?, ?> whereTraversal = null;
-        try {
-            whereTraversal = (Traversal.Admin) engine.eval(gremlin, engineBindings);
-        } catch (ScriptException e) {
-            throw new IllegalStateException(String.format("Invalid Gremlin filter: %s. %s", gremlin, e.getMessage()), e);
-        }
-        for (Bytecode.Instruction instruction : whereTraversal.getBytecode().getInstructions()) {
+    private GraphTraversal<? extends Element, ?> apply(GraphTraversal<? extends Element, ?> t, Traversal.Admin<?, ?> gremlin) {
+        for (Bytecode.Instruction instruction : gremlin.getBytecode().getInstructions()) {
             String operator = instruction.getOperator();
             validateOperator(operator);
             t.asAdmin().getBytecode().addStep(operator, instruction.getArguments());
