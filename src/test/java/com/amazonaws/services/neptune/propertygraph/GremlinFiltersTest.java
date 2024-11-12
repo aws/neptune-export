@@ -17,6 +17,8 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 public class GremlinFiltersTest {
 
@@ -75,6 +77,48 @@ public class GremlinFiltersTest {
 
         assertEquals("__.inject(\"x\").constant(\"node\")", GremlinQueryDebugger.queryAsString(filters.applyToNodes(anonymousTraversal())));
         assertEquals("__.inject(\"x\").constant(\"edge\")", GremlinQueryDebugger.queryAsString(filters.applyToEdges(anonymousTraversal())));
+    }
+
+    @Test
+    public void shouldHandleDatetimeFunction() {
+        GremlinFilters filters = new GremlinFilters("constant(datetime(\"2018-03-22T00:35:44.741Z\"))", null, null, false);
+
+        assertEquals("__.inject(\"x\").constant(new Date(1521678944741L))", GremlinQueryDebugger.queryAsString(filters.applyToNodes(anonymousTraversal())));
+        assertEquals("__.inject(\"x\").constant(new Date(1521678944741L))", GremlinQueryDebugger.queryAsString(filters.applyToEdges(anonymousTraversal())));
+
+        filters = new GremlinFilters("constant(datetime(\"2018-03-22T00:35:44.741+1600\"))", null, null, false);
+
+        assertEquals("__.inject(\"x\").constant(new Date(1521621344741L))", GremlinQueryDebugger.queryAsString(filters.applyToNodes(anonymousTraversal())));
+        assertEquals("__.inject(\"x\").constant(new Date(1521621344741L))", GremlinQueryDebugger.queryAsString(filters.applyToEdges(anonymousTraversal())));
+    }
+
+    @Test
+    public void shouldFailOnInvalidGremlinFilter() {
+        assertTrue("Exception does not contain expected message", assertThrows(IllegalStateException.class,
+                ()->new GremlinFilters("notARealGremlinStep()", null, null, false)
+        ).getMessage().contains("Invalid Gremlin filter: notARealGremlinStep()"));
+    }
+
+    @Test
+    public void shouldFailOnInvalidGremlinNodeFilter() {
+        assertTrue("Exception does not contain expected message", assertThrows(IllegalStateException.class,
+                ()->new GremlinFilters(null, "notARealGremlinStep()", null, false)
+        ).getMessage().contains("Invalid Gremlin node filter: notARealGremlinStep()"));
+    }
+
+    @Test
+    public void shouldFailOnInvalidGremlinEdgeFilter() {
+        assertTrue("Exception does not contain expected message", assertThrows(IllegalStateException.class,
+                ()->new GremlinFilters(null, null, "notARealGremlinStep()", false)
+        ).getMessage().contains("Invalid Gremlin edge filter: notARealGremlinStep()"));
+    }
+
+    @Test
+    public void shouldApplyComplexGremlinFilterToNodesAndEdges() {
+        GremlinFilters filters = new GremlinFilters("where(__.or(hasLabel('person'), has('name', 'Cole'))).has('age',inside(20,30))", null, null, false);
+
+        assertEquals("__.inject(\"x\").where(__.or(__.hasLabel(\"person\"),__.has(\"name\",\"Cole\"))).has(\"age\",P.gt((int) 20).and(P.lt((int) 30)))", GremlinQueryDebugger.queryAsString(filters.applyToNodes(anonymousTraversal())));
+        assertEquals("__.inject(\"x\").where(__.or(__.hasLabel(\"person\"),__.has(\"name\",\"Cole\"))).has(\"age\",P.gt((int) 20).and(P.lt((int) 30)))", GremlinQueryDebugger.queryAsString(filters.applyToEdges(anonymousTraversal())));
     }
 
     private GraphTraversal anonymousTraversal() {
