@@ -1,10 +1,16 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.1.9 (Release Date: TBD):
+## Neptune Export v1.1.9 (Release Date: Nov 12, 2024):
 
 ### Bug Fixes
 
+- Improve GremlinFilter compilation efficiency for highly concurrent exports
+
 ### New Features and Improvements:
+
+- Bump AWS SDK to 1.12.773
+- Bump commons-io to 2.15.1
+- Bump aws-lambda-java-core to 1.2.3
 
 ## Neptune Export v1.1.8 (Release Date: August 27, 2024):
 
