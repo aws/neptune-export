@@ -22,7 +22,7 @@
         <skipIntegrationTests>true</skipIntegrationTests>
         <neptuneEndpoint></neptuneEndpoint>
         <aws.sdk.version>1.12.773</aws.sdk.version>
-        <gremlin.version>3.6.2</gremlin.version>
+        <gremlin.version>3.7.3</gremlin.version>
         <slf4j.version>2.0.5</slf4j.version>
         <rdf4j.version>3.5.0</rdf4j.version>
         <amazon.neptune.sigv4.signer.version>2.4.0</amazon.neptune.sigv4.signer.version>
@@ -38,15 +38,27 @@
         <dependency>
             <groupId>org.janusgraph</groupId>
             <artifactId>janusgraph-driver</artifactId>
-            <version>0.5.3</version>
+            <version>1.1.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.tinkerpop</groupId>
                     <artifactId>gremlin-core</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>org.apache.tinkerpop</groupId>
+                    <artifactId>gremlin-driver</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.tinkerpop</groupId>
+                    <artifactId>gremlin-groovy</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.apache.commons</groupId>
                     <artifactId>commons-text</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

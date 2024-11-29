@@ -1,5 +1,13 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v1.1.10 (Release Date: TBD):
+
+### Bug Fixes:
+
+### New Features and Improvements:
+
+- Update TinkerPop to 3.7.3 and JanusGraph to 1.1.0
+
 ## Neptune Export v1.1.9 (Release Date: Nov 12, 2024):
 
 ### Bug Fixes
