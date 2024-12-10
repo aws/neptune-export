@@ -13,11 +13,9 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.propertygraph.io;
 
 import org.apache.tinkerpop.gremlin.driver.Cluster;
-import org.apache.tinkerpop.gremlin.driver.MessageSerializer;
-import org.apache.tinkerpop.gremlin.driver.ser.GraphBinaryMessageSerializerV1;
-import org.apache.tinkerpop.gremlin.driver.ser.GraphSONMessageSerializerV3d0;
+import org.apache.tinkerpop.gremlin.util.MessageSerializer;
+import org.apache.tinkerpop.gremlin.util.ser.GraphSONMessageSerializerV3;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +41,7 @@ public class SerializationConfig {
         if (useJanusSerializer) {
             Map<String, Object> config = new HashMap<>();
             config.put("ioRegistries", Collections.singletonList("org.janusgraph.graphdb.tinkerpop.JanusGraphIoRegistry"));
-            MessageSerializer s = new GraphSONMessageSerializerV3d0();
+            MessageSerializer s = new GraphSONMessageSerializerV3();
             s.configure(config, null);
             return b.serializer(s);
         } else {

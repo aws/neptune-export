@@ -19,7 +19,7 @@ import com.amazonaws.services.neptune.propertygraph.io.SerializationConfig;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.driver.HandshakeInterceptor;
 import org.apache.tinkerpop.gremlin.driver.LBAwareSigV4WebSocketChannelizer;
-import org.apache.tinkerpop.gremlin.driver.ser.Serializers;
+import org.apache.tinkerpop.gremlin.util.ser.Serializers;
 import org.junit.Test;
 import org.apache.tinkerpop.gremlin.driver.Client;
 
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 public class NeptuneGremlinClientTest {
 
     private final SerializationConfig defaultSerializationConfig = new SerializationConfig(
-            Serializers.GRAPHBINARY_V1D0.name(), 50000000, NeptuneGremlinClient.DEFAULT_BATCH_SIZE, false);
+            Serializers.GRAPHBINARY_V1.name(), 50000000, NeptuneGremlinClient.DEFAULT_BATCH_SIZE, false);
 
     @Test
     public void testQueryClientSubmit() {
@@ -96,7 +96,7 @@ public class NeptuneGremlinClientTest {
         HandshakeInterceptor interceptor;
 
         try {
-            Method getHandshakeInterceptor = cluster.getClass().getDeclaredMethod("getHandshakeInterceptor");
+            Method getHandshakeInterceptor = cluster.getClass().getDeclaredMethod("getRequestInterceptor");
             getHandshakeInterceptor.setAccessible(true);
             interceptor = (HandshakeInterceptor) getHandshakeInterceptor.invoke(cluster);
             getHandshakeInterceptor.setAccessible(false);
