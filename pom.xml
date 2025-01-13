@@ -38,7 +38,7 @@
         <dependency>
             <groupId>org.janusgraph</groupId>
             <artifactId>janusgraph-driver</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0-20250113-082101.7f6ffcf</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.tinkerpop</groupId>
