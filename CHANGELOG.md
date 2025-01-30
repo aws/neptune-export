@@ -1,8 +1,12 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v1.1.10 (Release Date: Dec 16, 2024):
+## Neptune Export v1.1.11 (Release Date: TBD):
+
+### New Features and Improvements:
 
 ### Bug Fixes:
+
+## Neptune Export v1.1.10 (Release Date: Dec 16, 2024):
 
 ### New Features and Improvements:
 
@@ -10,7 +14,7 @@
 
 ## Neptune Export v1.1.9 (Release Date: Nov 12, 2024):
 
-### Bug Fixes
+### Bug Fixes:
 
 - Improve GremlinFilter compilation efficiency for highly concurrent exports
 
@@ -22,7 +26,7 @@
 
 ## Neptune Export v1.1.8 (Release Date: August 27, 2024):
 
-### Bug Fixes
+### Bug Fixes:
 
 - Fix RDF GSP error extraction
 - Disable client-side verification of URI syntax for export-rdf
@@ -30,12 +34,13 @@
 
 ## Neptune Export v1.1.7 (Release Date: July 15, 2024):
 
-### Bug Fixes
+### Bug Fixes:
 
 - Support Neptune 1.3 parameter groups when `describeDBClusterParameterGroups` unavailable
 - Surface server errors for RDF GSP exports
 
 ### New Features and Improvements:
+
 - Use AWS Batch Job ID as Neptune Export ID when available
 
 ## Neptune Export v1.1.6 (Release Date: April 17, 2024):
@@ -78,8 +83,6 @@
 ### Bug Fixes:
 
 - Resolves issue where certain special characters would cause RDF export jobs to fail.
-
-### New Features and Improvements:
 
 ## Neptune Export v1.1.0 (Release Date: October 31, 2023):
 
@@ -137,8 +140,6 @@ Amazon S3 buckets or Amazon Kinesis Data Streams
 ### Bug Fixes:
 
 - Fixed bug which was preventing getting the output id in FileToStreamOutputWriter
-
-### New Features and Improvements:
 
 ## Neptune Export v1.0.1 (Release Date: March 30, 2023):
 
