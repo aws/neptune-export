@@ -120,7 +120,7 @@ jobs:
         cp -R target/surefire-reports output/testresults
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3-node20
+      uses: actions/upload-artifact@v4
       with:
         name: output
         path: output
