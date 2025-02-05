@@ -4,6 +4,8 @@
 
 ### New Features and Improvements:
 
+- Migrate to AWS SDK for Java v2
+
 ### Bug Fixes:
 
 ## Neptune Export v1.1.11 (Release Date: Mar 10, 2025):
