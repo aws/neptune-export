@@ -28,7 +28,7 @@
         <amazon.neptune.sigv4.signer.version>2.4.0</amazon.neptune.sigv4.signer.version>
         <amazon.neptune.gremlin.java.sigv4.version>2.4.0</amazon.neptune.gremlin.java.sigv4.version>
         <amazon.neptune.sparql.java.sigv4.version>2.4.0</amazon.neptune.sparql.java.sigv4.version>
-        <netty.version>4.1.52.Final</netty.version>
+        <netty.version>4.1.117.Final</netty.version>
         <kinesis.producer.version>0.14.0</kinesis.producer.version>
         <jackson.version>2.15.3</jackson.version>
     </properties>
