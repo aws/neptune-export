@@ -192,4 +192,9 @@ public class LBAwareSigV4WebSocketChannelizer extends Channelizer.AbstractChanne
                 handshakeRequestConfig);
         return new WebSocketClientHandler(handshaker, 10000, supportsSsl());
     }
+
+    @Override
+    public String getScheme(boolean sslEnabled) {
+        return sslEnabled ? "wss" : "ws";
+    }
 }

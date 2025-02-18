@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- Fix incorrect URL scheme for network load balancer endpoints
+
 ## Neptune Export v1.1.10 (Release Date: Dec 16, 2024):
 
 ### New Features and Improvements:
