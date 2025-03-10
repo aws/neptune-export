@@ -13,9 +13,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.export;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.event.ProgressEvent;
-import com.amazonaws.event.ProgressListener;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.neptune.cluster.Cluster;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.propertygraph.ExportStats;
@@ -24,21 +22,25 @@ import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.S3ObjectInfo;
 import com.amazonaws.services.neptune.util.Timer;
 import com.amazonaws.services.neptune.util.TransferManagerWrapper;
-import com.amazonaws.services.s3.Headers;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.ObjectTagging;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.SSEAlgorithm;
-import com.amazonaws.services.s3.model.Tag;
-import com.amazonaws.services.s3.transfer.*;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.Upload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -48,11 +50,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.amazonaws.services.neptune.export.NeptuneExportService.NEPTUNE_EXPORT_TAGS;
+import static com.amazonaws.services.neptune.util.S3ObjectInfo.configureServerSideEncryption;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHandler {
@@ -88,13 +93,13 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         }
     }
 
-    public static ObjectTagging createObjectTags(Collection<String> profiles) {
+    public static Tagging createObjectTags(Collection<String> profiles) {
         List<Tag> tags = new ArrayList<>(NEPTUNE_EXPORT_TAGS);
         if (!profiles.isEmpty()) {
             String profilesTagValue = String.join(":", profiles);
-            tags.add(new Tag("neptune-export:profiles", profilesTagValue));
+            tags.add(Tag.builder().key("neptune-export:profiles").value(profilesTagValue).build());
         }
-        return new ObjectTagging(tags);
+        return Tagging.builder().tagSet(tags).build();
     }
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ExportToS3NeptuneExportEventHandler.class);
@@ -111,7 +116,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
     private final AtomicReference<S3ObjectInfo> result = new AtomicReference<>();
     private static final Pattern STATUS_CODE_5XX_PATTERN = Pattern.compile("Status Code: (5\\d+)");
     private final String sseKmsKeyId;
-    private final AWSCredentialsProvider s3CredentialsProvider;
+    private final AwsCredentialsProvider s3CredentialsProvider;
 
     public ExportToS3NeptuneExportEventHandler(String localOutputPath,
                                                String outputS3Path,
@@ -123,7 +128,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
                                                Collection<String> profiles,
                                                Collection<CompletionFileWriter> completionFileWriters,
                                                String sseKmsKeyId,
-                                               AWSCredentialsProvider s3CredentialsProvider) {
+                                               AwsCredentialsProvider s3CredentialsProvider) {
         this.localOutputPath = localOutputPath;
         this.outputS3Path = outputS3Path;
         this.s3Region = s3Region;
@@ -218,7 +223,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         }
     }
 
-    private void uploadGcLogToS3(TransferManager transferManager,
+    private void uploadGcLogToS3(S3TransferManager transferManager,
                                  File directory,
                                  S3ObjectInfo outputS3ObjectInfo) throws IOException {
 
@@ -232,18 +237,22 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
         S3ObjectInfo gcLogS3ObjectInfo = outputS3ObjectInfo.withNewKeySuffix("gc.log");
 
-        try (InputStream inputStream = new FileInputStream(gcLog)) {
+        try {
 
-            PutObjectRequest putObjectRequest = new PutObjectRequest(gcLogS3ObjectInfo.bucket(),
-                    gcLogS3ObjectInfo.key(),
-                    inputStream,
-                    S3ObjectInfo.createObjectMetadata(gcLog.length(), sseKmsKeyId)).withTagging(createObjectTags(profiles));
+            UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                    .putObjectRequest(configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId)
+                            .bucket(gcLogS3ObjectInfo.bucket())
+                            .key(gcLogS3ObjectInfo.key())
+                            .tagging(createObjectTags(profiles))
+                            .build())
+                    .source(gcLog)
+                    .build();
 
-            Upload upload = transferManager.upload(putObjectRequest);
+            FileUpload upload = transferManager.uploadFile(uploadFileRequest);
 
-            upload.waitForUploadResult();
+            upload.completionFuture().join();
 
-        } catch (InterruptedException e) {
+        } catch (CompletionException | CancellationException e) {
             logger.warn(e.getMessage());
             Thread.currentThread().interrupt();
         }
@@ -259,7 +268,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         }
     }
 
-    private void uploadCompletionFileToS3(TransferManager transferManager,
+    private void uploadCompletionFileToS3(S3TransferManager transferManager,
                                           File directory,
                                           S3ObjectInfo outputS3ObjectInfo,
                                           ExportStats stats,
@@ -301,25 +310,28 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
         logger.info("Uploading completion file to {}", completionFileS3ObjectInfo.key());
 
-        try (InputStream inputStream = new FileInputStream(completionFile)) {
+        try {
+            UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                    .source(completionFile)
+                    .putObjectRequest(PutObjectRequest.builder()
+                            .bucket(completionFileS3ObjectInfo.bucket())
+                            .key(completionFileS3ObjectInfo.key())
+                            .metadata(S3ObjectInfo.createObjectMetadata(completionFile.length(), sseKmsKeyId))
+                            .tagging(createObjectTags(profiles))
+                            .build())
+                    .build();
 
-            PutObjectRequest putObjectRequest = new PutObjectRequest(completionFileS3ObjectInfo.bucket(),
-                    completionFileS3ObjectInfo.key(),
-                    inputStream,
-                    S3ObjectInfo.createObjectMetadata(completionFile.length(), sseKmsKeyId))
-                    .withTagging(createObjectTags(profiles));
+            FileUpload upload = transferManager.uploadFile(uploadFileRequest);
 
-            Upload upload = transferManager.upload(putObjectRequest);
+            upload.completionFuture().join();
 
-            upload.waitForUploadResult();
-
-        } catch (InterruptedException e) {
+        } catch (CompletionException | CancellationException e) {
             logger.warn(e.getMessage());
             Thread.currentThread().interrupt();
         }
     }
 
-    private void uploadExportFilesToS3(TransferManager transferManager, File directory, S3ObjectInfo outputS3ObjectInfo) {
+    private void uploadExportFilesToS3(S3TransferManager transferManager, File directory, S3ObjectInfo outputS3ObjectInfo) {
 
         if (directory == null || !directory.exists()) {
             logger.error("Request to upload files to S3 failed because upload directory from which to upload files does not exist");
@@ -331,41 +343,46 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
         while (allowRetry){
             try {
-                ObjectMetadataProvider metadataProvider = (file, objectMetadata) -> {
-                    S3ObjectInfo.createObjectMetadata(file.length(), sseKmsKeyId, objectMetadata);
-                };
-
-                ObjectTaggingProvider taggingProvider = uploadContext -> createObjectTags(profiles);
+                PutObjectRequest putObjectRequest = configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId)
+                        .tagging(createObjectTags(profiles))
+                        .build();
 
                 logger.info("Uploading export files to {}", outputS3ObjectInfo.toString());
 
-                MultipleFileUpload upload = transferManager.uploadDirectory(
-                        outputS3ObjectInfo.bucket(),
-                        outputS3ObjectInfo.key(),
-                        directory,
-                        true,
-                        metadataProvider,
-                        taggingProvider);
+                UploadDirectoryRequest uploadRequest = UploadDirectoryRequest.builder()
+                        .source(directory.toPath())
+                        .bucket(outputS3ObjectInfo.bucket())
+                        .s3Prefix(outputS3ObjectInfo.key())
+                        .uploadFileRequestTransformer((uploadFileRequestBuilder) -> {
+                            uploadFileRequestBuilder.putObjectRequest(putObjectRequest);
+                        })
+                        .build();
 
-                AmazonClientException amazonClientException = upload.waitForException();
+                try{
+                    DirectoryUpload upload = transferManager.uploadDirectory(uploadRequest);
 
-                if (amazonClientException != null){
-                    String errorMessage = amazonClientException.getMessage();
-                    Matcher exMsgStatusCodeMatcher = STATUS_CODE_5XX_PATTERN.matcher(errorMessage);
-                    logger.error("Upload to S3 failed: {}", errorMessage);
-                    // only retry if exception is retryable, the status code is 5xx, and we have retry counts left
-                    if (amazonClientException.isRetryable() && exMsgStatusCodeMatcher.find() && retryCount <= 2) {
-                        retryCount++;
-                        logger.info("Retrying upload to S3 [RetryCount: {}]", retryCount);
-                    } else {
-                        allowRetry = false;
-                        logger.warn("Cancelling upload to S3 [RetryCount: {}]", retryCount);
-                        throw new RuntimeException(String.format("Upload to S3 failed [Directory: %s, S3 location: %s, Reason: %s, RetryCount: %s]", directory, outputS3ObjectInfo, errorMessage, retryCount));
+                    upload.completionFuture().join();
+                } catch (CompletionException e) {
+                    if (e.getCause() instanceof AmazonServiceException) {
+                        AmazonClientException amazonClientException = (AmazonClientException) e.getCause();
+                        String errorMessage = amazonClientException.getMessage();
+                        Matcher exMsgStatusCodeMatcher = STATUS_CODE_5XX_PATTERN.matcher(errorMessage);
+                        logger.error("Upload to S3 failed: {}", errorMessage);
+                        // only retry if exception is retryable, the status code is 5xx, and we have retry counts left
+                        if (amazonClientException.isRetryable() && exMsgStatusCodeMatcher.find() && retryCount <= 2) {
+                            retryCount++;
+                            logger.info("Retrying upload to S3 [RetryCount: {}]", retryCount);
+                            continue;
+                        } else {
+                            allowRetry = false;
+                            logger.warn("Cancelling upload to S3 [RetryCount: {}]", retryCount);
+                            throw new RuntimeException(String.format("Upload to S3 failed [Directory: %s, S3 location: %s, Reason: %s, RetryCount: %s]", directory, outputS3ObjectInfo, errorMessage, retryCount));
+                        }
                     }
-                } else {
-                    allowRetry = false;
                 }
-            } catch (InterruptedException e) {
+                allowRetry = false;
+
+            } catch (CancellationException e) {
                 logger.warn(e.getMessage());
                 Thread.currentThread().interrupt();
             }

@@ -12,27 +12,27 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cluster;
 
-import com.amazonaws.services.neptune.AmazonNeptune;
-import com.amazonaws.services.neptune.model.*;
 import com.amazonaws.services.neptune.util.Activity;
 import com.amazonaws.services.neptune.util.Timer;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.neptune.NeptuneClient;
+import software.amazon.awssdk.services.neptune.model.*;
 
 import java.util.List;
 import java.util.function.Supplier;
 
 public class GetClusterIdFromCorrelationId {
     private final String correlationId;
-    private final Supplier<AmazonNeptune> amazonNeptuneClientSupplier;
+    private final Supplier<NeptuneClient> amazonNeptuneClientSupplier;
 
-    public GetClusterIdFromCorrelationId(String correlationId, Supplier<AmazonNeptune> amazonNeptuneClientSupplier) {
+    public GetClusterIdFromCorrelationId(String correlationId, Supplier<NeptuneClient> amazonNeptuneClientSupplier) {
 
         this.correlationId = correlationId;
         this.amazonNeptuneClientSupplier = amazonNeptuneClientSupplier;
     }
 
     public String execute() {
-        AmazonNeptune neptune = amazonNeptuneClientSupplier.get();
+        NeptuneClient neptune = amazonNeptuneClientSupplier.get();
 
         try {
 
@@ -40,18 +40,18 @@ public class GetClusterIdFromCorrelationId {
                     (Activity.Callable<String>) () -> getClusterId(neptune));
         } finally {
             if (neptune != null) {
-                neptune.shutdown();
+                neptune.close();
             }
         }
     }
 
-    private String getClusterId(AmazonNeptune neptune) {
-        DescribeDBClustersResult describeDBClustersResult = neptune.describeDBClusters(new DescribeDBClustersRequest());
+    private String getClusterId(NeptuneClient neptune) {
+        DescribeDbClustersResponse describeDBClustersResult = neptune.describeDBClusters(DescribeDbClustersRequest.builder().build());
 
-        for (DBCluster dbCluster : describeDBClustersResult.getDBClusters()) {
-            String clusterCorrelationId = getCorrelationId(dbCluster.getDBClusterArn(), neptune);
+        for (DBCluster dbCluster : describeDBClustersResult.dbClusters()) {
+            String clusterCorrelationId = getCorrelationId(dbCluster.dbClusterArn(), neptune);
             if (StringUtils.isNotEmpty(clusterCorrelationId) && clusterCorrelationId.equals(correlationId)) {
-                String clusterId = dbCluster.getDBClusterIdentifier();
+                String clusterId = dbCluster.dbClusterIdentifier();
                 System.err.println(String.format("Found cluster ID %s for correlation ID %s", clusterId, correlationId));
                 return clusterId;
             }
@@ -67,15 +67,15 @@ public class GetClusterIdFromCorrelationId {
         return null;
     }
 
-    private String getCorrelationId(String dbClusterArn, AmazonNeptune neptune) {
+    private String getCorrelationId(String dbClusterArn, NeptuneClient neptune) {
 
         List<Tag> tagList = neptune.listTagsForResource(
-                new ListTagsForResourceRequest()
-                        .withResourceName(dbClusterArn)).getTagList();
+                ListTagsForResourceRequest.builder()
+                        .resourceName(dbClusterArn).build()).tagList();
 
         for (Tag tag : tagList) {
-            if (tag.getKey().equalsIgnoreCase(NeptuneClusterMetadata.NEPTUNE_EXPORT_CORRELATION_ID_KEY)) {
-                return tag.getValue();
+            if (tag.key().equalsIgnoreCase(NeptuneClusterMetadata.NEPTUNE_EXPORT_CORRELATION_ID_KEY)) {
+                return tag.value();
             }
         }
 

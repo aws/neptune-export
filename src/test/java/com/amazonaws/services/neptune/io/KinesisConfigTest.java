@@ -12,18 +12,17 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.io;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.cli.AbstractTargetModule;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,17 +66,21 @@ public class KinesisConfigTest {
     }
 
     @Test
-    public void shouldUseProvidedCredentialsProvider() {
+    public void shouldUseProvidedCredentialsProvider() throws InterruptedException {
         when(target.getStreamName()).thenReturn("test");
         when(target.getRegion()).thenReturn("us-west-2");
-        AWSCredentials mockedCreds = mock(AWSCredentials.class);
-        AWSCredentialsProvider mockedCredsProvider = mock(AWSCredentialsProvider.class);
-        when(mockedCredsProvider.getCredentials()).thenReturn(mockedCreds);
-        when(target.getCredentialsProvider()).thenReturn(mockedCredsProvider);
+        AwsCredentialsProvider credentialsProvider = spy(AnonymousCredentialsProvider.create());
+        when(target.getCredentialsProvider()).thenReturn(credentialsProvider);
 
         KinesisConfig config = new KinesisConfig(target);
-        config.stream().publish("test");
+        try {
+            config.stream().publish("test");
+        } catch (Exception e) {
+            // expected to fail as anonymous credentials are unauthorized.
+        }
 
-        verify(mockedCredsProvider, Mockito.atLeast(1)).getCredentials();
+        java.lang.Thread.sleep(100); // Kinesis writing is done asynchronously. Wait to ensure credentials first have time to resolve.
+
+        verify(credentialsProvider, Mockito.atLeast(1)).resolveCredentials();
     }
 }

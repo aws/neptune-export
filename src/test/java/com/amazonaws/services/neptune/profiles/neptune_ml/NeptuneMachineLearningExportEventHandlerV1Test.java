@@ -12,12 +12,12 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.profiles.neptune_ml;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.export.Args;
 import com.amazonaws.services.neptune.propertygraph.EdgeLabelStrategy;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import java.util.Collections;
 
@@ -87,7 +87,7 @@ public class NeptuneMachineLearningExportEventHandlerV1Test {
                 new Args(new String[]{}),
                 Collections.EMPTY_SET,
                 "",
-                mock(AWSCredentialsProvider.class)
+                mock(AwsCredentialsProvider.class)
         );
     }
 }

@@ -12,10 +12,9 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.util;
 
-import com.amazonaws.services.s3.Headers;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.SSEAlgorithm;
 import org.junit.Test;
+
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -152,11 +151,11 @@ public class S3ObjectInfoTest {
         long testLength = 100;
         String testKeyId = "";
 
-        ObjectMetadata objectMetadata = S3ObjectInfo.createObjectMetadata(testLength, testKeyId);
+        Map<String, String> objectMetadata = S3ObjectInfo.createObjectMetadata(testLength, testKeyId);
 
-        assertEquals(testLength, objectMetadata.getContentLength());
-        assertEquals(SSEAlgorithm.AES256.getAlgorithm(), objectMetadata.getSSEAlgorithm());
-        assertNull(objectMetadata.getSSEAwsKmsKeyId());
+        assertEquals(testLength, Long.parseLong(objectMetadata.get("Content-Length")));
+        assertEquals("AES256", objectMetadata.get("x-amz-server-side-encryption"));
+        assertNull(objectMetadata.get("x-amz-server-side-encryption-aws-kms-key-id"));
     }
 
     @Test
@@ -164,22 +163,22 @@ public class S3ObjectInfoTest {
         long testLength = 100;
         String testKeyId = "   ";
 
-        ObjectMetadata objectMetadata = S3ObjectInfo.createObjectMetadata(testLength, testKeyId);
+        Map<String, String> objectMetadata = S3ObjectInfo.createObjectMetadata(testLength, testKeyId);
 
-        assertEquals(testLength, objectMetadata.getContentLength());
-        assertEquals(SSEAlgorithm.AES256.getAlgorithm(), objectMetadata.getSSEAlgorithm());
-        assertNull(objectMetadata.getSSEAwsKmsKeyId());
+        assertEquals(testLength, Long.parseLong(objectMetadata.get("Content-Length")));
+        assertEquals("AES256", objectMetadata.get("x-amz-server-side-encryption"));
+        assertNull(objectMetadata.get("x-amz-server-side-encryption-aws-kms-key-id"));
     }
 
     @Test
     public void canSetContentLengthAndDefaultEncryptionTypeProperlyWithNullKey(){
         long testLength = 100;
 
-        ObjectMetadata objectMetadata = S3ObjectInfo.createObjectMetadata(testLength, null);
+        Map<String, String> objectMetadata = S3ObjectInfo.createObjectMetadata(testLength, null);
 
-        assertEquals(testLength, objectMetadata.getContentLength());
-        assertEquals(SSEAlgorithm.AES256.getAlgorithm(), objectMetadata.getSSEAlgorithm());
-        assertNull(objectMetadata.getSSEAwsKmsKeyId());
+        assertEquals(testLength, Long.parseLong(objectMetadata.get("Content-Length")));
+        assertEquals("AES256", objectMetadata.get("x-amz-server-side-encryption"));
+        assertNull(objectMetadata.get("x-amz-server-side-encryption-aws-kms-key-id"));
     }
 
     @Test
@@ -187,10 +186,10 @@ public class S3ObjectInfoTest {
         long testLength = 100;
         String testKeyId = "abcdefgh-hijk-0123-4567-0123456789ab";
 
-        ObjectMetadata objectMetadata = S3ObjectInfo.createObjectMetadata(testLength, testKeyId);
+        Map<String, String> objectMetadata = S3ObjectInfo.createObjectMetadata(testLength, testKeyId);
 
-        assertEquals(testLength, objectMetadata.getContentLength());
-        assertEquals(SSEAlgorithm.KMS.getAlgorithm(), objectMetadata.getSSEAlgorithm());
-        assertEquals(testKeyId, objectMetadata.getSSEAwsKmsKeyId());
+        assertEquals(testLength, Long.parseLong(objectMetadata.get("Content-Length")));
+        assertEquals("aws:kms", objectMetadata.get("x-amz-server-side-encryption"));
+        assertEquals(testKeyId, objectMetadata.get("x-amz-server-side-encryption-aws-kms-key-id"));
     }
 }

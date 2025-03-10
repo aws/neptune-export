@@ -12,7 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.io;
 
-import com.amazonaws.services.kinesis.producer.KinesisProducer;
+import software.amazon.kinesis.producer.KinesisProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

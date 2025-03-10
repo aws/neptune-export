@@ -12,9 +12,9 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cluster;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.neptune.auth.HandshakeRequestConfig;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,20 +27,20 @@ public class ConnectionConfig {
     private final boolean useIamAuth;
     private boolean useSsl;
     private final ProxyConfig proxyConfig;
-    private final AWSCredentialsProvider credentialsProvider;
+    private final AwsCredentialsProvider credentialsProvider;
 
     public ConnectionConfig(String clusterId,
                             Collection<String> neptuneEndpoints,
                             int neptunePort,
                             boolean useIamAuth, boolean useSsl, ProxyConfig proxyConfig) {
-        this(clusterId, neptuneEndpoints, neptunePort, useIamAuth, useSsl, proxyConfig, new DefaultAWSCredentialsProviderChain());
+        this(clusterId, neptuneEndpoints, neptunePort, useIamAuth, useSsl, proxyConfig, DefaultCredentialsProvider.create());
     }
 
     public ConnectionConfig(String clusterId,
                             Collection<String> neptuneEndpoints,
                             int neptunePort,
                             boolean useIamAuth, boolean useSsl, ProxyConfig proxyConfig,
-                            AWSCredentialsProvider credentialsProvider) {
+                            AwsCredentialsProvider credentialsProvider) {
         this.clusterId = clusterId;
         this.neptuneEndpoints = neptuneEndpoints;
         this.neptunePort = neptunePort;
@@ -90,7 +90,7 @@ public class ConnectionConfig {
         return proxyConfig;
     }
 
-    public AWSCredentialsProvider getCredentialsProvider() {
+    public AwsCredentialsProvider getCredentialsProvider() {
         return credentialsProvider;
     }
 }

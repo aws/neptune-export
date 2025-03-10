@@ -13,15 +13,18 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.util;
 
 import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
 import org.junit.Test;
 import org.mockito.internal.verification.AtLeast;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+
+import java.nio.file.Paths;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class TransferManagerWrapperTest {
 
@@ -31,25 +34,27 @@ public class TransferManagerWrapperTest {
         TransferManagerWrapper wrapper = new TransferManagerWrapper(REGION, null);
         assertNotNull(wrapper);
         assertNotNull(wrapper.get());
-        assertNotNull(wrapper.get().getAmazonS3Client());
     }
 
     @Test
     public void shouldUseProvidedCredentials() {
-        AWSCredentialsProvider mockCredentialsProvider = mock(AWSCredentialsProvider.class);
-        when(mockCredentialsProvider.getCredentials()).thenReturn(new AnonymousAWSCredentials());
+        AwsCredentialsProvider mockCredentialsProvider = spy(AnonymousCredentialsProvider.class);
 
         TransferManagerWrapper wrapper = new TransferManagerWrapper(REGION, mockCredentialsProvider);
         assertNotNull(wrapper);
         assertNotNull(wrapper.get());
-        assertNotNull(wrapper.get().getAmazonS3Client());
 
         //Expected to fail due to invalid credentials. This call is here to force the S3 client to call getCredentials()
         try {
-            wrapper.get().getAmazonS3Client().listBuckets();
+            wrapper.get().downloadFile(
+                    DownloadFileRequest.builder()
+                            .destination(Paths.get("filepath"))
+                            .getObjectRequest(GetObjectRequest.builder().bucket("NonExistentBucket4589634587645").key("test").build())
+                            .build()
+            );
         }
         catch (SdkClientException e) {}
 
-        verify(mockCredentialsProvider, new AtLeast(1)).getCredentials();
+        verify(mockCredentialsProvider, new AtLeast(1)).resolveCredentials();
     }
 }

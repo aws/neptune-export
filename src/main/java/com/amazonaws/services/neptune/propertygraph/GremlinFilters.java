@@ -12,7 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.propertygraph;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.jsr223.CachedGremlinScriptEngineManager;
 import org.apache.tinkerpop.gremlin.jsr223.GremlinScriptEngine;
 import org.apache.tinkerpop.gremlin.process.traversal.Bytecode;

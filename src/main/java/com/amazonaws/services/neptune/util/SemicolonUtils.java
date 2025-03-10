@@ -12,7 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.util;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collection;

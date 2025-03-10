@@ -16,7 +16,7 @@ import com.amazonaws.services.neptune.NeptuneExportCli;
 import com.amazonaws.services.neptune.NeptuneExportCommand;
 import com.amazonaws.services.neptune.NeptuneExportEventHandlerHost;
 import com.amazonaws.services.neptune.util.GitProperties;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.amazonaws.services.neptune.export.NeptuneExportService.MAX_FILE_DESCRIPTOR_COUNT;
 

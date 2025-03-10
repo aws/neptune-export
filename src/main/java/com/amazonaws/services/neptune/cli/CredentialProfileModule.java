@@ -12,7 +12,6 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cli;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.AwsProfileRegionProvider;
 import com.amazonaws.regions.AwsRegionProvider;
 import com.amazonaws.regions.AwsRegionProviderChain;
@@ -20,7 +19,8 @@ import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.services.neptune.util.AWSCredentialsUtil;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.Once;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 public class CredentialProfileModule {
     @Option(name = {"--credentials-profile"}, description = "Use profile from credentials config file.", hidden = true)
@@ -31,7 +31,7 @@ public class CredentialProfileModule {
     @Once
     private String credentialsConfigFilePath;
 
-    public AWSCredentialsProvider getCredentialsProvider() {
+    public AwsCredentialsProvider getCredentialsProvider() {
         return AWSCredentialsUtil.getProfileCredentialsProvider(credentialsProfile, credentialsConfigFilePath);
     }
 

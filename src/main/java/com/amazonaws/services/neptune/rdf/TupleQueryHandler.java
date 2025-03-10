@@ -12,7 +12,7 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.rdf;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryResultHandlerException;

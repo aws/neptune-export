@@ -19,7 +19,7 @@ import com.amazonaws.services.neptune.propertygraph.NamedQueriesCollection;
 import com.amazonaws.services.neptune.propertygraph.io.JsonResource;
 import com.amazonaws.services.neptune.propertygraph.schema.GraphSchema;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;

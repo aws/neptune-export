@@ -14,7 +14,7 @@ package com.amazonaws.services.neptune.profiles.neptune_ml.common.parsing;
 
 import com.amazonaws.services.neptune.profiles.neptune_ml.NeptuneMLSourceDataModel;
 import com.amazonaws.services.neptune.propertygraph.Label;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Collections;

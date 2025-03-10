@@ -12,56 +12,71 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.util;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+
+import java.nio.file.Paths;
 
 public class AWSCredentialsUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSCredentialsUtil.class);
 
-    public static AWSCredentialsProvider getProfileCredentialsProvider(String profileName, String profilePath) {
+    public static AwsCredentialsProvider getProfileCredentialsProvider(String profileName, String profilePath) {
         if (StringUtils.isEmpty(profileName) && StringUtils.isEmpty(profilePath)) {
-            return new DefaultAWSCredentialsProviderChain();
+            return DefaultCredentialsProvider.create();
         }
         if (StringUtils.isEmpty(profilePath)) {
             logger.debug(String.format("Using ProfileCredentialsProvider with profile: %s", profileName));
-            return new ProfileCredentialsProvider(profileName);
+            return ProfileCredentialsProvider.builder().profileName(profileName).build();
         }
         logger.debug(String.format("Using ProfileCredentialsProvider with profile: %s and credentials file: ", profileName, profilePath));
-        return new ProfileCredentialsProvider(profilePath, profileName);
+        return ProfileCredentialsProvider.builder()
+                .profileFile(ProfileFile.builder().content(Paths.get(profilePath)).type(ProfileFile.Type.CREDENTIALS).build())
+                .profileName(profileName)
+                .build();
     }
 
-    public static AWSCredentialsProvider getSTSAssumeRoleCredentialsProvider(String roleARN, String sessionName, String externalId) {
-        return getSTSAssumeRoleCredentialsProvider(roleARN, sessionName, externalId, new DefaultAWSCredentialsProviderChain());
+    public static AwsCredentialsProvider getSTSAssumeRoleCredentialsProvider(String roleARN, String sessionName, String externalId) {
+        return getSTSAssumeRoleCredentialsProvider(roleARN, sessionName, externalId, DefaultCredentialsProvider.create());
     }
 
-    public static AWSCredentialsProvider getSTSAssumeRoleCredentialsProvider(String roleARN,
+    public static AwsCredentialsProvider getSTSAssumeRoleCredentialsProvider(String roleARN,
                                                                              String sessionName,
                                                                              String externalId,
-                                                                             AWSCredentialsProvider sourceCredentialsProvider) {
+                                                                             AwsCredentialsProvider sourceCredentialsProvider) {
         return getSTSAssumeRoleCredentialsProvider(roleARN, sessionName, externalId, sourceCredentialsProvider,
                 new DefaultAwsRegionProviderChain().getRegion());
     }
 
-    public static AWSCredentialsProvider getSTSAssumeRoleCredentialsProvider(String roleARN,
+    public static AwsCredentialsProvider getSTSAssumeRoleCredentialsProvider(String roleARN,
                                                                              String sessionName,
                                                                              String externalId,
-                                                                             AWSCredentialsProvider sourceCredentialsProvider,
+                                                                             AwsCredentialsProvider sourceCredentialsProvider,
                                                                              String region) {
-        STSAssumeRoleSessionCredentialsProvider.Builder providerBuilder = new STSAssumeRoleSessionCredentialsProvider.Builder(roleARN, sessionName)
-                .withStsClient(
-                        AWSSecurityTokenServiceClient.builder().withCredentials(sourceCredentialsProvider).withRegion(region).build());
+        AssumeRoleRequest.Builder assumeRoleBuilder = AssumeRoleRequest.builder()
+                .roleArn(roleARN)
+                .roleSessionName(sessionName);
         if (externalId != null) {
-            providerBuilder = providerBuilder.withExternalId(externalId);
+            assumeRoleBuilder = assumeRoleBuilder.externalId(externalId);
         }
+
+        StsAssumeRoleCredentialsProvider.Builder providerBuilder = StsAssumeRoleCredentialsProvider.builder()
+                .refreshRequest(assumeRoleBuilder.build())
+                .stsClient(StsClient.builder()
+                        .credentialsProvider(sourceCredentialsProvider)
+                        .region(Region.of(region)).build()
+                );
+
         logger.debug(String.format("Assuming Role: %s with session name: %s", roleARN, sessionName));
         return providerBuilder.build();
     }

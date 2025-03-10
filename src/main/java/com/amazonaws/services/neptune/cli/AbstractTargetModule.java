@@ -12,8 +12,6 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cli;
 
-
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.neptune.io.CommandWriter;
 import com.amazonaws.services.neptune.io.Directories;
 import com.amazonaws.services.neptune.io.DirectoryStructure;
@@ -24,7 +22,8 @@ import com.github.rvesse.airline.annotations.restrictions.AllowedEnumValues;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import com.github.rvesse.airline.annotations.restrictions.PathKind;
 import com.github.rvesse.airline.annotations.restrictions.Required;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -142,7 +141,7 @@ public abstract class AbstractTargetModule implements CommandWriter {
 
     protected abstract DirectoryStructure directoryStructure();
 
-    public AWSCredentialsProvider getCredentialsProvider() {
+    public AwsCredentialsProvider getCredentialsProvider() {
         if (StringUtils.isEmpty(streamRoleArn)) {
             return credentialProfileModule.getCredentialsProvider();
         }

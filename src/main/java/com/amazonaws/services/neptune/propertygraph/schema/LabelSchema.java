@@ -14,7 +14,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.propertygraph.schema;
 
 import com.amazonaws.services.neptune.propertygraph.Label;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 

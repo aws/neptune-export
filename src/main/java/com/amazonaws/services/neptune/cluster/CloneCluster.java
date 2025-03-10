@@ -12,11 +12,9 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cluster;
 
-import com.amazonaws.services.neptune.AmazonNeptune;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
 public class CloneCluster implements CloneClusterStrategy {
 

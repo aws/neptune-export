@@ -14,12 +14,12 @@ package com.amazonaws.services.neptune.propertygraph.io;
 
 import com.amazonaws.services.neptune.io.CommandWriter;
 import com.amazonaws.services.neptune.util.S3ObjectInfo;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -117,8 +117,8 @@ public class JsonResource<T extends Jsonizable<E>, E> {
 
     private JsonNode getFromS3() throws IOException {
         S3ObjectInfo s3ObjectInfo = new S3ObjectInfo(resourcePath.toString());
-        AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
-        try (InputStream stream  = s3.getObject(s3ObjectInfo.bucket(), s3ObjectInfo.key()).getObjectContent()){
+        S3Client s3 = S3Client.create();
+        try (InputStream stream  = s3.getObject(GetObjectRequest.builder().bucket(s3ObjectInfo.bucket()).key(s3ObjectInfo.key()).build())){
             return new ObjectMapper().readTree(stream);
         }
     }

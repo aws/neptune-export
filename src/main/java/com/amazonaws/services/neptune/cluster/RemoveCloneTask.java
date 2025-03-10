@@ -12,10 +12,10 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cluster;
 
-import com.amazonaws.services.neptune.AmazonNeptune;
-import com.amazonaws.services.neptune.model.*;
 import com.amazonaws.services.neptune.util.Activity;
 import com.amazonaws.services.neptune.util.Timer;
+import software.amazon.awssdk.services.neptune.NeptuneClient;
+import software.amazon.awssdk.services.neptune.model.*;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,7 +32,7 @@ public class RemoveCloneTask {
 
     public void execute() {
 
-        AmazonNeptune neptune = clusterMetadata.clientSupplier().get();
+        NeptuneClient neptune = clusterMetadata.clientSupplier().get();
 
         try {
 
@@ -40,12 +40,12 @@ public class RemoveCloneTask {
                     (Activity.Runnable) () -> deleteCluster(neptune));
         } finally {
             if (neptune != null) {
-                neptune.shutdown();
+                neptune.close();
             }
         }
     }
 
-    private void deleteCluster(AmazonNeptune neptuneClient) {
+    private void deleteCluster(NeptuneClient neptuneClient) {
         System.err.println();
         System.err.println("Deleting cloned cluster " + clusterMetadata.clusterId() + "...");
 
@@ -73,15 +73,18 @@ public class RemoveCloneTask {
 
         System.err.println("Deleting cluster...");
 
-        neptuneClient.deleteDBCluster(new DeleteDBClusterRequest()
-                .withDBClusterIdentifier(clusterMetadata.clusterId())
-                .withSkipFinalSnapshot(true));
+        neptuneClient.deleteDBCluster(DeleteDbClusterRequest.builder()
+                .dbClusterIdentifier(clusterMetadata.clusterId())
+                .skipFinalSnapshot(true)
+                .build());
 
         try {
 
             boolean clusterIsBeingDeleted = neptuneClient.describeDBClusters(
-                    new DescribeDBClustersRequest().withDBClusterIdentifier(clusterMetadata.clusterId()))
-                    .getDBClusters()
+                    DescribeDbClustersRequest.builder()
+                            .dbClusterIdentifier(clusterMetadata.clusterId())
+                            .build())
+                    .dbClusters()
                     .size() > 0;
 
             while (clusterIsBeingDeleted) {
@@ -91,35 +94,36 @@ public class RemoveCloneTask {
                     e.printStackTrace();
                 }
                 clusterIsBeingDeleted = neptuneClient.describeDBClusters(
-                        new DescribeDBClustersRequest().withDBClusterIdentifier(clusterMetadata.clusterId()))
-                        .getDBClusters()
+                        DescribeDbClustersRequest.builder().dbClusterIdentifier(clusterMetadata.clusterId()).build())
+                        .dbClusters()
                         .size() > 0;
             }
-        } catch (DBClusterNotFoundException e) {
+        } catch (DbClusterNotFoundException e) {
             // Do nothing
         }
 
         System.err.println("Deleting parameter groups...");
 
-        neptuneClient.deleteDBClusterParameterGroup(new DeleteDBClusterParameterGroupRequest()
-                .withDBClusterParameterGroupName(clusterMetadata.dbClusterParameterGroupName()));
+        neptuneClient.deleteDBClusterParameterGroup(DeleteDbClusterParameterGroupRequest.builder()
+                .dbClusterParameterGroupName(clusterMetadata.dbClusterParameterGroupName()).build());
 
-        neptuneClient.deleteDBParameterGroup(new DeleteDBParameterGroupRequest()
-                .withDBParameterGroupName(
-                        clusterMetadata.instanceMetadataFor(clusterMetadata.primary()).dbParameterGroupName()));
+        neptuneClient.deleteDBParameterGroup(DeleteDbParameterGroupRequest.builder()
+                .dbParameterGroupName(
+                        clusterMetadata.instanceMetadataFor(clusterMetadata.primary()).dbParameterGroupName()).build());
     }
 
-    private void deleteInstance(AmazonNeptune neptune, String instanceId) {
+    private void deleteInstance(NeptuneClient neptune, String instanceId) {
         System.err.println("Deleting instance " + instanceId + "...");
 
-        neptune.deleteDBInstance(new DeleteDBInstanceRequest()
-                .withDBInstanceIdentifier(instanceId)
-                .withSkipFinalSnapshot(true));
+        neptune.deleteDBInstance(DeleteDbInstanceRequest.builder()
+                .dbInstanceIdentifier(instanceId)
+                .skipFinalSnapshot(true)
+                .build());
 
         try {
             boolean instanceIsBeingDeleted = neptune.describeDBInstances(
-                    new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceId))
-                    .getDBInstances()
+                    DescribeDbInstancesRequest.builder().dbInstanceIdentifier(instanceId).build())
+                    .dbInstances()
                     .size() > 0;
 
             while (instanceIsBeingDeleted) {
@@ -129,11 +133,11 @@ public class RemoveCloneTask {
                     e.printStackTrace();
                 }
                 instanceIsBeingDeleted = neptune.describeDBInstances(
-                        new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceId))
-                        .getDBInstances()
+                        DescribeDbInstancesRequest.builder().dbInstanceIdentifier(instanceId).build())
+                        .dbInstances()
                         .size() > 0;
             }
-        } catch (DBInstanceNotFoundException e) {
+        } catch (DbInstanceNotFoundException e) {
             // Do nothing
         }
     }
