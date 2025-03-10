@@ -52,7 +52,8 @@ public class S3ObjectInfo {
         return putObjectRequestBuilder.serverSideEncryption(ServerSideEncryption.AES256);
     }
 
-    public static Map<String, String> createObjectMetadata(long contentLength, String sseKmsKeyId, Map<String, String> objectMetadata){
+    public static Map<String, String> createObjectMetadata(long contentLength, String sseKmsKeyId) {
+        Map<String, String> objectMetadata = new HashMap<>();
         objectMetadata.put("Content-Length", String.valueOf(contentLength));
         if (!StringUtils.isBlank(sseKmsKeyId)) {
             objectMetadata.put("x-amz-server-side-encryption", "aws:kms");
@@ -64,10 +65,6 @@ public class S3ObjectInfo {
             objectMetadata.put("x-amz-server-side-encryption", "AES256");
         }
         return objectMetadata;
-    }
-
-    public static Map<String, String> createObjectMetadata(long contentLength, String sseKmsKeyId) {
-        return createObjectMetadata(contentLength, sseKmsKeyId, new HashMap<>());
     }
 
     public File createDownloadFile(String parent) {

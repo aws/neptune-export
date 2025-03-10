@@ -10,17 +10,13 @@ express or implied. See the License for the specific language governing
 permissions and limitations under the License.
 */
 
-
 package com.amazonaws.services.neptune.io;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import software.amazon.kinesis.producer.*;
 import com.amazonaws.services.neptune.cli.AbstractTargetModule;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 public class KinesisConfig {
 
