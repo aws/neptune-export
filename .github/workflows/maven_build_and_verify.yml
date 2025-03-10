@@ -71,7 +71,7 @@ jobs:
           ls -l ./target
           echo "Path = ./target/neptune-export-${version}-all.jar"
         
-          version_id=$( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body ./target/neptune-export-${version}-all.jar  --acl bucket-owner-full-control | jq '.VersionId' )
+          version_id=$( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body ./target/neptune-export-${version}-all.jar  --acl bucket-owner-full-control | jq -r '.VersionId' )
           job_id=""
           # Attempt to get Job ID from bucket tagging, will retry up to 3 times before exiting with a failure code.
           # Will sleep for 5 seconds between retries.
