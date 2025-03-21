@@ -1,0 +1,4 @@
+[ {
+  "name" : "airport",
+  "queries" : [ "g.inject(['code':'SEA', 'city':'Seattle', 'runways': 3], ['city': 'Vancouver', 'code': 'YVR'], ['code': 'YYC'])" ]
+} ]
