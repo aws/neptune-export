@@ -13,9 +13,12 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.cluster;
 
 
+import com.amazonaws.services.neptune.io.KinesisConfig;
 import com.amazonaws.services.neptune.util.Activity;
 import com.amazonaws.services.neptune.util.Timer;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.services.neptune.NeptuneClient;
 import software.amazon.awssdk.services.neptune.model.*;
@@ -39,6 +42,7 @@ public class AddCloneTask {
     private final Supplier<NeptuneClient> amazonNeptuneClientSupplier;
     private final String cloneCorrelationId;
     private final boolean enableAuditLogs;
+    private static final Logger logger = LoggerFactory.getLogger(AddCloneTask.class);
 
     public AddCloneTask(String sourceClusterId,
                         String targetClusterId,
@@ -378,7 +382,44 @@ public class AddCloneTask {
             requestBuilder = requestBuilder.engineVersion(engineVersion);
         }
 
-        DBInstance targetDbInstance = neptune.createDBInstance(requestBuilder.build()).dbInstance();
+        // Retry configuration
+        int maxRetries = 3;
+        long initialBackoffMillis = 1000; // 1 second
+        DBInstance targetDbInstance = null;
+        CreateDbInstanceRequest request = requestBuilder.build();
+        
+        // Retry loop with exponential backoff
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                targetDbInstance = neptune.createDBInstance(request).dbInstance();
+                // If we get here, the request was successful
+                break;
+            } catch (NeptuneException e) {
+                // Check if we've exhausted our retries
+                if (attempt == maxRetries) {
+                    logger.error("Failed to create {} instance after {} attempts", name, maxRetries);
+                    throw e;
+                }
+                
+                // Calculate backoff time with exponential increase and some jitter
+                long backoffMillis = initialBackoffMillis * (long) Math.pow(2, attempt);
+                long jitterMillis = (long) (backoffMillis * 0.2 * Math.random()); // 20% jitter
+                long totalBackoffMillis = backoffMillis + jitterMillis;
+
+                logger.debug("Failed to create {} instance (attempt {} of {}): {}. Retrying...", name, attempt + 1, maxRetries, e.getMessage());
+                
+                try {
+                    Thread.sleep(totalBackoffMillis);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Instance creation interrupted", ie);
+                }
+            }
+        }
+        
+        if (targetDbInstance == null) {
+            throw new RuntimeException("Failed to create DB instance after exhausting all retries");
+        }
 
         String instanceStatus = targetDbInstance.dbInstanceStatus();
 
