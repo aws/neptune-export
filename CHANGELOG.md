@@ -8,6 +8,8 @@
 
 ### Bug Fixes:
 
+- Add retries to Neptune clone creation
+
 ## Neptune Export v1.1.11 (Release Date: Mar 10, 2025):
 
 ### Bug Fixes:
