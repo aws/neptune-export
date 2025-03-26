@@ -14,6 +14,7 @@ package com.amazonaws.services.neptune.propertygraph.io.result;
 
 import com.amazonaws.services.neptune.propertygraph.schema.GraphElementType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +32,12 @@ public class ExportPGNodeResult implements PGResult {
 
     @Override
     public List<String> getLabel() {
-        return (List<String>) nodeMap.get("~label");
+        List<String> labels = (List<String>) nodeMap.get("~label");
+        if (labels == null) {
+            labels = new ArrayList<>();
+            labels.add("vertex");
+        }
+        return labels;
     }
 
     @Override
