@@ -5,6 +5,7 @@
 ### New Features and Improvements:
 
 - Migrate to AWS SDK for Java v2
+- Use the jobId from the Neptune Export Service (AWS Batch jobId) as the default exportId if available
 
 ### Bug Fixes:
 
