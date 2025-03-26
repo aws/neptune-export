@@ -397,9 +397,11 @@ public class AddCloneTask {
             } catch (NeptuneException e) {
                 // Check if we've exhausted our retries
                 if (attempt == maxRetries) {
-                    logger.error("Failed to create {} instance after {} attempts", name, maxRetries);
-                    throw e;
+                    logger.error("Failed to create {} instance after {} attempts, with error {}", name, maxRetries, e.getMessage());
+                    return;
                 }
+
+
                 
                 // Calculate backoff time with exponential increase and some jitter
                 long backoffMillis = initialBackoffMillis * (long) Math.pow(2, attempt);
@@ -418,7 +420,8 @@ public class AddCloneTask {
         }
         
         if (targetDbInstance == null) {
-            throw new RuntimeException("Failed to create DB instance after exhausting all retries");
+            logger.warn("Failed to create DB instance {} after exhausting all retries", name);
+            return;
         }
 
         String instanceStatus = targetDbInstance.dbInstanceStatus();
