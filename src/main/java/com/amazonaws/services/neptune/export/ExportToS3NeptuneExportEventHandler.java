@@ -24,13 +24,13 @@ import com.amazonaws.services.neptune.util.Timer;
 import com.amazonaws.services.neptune.util.TransferManagerWrapper;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.FailedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
-import software.amazon.awssdk.transfer.s3.model.Upload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -343,25 +343,29 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
 
         while (allowRetry){
             try {
-                PutObjectRequest putObjectRequest = configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId)
-                        .tagging(createObjectTags(profiles))
-                        .build();
-
                 logger.info("Uploading export files to {}", outputS3ObjectInfo.toString());
 
                 UploadDirectoryRequest uploadRequest = UploadDirectoryRequest.builder()
                         .source(directory.toPath())
                         .bucket(outputS3ObjectInfo.bucket())
                         .s3Prefix(outputS3ObjectInfo.key())
-                        .uploadFileRequestTransformer((uploadFileRequestBuilder) -> {
-                            uploadFileRequestBuilder.putObjectRequest(putObjectRequest);
+                        .uploadFileRequestTransformer(builder -> {
+                            UploadFileRequest built = builder.build();
+                            PutObjectRequest.Builder newBuilder = built.putObjectRequest().toBuilder();
+                                newBuilder = configureServerSideEncryption(newBuilder, sseKmsKeyId).tagging(createObjectTags(profiles));
+                                builder.putObjectRequest(newBuilder.build());
                         })
                         .build();
 
                 try{
                     DirectoryUpload upload = transferManager.uploadDirectory(uploadRequest);
 
-                    upload.completionFuture().join();
+                    CompletedDirectoryUpload completedDirectoryUpload = upload.completionFuture().join();
+                    List<FailedFileUpload> failedFileUploads = completedDirectoryUpload.failedTransfers();
+
+                    for (FailedFileUpload failedFileUpload : failedFileUploads) {
+                        logger.error("Failed to upload file to S3", failedFileUpload.exception());
+                    }
                 } catch (CompletionException e) {
                     if (e.getCause() instanceof AmazonServiceException) {
                         AmazonClientException amazonClientException = (AmazonClientException) e.getCause();
