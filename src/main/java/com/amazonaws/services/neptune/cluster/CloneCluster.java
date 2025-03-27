@@ -77,7 +77,7 @@ public class CloneCluster implements CloneClusterStrategy {
         InstanceType instanceType =  InstanceType.parse(
                 targetClusterMetadata.instanceMetadataFor(targetClusterMetadata.primary()).instanceType());
 
-        int targetConcurrency = instanceType.concurrency() * (1 + replicaCount);
+        int targetConcurrency = instanceType.concurrency() * (1 + targetClusterMetadata.replicas().size());
         int newConcurrency = maxConcurrency > 0 ?
                 Math.min(maxConcurrency, targetConcurrency) :
                 targetConcurrency;
