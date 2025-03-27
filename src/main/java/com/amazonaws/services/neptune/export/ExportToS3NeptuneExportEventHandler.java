@@ -364,7 +364,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
                     List<FailedFileUpload> failedFileUploads = completedDirectoryUpload.failedTransfers();
 
                     for (FailedFileUpload failedFileUpload : failedFileUploads) {
-                        logger.error("Failed to upload file to S3", failedFileUpload.exception());
+                        logger.error("Failed S3 upload for file {}", failedFileUpload.request().source(), failedFileUpload.exception());
                     }
                 } catch (CompletionException e) {
                     if (e.getCause() instanceof AmazonServiceException) {
