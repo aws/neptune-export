@@ -91,6 +91,7 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
         Map<GraphElementType, FileSpecificLabelSchemas> fileSpecificLabelSchemasMap = new HashMap<>();
         fileSpecificLabelSchemasMap.put(GraphElementType.nodes, new FileSpecificLabelSchemas());
         fileSpecificLabelSchemasMap.put(GraphElementType.edges, new FileSpecificLabelSchemas());
+        fileSpecificLabelSchemasMap.put(GraphElementType.queryResults, new FileSpecificLabelSchemas());
 
         try {
 
@@ -186,6 +187,7 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
         }
         else {
             ResultsHandler resultsHandler = new ResultsHandler(
+                    fileSpecificLabelSchemasMap.get(GraphElementType.queryResults),
                     new Label(namedQuery.name()),
                     labelWriters,
                     writerFactory,
@@ -219,8 +221,10 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
         private final Map<Label, LabelWriter<Map<?, ?>>> labelWriters;
         private final QueriesWriterFactory writerFactory;
         private final GraphElementSchemas graphElementSchemas;
+        private final FileSpecificLabelSchemas fileSpecificLabelSchemas;
 
-        private ResultsHandler(Label label,
+        private ResultsHandler(FileSpecificLabelSchemas fileSpecificLabelSchemas,
+                               Label label,
                                Map<Label, LabelWriter<Map<?, ?>>> labelWriters,
                                QueriesWriterFactory writerFactory,
                                GraphElementSchemas graphElementSchemas) {
@@ -229,6 +233,7 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
             this.writerFactory = writerFactory;
 
             this.graphElementSchemas = graphElementSchemas;
+            this.fileSpecificLabelSchemas = fileSpecificLabelSchemas;
         }
 
         private void createWriter(Map<?, ?> properties, boolean allowStructuralElements) {
@@ -242,7 +247,10 @@ public class QueryTask implements Callable<Map<GraphElementType, FileSpecificLab
                 PropertyGraphPrinter propertyGraphPrinter =
                         writerFactory.createPrinter(Directories.fileName(label.fullyQualifiedLabel(), index), labelSchema, targetConfig);
 
-                labelWriters.put(label, writerFactory.createLabelWriter(propertyGraphPrinter, label));
+                LabelWriter<Map<?, ?>> labelWriter = writerFactory.createLabelWriter(propertyGraphPrinter, label);
+
+                labelWriters.put(label, labelWriter);
+                fileSpecificLabelSchemas.add(labelWriter.outputId(), targetConfig.format(), labelSchema);
 
             } catch (IOException e) {
                 throw new RuntimeException(e);

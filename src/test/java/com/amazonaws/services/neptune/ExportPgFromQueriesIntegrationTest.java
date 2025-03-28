@@ -36,10 +36,24 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
     }
 
     @Test
+    public void testExportPgFromQueriesNoHeaders() {
+        final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
+                "-d", outputDir.getPath(), "--format", "csvNoHeaders",
+                "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')"
+        };
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+
+        final File resultDir = outputDir.listFiles()[0];
+
+        assertEquivalentResults(new File("src/test/resources/IntegrationTest/testExportPgFromQueriesNoHeaders"), resultDir);
+    }
+
+    @Test
     public void testExportPgFromQueriesWithStaggeredResults() {
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
-                "-q", "airport=g.inject(['code':'SEA', 'city':'Seattle', 'runways': 3], ['city': 'Vancouver', 'code': 'YVR'], ['code': 'YYC'])"
+                "-q", "airport=g.inject(['code': 'YYC'], ['city': 'Vancouver', 'code': 'YVR'], ['code':'SEA', 'city':'Seattle', 'runways': 3])"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -61,20 +75,6 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
         final File resultDir = outputDir.listFiles()[0];
 
         assertEquivalentResults(new File("src/test/resources/IntegrationTest/testExportPgFromQueriesWithStaggeredResultsNoHeaders"), resultDir);
-    }
-
-    @Test
-    public void testExportPgFromQueriesNoHeaders() {
-        final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
-                "-d", outputDir.getPath(), "--format", "csvNoHeaders",
-                "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')"
-        };
-        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
-        runner.run();
-
-        final File resultDir = outputDir.listFiles()[0];
-
-        assertEquivalentResults(new File("src/test/resources/IntegrationTest/testExportPgFromQueriesNoHeaders"), resultDir);
     }
 
     @Test

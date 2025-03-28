@@ -42,10 +42,6 @@ public class PropertyGraphTargetModule extends AbstractTargetModule {
     }
 
     public PropertyGraphTargetConfig config(Directories directories, PrinterOptions printerOptions){
-        return config(directories, printerOptions, true);
-    }
-
-    public PropertyGraphTargetConfig config(Directories directories, PrinterOptions printerOptions, boolean inferSchema){
 
         if (mergeFiles && (format != PropertyGraphExportFormat.csv && format != PropertyGraphExportFormat.csvNoHeaders)){
             throw new IllegalArgumentException("Merge files is only supported for CSV formats for export-pg");
@@ -53,7 +49,7 @@ public class PropertyGraphTargetModule extends AbstractTargetModule {
 
         KinesisConfig kinesisConfig = new KinesisConfig(this);
 
-        return new PropertyGraphTargetConfig(directories, kinesisConfig, printerOptions, format, getOutput(), mergeFiles, perLabelDirectories, inferSchema);
+        return new PropertyGraphTargetConfig(directories, kinesisConfig, printerOptions, format, getOutput(), mergeFiles, perLabelDirectories, true);
     }
 
     public String description(){

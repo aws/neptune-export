@@ -157,7 +157,7 @@ public class RewriteAndMergeCsv implements RewriteCommand {
 
                             if (graphElementType == GraphElementType.nodes) {
                                 printer.printNode(record.get("~id"), Arrays.asList(record.get("~label").split(";")));
-                            } else {
+                            } else if (graphElementType == GraphElementType.edges) {
                                 if (label.hasFromAndToLabels()) {
                                     printer.printEdge(
                                             record.get("~id"),

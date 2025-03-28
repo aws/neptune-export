@@ -123,7 +123,7 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                     CsvPrinterOptions csvPrinterOptions = CsvPrinterOptions.builder().setIncludeTypeDefinitions(includeTypeDefinitions).build();
                     JsonPrinterOptions jsonPrinterOptions = JsonPrinterOptions.builder().setStrictCardinality(true).build();
 
-                    PropertyGraphTargetConfig targetConfig = target.config(directories, new PrinterOptions(csvPrinterOptions, jsonPrinterOptions), structuredOutput);
+                    PropertyGraphTargetConfig targetConfig = target.config(directories, new PrinterOptions(csvPrinterOptions, jsonPrinterOptions));
                     NamedQueriesCollection namedQueries = getNamedQueriesCollection(queries, queriesFile, queriesResource);
 
                     GraphSchema graphSchema = new GraphSchema();
@@ -168,8 +168,10 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                     directories.writeResultsDirectoryPathAsMessage(target.description(), target);
 
                     queriesResource.writeResourcePathAsMessage(target);
-                    configFileResource.save(graphSchema, false);
-                    statsFileResource.save(exportStats, graphSchema);
+                    if (structuredOutput) {
+                        configFileResource.save(graphSchema, false);
+                        statsFileResource.save(exportStats, graphSchema);
+                    }
 
                     directories.writeRootDirectoryPathAsReturnValue(target);
                     onExportComplete(directories, exportStats, cluster, graphSchema);
