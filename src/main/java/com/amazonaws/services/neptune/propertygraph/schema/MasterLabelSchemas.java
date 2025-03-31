@@ -14,8 +14,12 @@ package com.amazonaws.services.neptune.propertygraph.schema;
 
 import com.amazonaws.services.neptune.propertygraph.Label;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class MasterLabelSchemas {
 
@@ -25,6 +29,10 @@ public class MasterLabelSchemas {
     public MasterLabelSchemas(Map<Label, MasterLabelSchema> masterLabelSchemas, GraphElementType graphElementType) {
         this.masterLabelSchemas = masterLabelSchemas;
         this.graphElementType = graphElementType;
+    }
+
+    public MasterLabelSchemas(Collection<FileSpecificLabelSchemas> fileSpecificLabelSchemasCollection, GraphElementType graphElementType) {
+        this(convertFileSpecificLabelSchemas(fileSpecificLabelSchemasCollection), graphElementType);
     }
 
     public Collection<MasterLabelSchema> schemas() {
@@ -41,5 +49,38 @@ public class MasterLabelSchemas {
             graphElementSchemas.addLabelSchema(masterLabelSchema.labelSchema(), masterLabelSchema.outputIds());
         }
         return graphElementSchemas;
+    }
+
+    private static Map<Label, MasterLabelSchema> convertFileSpecificLabelSchemas(Collection<FileSpecificLabelSchemas> fileSpecificLabelSchemasCollection) {
+        Set<Label> labels = new HashSet<>();
+
+        fileSpecificLabelSchemasCollection.forEach(s -> labels.addAll(s.labels()));
+
+        Map<Label, MasterLabelSchema> masterLabelSchemas = new HashMap<>();
+
+        for (Label label : labels) {
+
+            LabelSchema masterLabelSchema = new LabelSchema(label);
+            Collection<FileSpecificLabelSchema> fileSpecificLabelSchemas = new ArrayList<>();
+
+            for (FileSpecificLabelSchemas fileSpecificLabelSchemasForTask : fileSpecificLabelSchemasCollection) {
+                if (fileSpecificLabelSchemasForTask.hasSchemasForLabel(label)) {
+                    Set<LabelSchema> labelSchemaSet = new HashSet<>();
+                    for (FileSpecificLabelSchema fileSpecificLabelSchema :
+                            fileSpecificLabelSchemasForTask.fileSpecificLabelSchemasFor(label)) {
+                        fileSpecificLabelSchemas.add(fileSpecificLabelSchema);
+                        labelSchemaSet.add(fileSpecificLabelSchema.labelSchema());
+                    }
+                    for (LabelSchema labelSchema : labelSchemaSet) {
+                        masterLabelSchema = masterLabelSchema.union(labelSchema);
+                    }
+                }
+            }
+
+            masterLabelSchemas.put(
+                    label,
+                    new MasterLabelSchema(masterLabelSchema, fileSpecificLabelSchemas));
+        }
+        return masterLabelSchemas;
     }
 }

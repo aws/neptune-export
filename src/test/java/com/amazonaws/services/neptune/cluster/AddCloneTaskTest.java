@@ -32,11 +32,13 @@ import software.amazon.awssdk.services.neptune.model.DescribeDbClusterParameters
 import software.amazon.awssdk.services.neptune.model.DescribeDbParametersRequest;
 import software.amazon.awssdk.services.neptune.model.DescribeDbParametersResponse;
 import software.amazon.awssdk.services.neptune.model.ModifyDbClusterParameterGroupRequest;
+import software.amazon.awssdk.services.neptune.model.NeptuneException;
 import software.amazon.awssdk.services.neptune.model.Parameter;
 import software.amazon.awssdk.services.neptune.model.RestoreDbClusterToPointInTimeRequest;
 import software.amazon.awssdk.services.neptune.model.RestoreDbClusterToPointInTimeResponse;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -107,6 +109,35 @@ public class AddCloneTaskTest {
 
         // Assert that cluster audit log exports are enabled
         assertEquals(Arrays.asList("audit"), capturedCloneRequest.enableCloudwatchLogsExports());
+    }
+
+    @Test
+    public void shouldRetryIfCreateInstanceFails() {
+        NeptuneClient mockNeptune = createMockNeptune();
+
+        AddCloneTask addCloneTask = new AddCloneTask("sourceClusterId", "targetClusterId", "db_r5_large", 3, null,
+                () -> mockNeptune, null, false);
+
+        final AtomicInteger invocations = new AtomicInteger(0);
+
+        when(mockNeptune.createDBInstance((CreateDbInstanceRequest) any())).thenAnswer(invocation -> {
+            if (invocations.incrementAndGet() <= 2 || invocations.get() == 4) {
+                throw NeptuneException.builder().message("Test Exception").build();
+            }
+            CreateDbInstanceResponse mockCreateInstanceResponse = mock(CreateDbInstanceResponse.class);
+            DBInstance targetDbInstance = DBInstance.builder().dbInstanceStatus("available").build();
+            when(mockCreateInstanceResponse.dbInstance()).thenReturn(targetDbInstance);
+
+            return mockCreateInstanceResponse;
+        });
+
+        // Mock static method to skip creating NeptuneClusterMetadata for test
+        try (MockedStatic<NeptuneClusterMetadata> classMock = mockStatic(NeptuneClusterMetadata.class)) {
+            classMock.when(() -> NeptuneClusterMetadata.createFromClusterId(any(), any())).thenReturn(mock(NeptuneClusterMetadata.class));
+            addCloneTask.execute();
+        }
+
+        assertEquals("Expected 7 invocations to createDBInstance(), 3 failing, 1 primary, and 3 replicas",7, invocations.get());
     }
 
     private NeptuneClient createMockNeptune() {

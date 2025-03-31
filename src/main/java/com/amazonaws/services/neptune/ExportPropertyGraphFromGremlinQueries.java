@@ -168,8 +168,10 @@ public class ExportPropertyGraphFromGremlinQueries extends NeptuneExportCommand 
                     directories.writeResultsDirectoryPathAsMessage(target.description(), target);
 
                     queriesResource.writeResourcePathAsMessage(target);
-                    configFileResource.save(graphSchema, false);
-                    statsFileResource.save(exportStats, graphSchema);
+                    if (structuredOutput) {
+                        configFileResource.save(graphSchema, false);
+                        statsFileResource.save(exportStats, graphSchema);
+                    }
 
                     directories.writeRootDirectoryPathAsReturnValue(target);
                     onExportComplete(directories, exportStats, cluster, graphSchema);

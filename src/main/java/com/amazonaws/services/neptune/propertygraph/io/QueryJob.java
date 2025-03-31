@@ -89,6 +89,7 @@ public class QueryJob {
 
         Collection<FileSpecificLabelSchemas> nodesFileSpecificLabelSchemas = new ArrayList<>();
         Collection<FileSpecificLabelSchemas> edgesFileSpecificLabelSchemas = new ArrayList<>();
+        Collection<FileSpecificLabelSchemas> queryResultsFileSpecificLabelSchemas = new ArrayList<>();
 
         LabelsFilter nodeLabelFilter = new AllLabels(NodeLabelStrategy.nodeLabelsOnly);
         LabelsFilter edgeLabelFilter = new AllLabels(EdgeLabelStrategy.edgeLabelsOnly);
@@ -97,7 +98,7 @@ public class QueryJob {
             if (exportSpecification.getGraphElementType() == GraphElementType.nodes) {
                 nodeLabelFilter = exportSpecification.getLabelsFilter();
             }
-            else {
+            else if (exportSpecification.getGraphElementType() == GraphElementType.edges) {
                 edgeLabelFilter = exportSpecification.getLabelsFilter();
             }
         }
@@ -139,18 +140,28 @@ public class QueryJob {
             Map<GraphElementType, FileSpecificLabelSchemas> result = future.get();
             nodesFileSpecificLabelSchemas.add(result.get(GraphElementType.nodes));
             edgesFileSpecificLabelSchemas.add(result.get(GraphElementType.edges));
+            queryResultsFileSpecificLabelSchemas.add(result.get(GraphElementType.queryResults));
         }
 
         RewriteCommand rewriteCommand = targetConfig.createRewriteCommand(concurrencyConfig, featureToggles);
         Map<GraphElementType, GraphElementSchemas> graphElementSchemas = new HashMap<>();
 
-        for(ExportSpecification exportSpecification : exportSpecifications) {
-            MasterLabelSchemas masterLabelSchemas = exportSpecification.createMasterLabelSchemas(
-                    exportSpecification.getGraphElementType().equals(GraphElementType.nodes) ?
-                            nodesFileSpecificLabelSchemas : edgesFileSpecificLabelSchemas
-            );
+        if (structuredOutput) {
+            for(ExportSpecification exportSpecification : exportSpecifications) {
+                MasterLabelSchemas masterLabelSchemas = exportSpecification.createMasterLabelSchemas(
+                        exportSpecification.getGraphElementType().equals(GraphElementType.nodes) ?
+                                nodesFileSpecificLabelSchemas : edgesFileSpecificLabelSchemas
+                );
+                try {
+                    graphElementSchemas.put(exportSpecification.getGraphElementType(), rewriteCommand.execute(masterLabelSchemas).toGraphElementSchemas());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } else {
+            MasterLabelSchemas masterLabelSchemas = new MasterLabelSchemas(queryResultsFileSpecificLabelSchemas, GraphElementType.queryResults);
             try {
-                graphElementSchemas.put(exportSpecification.getGraphElementType(), rewriteCommand.execute(masterLabelSchemas).toGraphElementSchemas());
+                graphElementSchemas.put(GraphElementType.queryResults, rewriteCommand.execute(masterLabelSchemas).toGraphElementSchemas());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

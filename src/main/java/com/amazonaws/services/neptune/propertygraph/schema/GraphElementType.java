@@ -19,12 +19,15 @@ import com.amazonaws.services.neptune.propertygraph.GraphClient;
 import com.amazonaws.services.neptune.propertygraph.NodesClient;
 import com.amazonaws.services.neptune.propertygraph.io.EdgesWriterFactory;
 import com.amazonaws.services.neptune.propertygraph.io.NodesWriterFactory;
+import com.amazonaws.services.neptune.propertygraph.io.QueriesWriterFactory;
 import com.amazonaws.services.neptune.propertygraph.io.WriterFactory;
 import com.amazonaws.services.neptune.propertygraph.io.result.PGResult;
+import com.amazonaws.services.neptune.util.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 public enum GraphElementType {
 
@@ -58,6 +61,22 @@ public enum GraphElementType {
         @Override
         public WriterFactory<? extends PGResult> writerFactory() {
             return new EdgesWriterFactory();
+        }
+    },
+    queryResults {
+        @Override
+        public Collection<String> tokenNames() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public GraphClient<? extends PGResult> graphClient(GraphTraversalSource g, boolean tokensOnly, ExportStats stats, FeatureToggles featureToggles) {
+            throw new NotImplementedException();
+        }
+
+        @Override
+        public WriterFactory writerFactory() {
+            return new QueriesWriterFactory();
         }
     };
 
