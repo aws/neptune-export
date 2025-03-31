@@ -82,7 +82,7 @@ public abstract class AbstractTargetModule implements CommandWriter {
 
     @Option(name = {"--export-id"}, description = "Export ID")
     @Once
-    private String exportId = UUID.randomUUID().toString().replace("-", "");
+    private String exportId = getDefaultExportId();
 
     @Option(name = {"--partition-directories"}, description = "Partition directory path (e.g. 'year=2021/month=07/day=21').")
     @Once
@@ -146,6 +146,24 @@ public abstract class AbstractTargetModule implements CommandWriter {
             return credentialProfileModule.getCredentialsProvider();
         }
         return getSTSAssumeRoleCredentialsProvider(streamRoleArn, streamRoleSessionName, streamRoleExternalId, credentialProfileModule.getCredentialsProvider(), region);
+    }
+
+    /**
+     * Use AWS Batch JobID as export id if available, otherwise use a random UUID
+     * @return
+     */
+    private static String getDefaultExportId() {
+        String id = null;
+        try {
+            id = System.getenv("AWS_BATCH_JOB_ID"); // Use AWS Batch job id if running in Neptune Export Service
+        }
+        catch (SecurityException e) {
+            // Do nothing, will generate new ID if targetClusterIdSuffix is not set.
+        }
+        if (StringUtils.isEmpty(id)) {
+            id = UUID.randomUUID().toString();
+        }
+        return id.replace("-", "");
     }
 
 }

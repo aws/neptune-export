@@ -5,6 +5,7 @@
 ### New Features and Improvements:
 
 - Migrate to AWS SDK for Java v2
+- Use the jobId from the Neptune Export Service (AWS Batch jobId) as the default exportId if available
 - Enable csv file rewrites for `export-pg-from-queries` to ensure output conforms to inferred schema
 
 ### Bug Fixes:
