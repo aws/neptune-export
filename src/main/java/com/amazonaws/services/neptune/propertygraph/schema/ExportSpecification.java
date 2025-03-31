@@ -121,40 +121,7 @@ public class ExportSpecification {
     }
 
     public MasterLabelSchemas createMasterLabelSchemas(Collection<FileSpecificLabelSchemas> fileSpecificLabelSchemasCollection) {
-
-        Set<Label> labels = new HashSet<>();
-
-        fileSpecificLabelSchemasCollection.forEach(s -> labels.addAll(s.labels()));
-
-        Map<Label, MasterLabelSchema> masterLabelSchemas = new HashMap<>();
-
-        for (Label label : labels) {
-
-            LabelSchema masterLabelSchema = new LabelSchema(label);
-            Collection<FileSpecificLabelSchema> fileSpecificLabelSchemas = new ArrayList<>();
-
-            for (FileSpecificLabelSchemas fileSpecificLabelSchemasForTask : fileSpecificLabelSchemasCollection) {
-                if (fileSpecificLabelSchemasForTask.hasSchemasForLabel(label)) {
-                    Set<LabelSchema> labelSchemaSet = new HashSet<>();
-                    for (FileSpecificLabelSchema fileSpecificLabelSchema :
-                            fileSpecificLabelSchemasForTask.fileSpecificLabelSchemasFor(label)) {
-                        fileSpecificLabelSchemas.add(fileSpecificLabelSchema);
-                        labelSchemaSet.add(fileSpecificLabelSchema.labelSchema());
-                    }
-                    for (LabelSchema labelSchema : labelSchemaSet) {
-                        masterLabelSchema = masterLabelSchema.union(labelSchema);
-                    }
-                }
-            }
-
-            masterLabelSchemas.put(
-                    label,
-                    new MasterLabelSchema(masterLabelSchema, fileSpecificLabelSchemas));
-
-
-        }
-
-        return new MasterLabelSchemas(masterLabelSchemas, graphElementType);
+        return new MasterLabelSchemas(fileSpecificLabelSchemasCollection, graphElementType);
     }
 
     public Collection<ExportSpecification> splitByLabel() {

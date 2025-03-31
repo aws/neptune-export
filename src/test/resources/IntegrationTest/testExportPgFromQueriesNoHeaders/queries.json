@@ -1,0 +1,4 @@
+[ {
+  "name" : "airport",
+  "queries" : [ "g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')" ]
+} ]

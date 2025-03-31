@@ -158,7 +158,7 @@ public class RewriteCsv implements RewriteCommand {
 
                     if (graphElementType == GraphElementType.nodes) {
                         target.printNode(record.get("~id"), Arrays.asList(record.get("~label").split(";")));
-                    } else {
+                    } else if (graphElementType == GraphElementType.edges) {
                         if (label.hasFromAndToLabels()) {
                             target.printEdge(
                                     record.get("~id"),
