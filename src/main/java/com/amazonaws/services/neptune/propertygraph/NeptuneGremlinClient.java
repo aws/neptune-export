@@ -93,7 +93,7 @@ public class NeptuneGremlinClient implements AutoCloseable {
     }
 
     public GraphTraversalSource newTraversalSource() {
-        return AnonymousTraversalSource.traversal().withRemote(DriverRemoteConnection.using(cluster));
+        return AnonymousTraversalSource.traversal().withRemote(DriverRemoteConnection.using(cluster)).withSideEffect("Neptune#useDFE", false);
     }
 
     public QueryClient queryClient() {
