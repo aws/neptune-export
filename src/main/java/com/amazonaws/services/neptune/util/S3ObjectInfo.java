@@ -73,7 +73,7 @@ public class S3ObjectInfo {
 
     public S3ObjectInfo withNewKeySuffix(String suffix) {
         File file = StringUtils.isNotEmpty(key) ? new File(key, suffix) : new File(suffix);
-        return new S3ObjectInfo( String.format("s3://%s/%s", bucket,  file.getPath()));
+        return new S3ObjectInfo( String.format("s3://%s/%s", bucket,  file.getPath().replace(File.separatorChar, '/')));
     }
 
     public S3ObjectInfo replaceOrAppendKey(String placeholder, String ifPresent, String ifAbsent) {
@@ -82,7 +82,7 @@ public class S3ObjectInfo {
                 new File(key.replace(placeholder, ifPresent)) :
                 new File(key, ifAbsent);
 
-        return new S3ObjectInfo( String.format("s3://%s/%s", bucket,  file.getPath()));
+        return new S3ObjectInfo( String.format("s3://%s/%s", bucket,  file.getPath().replace(File.separatorChar, '/')));
     }
 
     public S3ObjectInfo replaceOrAppendKey(String placeholder, String ifPresent) {
