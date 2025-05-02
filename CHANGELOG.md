@@ -13,6 +13,7 @@
 - Add retries to Neptune clone creation
 - Fix missing csv headers from `export-pg-from-queries`
 - Disable DFE for all Gremlin queries
+- Fix invalid S3 paths when using Windows
 
 ## Neptune Export v1.1.11 (Release Date: Mar 10, 2025):
 
