@@ -27,8 +27,8 @@ env:
   SIGNING_ENABLED: ${{ github.event.inputs.signJarArtifacts }}
 
 jobs:
-  build:
-
+  build-ubuntu:
+    name: Build on Ubuntu
     runs-on: ubuntu-latest
 
     steps:
@@ -127,3 +127,18 @@ jobs:
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'corretto'
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B clean io.github.git-commit-id:git-commit-id-maven-plugin:revision io.github.git-commit-id:git-commit-id-maven-plugin:validateRevision install --file pom.xml
