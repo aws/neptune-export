@@ -1,6 +1,12 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v2.0.0 (Release Date: TBD):
+## Neptune Export v2.0.0 (Release Date: May 15, 2025):
+
+### Breaking Changes:
+
+##### Missing CSV headers from `export-pg-from-queries`
+
+This release fixes a bug where headers were previously missing from the default `csv` format for `export-pg-from-queries`. With this fix, headers will now be present by default in `export-pg-from-queries`. Use `--format csvNoHeaders` or `"format": "csvNoHeaders"` to revert to export as CSV without headers.
 
 ### New Features and Improvements:
 
