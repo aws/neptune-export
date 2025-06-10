@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
+import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,6 +39,10 @@ public class KinesisConfigTest {
 
     @Test
     public void shouldCreateStreamIfNameAndRegionAreProvided() {
+        // Ignoring test for Windows due to incompatibility
+        String osName = System.getProperty("os.name");
+        assumeTrue(!osName.startsWith("Windows"));
+
         when(target.getStreamName()).thenReturn("test");
         when(target.getRegion()).thenReturn("us-west-2");
         KinesisConfig config = new KinesisConfig(target);
@@ -67,6 +72,10 @@ public class KinesisConfigTest {
 
     @Test
     public void shouldUseProvidedCredentialsProvider() throws InterruptedException {
+        // Ignoring test for Windows due to incompatibility
+        String osName = System.getProperty("os.name");
+        assumeTrue(!osName.startsWith("Windows"));
+
         when(target.getStreamName()).thenReturn("test");
         when(target.getRegion()).thenReturn("us-west-2");
         AwsCredentialsProvider credentialsProvider = spy(AnonymousCredentialsProvider.create());

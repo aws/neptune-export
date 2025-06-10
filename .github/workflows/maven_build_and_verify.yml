@@ -141,4 +141,4 @@ jobs:
           distribution: 'corretto'
           cache: maven
       - name: Build with Maven
-        run: mvn -B clean io.github.git-commit-id:git-commit-id-maven-plugin:revision io.github.git-commit-id:git-commit-id-maven-plugin:validateRevision -Dtest=\!KinesisConfigTest* install --file pom.xml
+        run: mvn -B clean io.github.git-commit-id:git-commit-id-maven-plugin:revision io.github.git-commit-id:git-commit-id-maven-plugin:validateRevision install --file pom.xml
