@@ -488,9 +488,10 @@ public class AddCloneTask {
                 logger.debug("Instance {} status: {}", targetDbInstance.dbInstanceIdentifier(), instanceStatus);
             } catch (NeptuneException e) {
                 logger.error("Error checking instance status: {} (Error code: {}, Message: {})",
-                    targetDbInstance.dbInstanceIdentifier(), e.awsErrorDetails().errorCode(), e.getMessage());
+                    targetDbInstance.dbInstanceIdentifier(), Optional.ofNullable(e.awsErrorDetails()).map(AwsErrorDetails::errorCode).orElse("N/A"),
+                        e.getMessage(), e);
                     
-                if (e.awsErrorDetails().errorCode().equals("DBInstanceNotFound")) {
+                if (e.awsErrorDetails() != null && e.awsErrorDetails().errorCode() != null && e.awsErrorDetails().errorCode().equals("DBInstanceNotFound")) {
                     logger.error("The instance {} was not found. It may have been deleted or failed to create properly.", 
                         targetDbInstance.dbInstanceIdentifier());
                 }
