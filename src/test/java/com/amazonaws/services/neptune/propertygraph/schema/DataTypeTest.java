@@ -14,12 +14,10 @@ package com.amazonaws.services.neptune.propertygraph.schema;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -77,7 +75,7 @@ public class DataTypeTest {
     @Test
     public void shouldNotEscapeNewline(){
         String result = DataType.String.format("A" + System.lineSeparator() + "B");
-        assertEquals("\"A\nB\"", result);
+        assertEquals("\"A" + System.lineSeparator() + "B\"", result);
     }
 
     @Test
@@ -88,8 +86,10 @@ public class DataTypeTest {
 
     @Test
     public void shouldEscapeNewlineIfEscapeNewlineSetToTrue(){
+        final String escapedLineSeparator = System.lineSeparator().replace("\r", "\\r").replace("\n", "\\n");
+
         String result = DataType.String.format("A" + System.lineSeparator() + "B", true);
-        assertEquals("\"A\\nB\"", result);
+        assertEquals("\"A"+escapedLineSeparator+"B\"", result);
     }
 
     @Test

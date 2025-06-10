@@ -54,9 +54,9 @@ public class AWSCredentialsUtilTest {
     @Test
     public void shouldAttemptToUseProvidedPath() {
         Throwable t = assertThrows(IllegalStateException.class, () -> getProfileCredentialsProvider(
-                null, tempFolder.getRoot().getAbsolutePath()+"/non-existent-file").resolveCredentials());
+                null, tempFolder.getRoot().toPath().resolve("non-existent-file").toString()).resolveCredentials());
         assertEquals("Profile file '"+
-                tempFolder.getRoot().getAbsolutePath()+"/non-existent-file' does not exist.", t.getMessage());
+                tempFolder.getRoot().toPath().resolve("non-existent-file").toAbsolutePath()+"' does not exist.", t.getMessage());
     }
 
     @Test
