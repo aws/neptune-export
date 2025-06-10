@@ -13,19 +13,19 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.cluster;
 
 
-import com.amazonaws.services.neptune.io.KinesisConfig;
 import com.amazonaws.services.neptune.util.Activity;
 import com.amazonaws.services.neptune.util.Timer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.services.neptune.NeptuneClient;
 import software.amazon.awssdk.services.neptune.model.*;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -148,11 +148,12 @@ public class AddCloneTask {
         taskExecutor.shutdown();
 
         try {
-            boolean completed = taskExecutor.awaitTermination(30, TimeUnit.MINUTES);
+            final int timeoutMin = 30;
+            boolean completed = taskExecutor.awaitTermination(timeoutMin, TimeUnit.MINUTES);
             if (completed) {
                 logger.debug("Successfully created all {} replica instances", replicaCount);
             } else {
-                logger.warn("Timed out waiting for all replicas to be created after 30 minutes");
+                logger.warn("Timed out waiting for all replicas to be created after {} minutes", timeoutMin);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -191,15 +192,11 @@ public class AddCloneTask {
             logger.debug("Sending restore DB cluster request: {}", request);
             targetDbCluster = neptune.restoreDBClusterToPointInTime(request).dbCluster();
         } catch (NeptuneException e) {
-            logger.error("Failed to create target cluster: {} (Error code: {}, Message: {})", 
-                targetClusterId, e.awsErrorDetails().errorCode(), e.getMessage());
-            
-            // Log additional details that might help with troubleshooting
-            logger.debug("Request details: sourceClusterId={}, targetClusterId={}, dbSubnetGroupName={}, vpcSecurityGroupIds={}",
-                sourceClusterId, targetClusterId, sourceClusterMetadata.dbSubnetGroupName(), 
-                String.join(",", sourceClusterMetadata.vpcSecurityGroupIds()));
+            logger.error("Failed to create target cluster: {} from source cluster: {} (Error code: {}, Message: {})",
+                    targetClusterId, sourceClusterId, Optional.ofNullable(e.awsErrorDetails()).map(AwsErrorDetails::errorCode).orElse("N/A"),
+                    e.getMessage(), e);
                 
-            throw new RuntimeException("Failed to create clone cluster: " + e.getMessage(), e);
+            throw e;
         }
 
         String clusterStatus = targetDbCluster.status();
@@ -317,8 +314,9 @@ public class AddCloneTask {
             logger.debug("Successfully created DB cluster parameter group: {}", dbClusterParameterGroup.dbClusterParameterGroupName());
         } catch (NeptuneException e) {
             logger.error("Failed to create DB cluster parameter group: {} (Error code: {}, Message: {})",
-                paramGroupName, e.awsErrorDetails().errorCode(), e.getMessage());
-            throw new RuntimeException("Failed to create DB cluster parameter group: " + e.getMessage(), e);
+                    paramGroupName, Optional.ofNullable(e.awsErrorDetails()).map(AwsErrorDetails::errorCode).orElse("N/A"),
+                    e.getMessage(), e);
+            throw e;
         }
 
         String neptuneStreamsParameterValue = sourceClusterMetadata.isStreamEnabled() ? "1" : "0";
@@ -436,7 +434,7 @@ public class AddCloneTask {
         // Retry loop with exponential backoff
         for (int attempt = 0; attempt <= maxRetries; attempt++) {
             try {
-                logger.debug("Sending create DB instance request for {}", instanceId);
+                logger.debug("Sending create DB instance request for {} in cluster {}", instanceId, targetDbCluster.dbClusterIdentifier());
                 targetDbInstance = neptune.createDBInstance(request).dbInstance();
                 // If we get here, the request was successful
                 break;
@@ -495,8 +493,8 @@ public class AddCloneTask {
                 if (e.awsErrorDetails().errorCode().equals("DBInstanceNotFound")) {
                     logger.error("The instance {} was not found. It may have been deleted or failed to create properly.", 
                         targetDbInstance.dbInstanceIdentifier());
-                    return;
                 }
+                throw e;
             }
         }
         
