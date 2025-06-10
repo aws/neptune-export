@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- Fix inability to upload large files (>5GB) to S3
+
 ## Neptune Export v2.0.0 (Release Date: May 15, 2025):
 
 ### Breaking Changes:
