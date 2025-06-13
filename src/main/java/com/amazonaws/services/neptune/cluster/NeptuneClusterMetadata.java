@@ -12,6 +12,8 @@ permissions and limitations under the License.
 
 package com.amazonaws.services.neptune.cluster;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.neptune.NeptuneClient;
 import com.amazonaws.services.neptune.export.EndpointValidator;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +27,8 @@ public class NeptuneClusterMetadata {
 
     public static final String NEPTUNE_EXPORT_APPLICATION_TAG = "neptune-export";
     public static final String NEPTUNE_EXPORT_CORRELATION_ID_KEY = "correlation-id";
+
+    private static final Logger logger = LoggerFactory.getLogger(NeptuneClusterMetadata.class);
 
     public static String clusterIdFromEndpoint(String endpoint) {
         int index = endpoint.indexOf(".");
@@ -135,20 +139,23 @@ public class NeptuneClusterMetadata {
                     "neptune1";
 
         } catch (NeptuneException e) {
+            logger.warn("Failed to retrieve DB parameter group family: {}. Falling back to version-based detection.", e.getMessage());
 
             // Older deployments of Neptune Export service may not have requisite permissions to
             // describe cluster parameter group, so we'll try and guess the group family.
 
-
             if (StringUtils.isNotEmpty(engineVersion) && engineVersion.contains(".")) {
-                int v = Integer.parseInt(engineVersion.split("\\.")[1]);
-                if (v == 3) {
-                    dbParameterGroupFamily = "neptune1.3";
+                int major = Integer.parseInt(engineVersion.split("\\.")[0]);
+                int minor = Integer.parseInt(engineVersion.split("\\.")[1]);
+
+                if (major == 1 && minor <= 1) {
+                    dbParameterGroupFamily = "neptune1";
                 } else {
-                    dbParameterGroupFamily = v > 1 ? "neptune1.2" : "neptune1";
+                    dbParameterGroupFamily = String.format("neptune%s.%s", major, minor);
                 }
             } else {
-                dbParameterGroupFamily = "neptune1";
+                logger.error("Failed to determine correct DB Parameter group family from engine version");
+                throw e;
             }
         }
 
@@ -338,7 +345,7 @@ public class NeptuneClusterMetadata {
         System.err.println("Security group IDs      : " + String.join(", ", vpcSecurityGroupIds()));
         System.err.println("Instance endpoints      : " + String.join(", ", endpoints()));
 
-        NeptuneClusterMetadata.NeptuneInstanceMetadata primary = instanceMetadataFor(primary());
+        NeptuneInstanceMetadata primary = instanceMetadataFor(primary());
         System.err.println();
         System.err.println("Primary");
         System.err.println("  Instance ID              : " + primary());
@@ -348,7 +355,7 @@ public class NeptuneClusterMetadata {
 
         if (!replicas().isEmpty()) {
             for (String replicaId : replicas()) {
-                NeptuneClusterMetadata.NeptuneInstanceMetadata replica = instanceMetadataFor(replicaId);
+                NeptuneInstanceMetadata replica = instanceMetadataFor(replicaId);
                 System.err.println();
                 System.err.println("Replica");
                 System.err.println("  Instance ID              : " + replicaId);

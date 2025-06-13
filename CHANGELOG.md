@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+* Fix fallback for finding parameter group families via Neptune engine version
+
 ## Neptune Export v2.0.1 (Release Date: June 10, 2025):
 
 ### Bug Fixes:
