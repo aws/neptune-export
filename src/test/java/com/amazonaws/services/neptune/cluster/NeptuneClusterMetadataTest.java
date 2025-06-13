@@ -59,85 +59,61 @@ public class NeptuneClusterMetadataTest {
         // Setup mock NeptuneClient
         NeptuneClient mockNeptuneClient = Mockito.mock(NeptuneClient.class);
         
-        // Mock the describeDBClusters response
-        DBCluster mockDbCluster = DBCluster.builder()
-                .dbClusterIdentifier("test")
-                .dbClusterArn("arn:aws:rds:us-east-1:123456789012:cluster:test")
-                .dbClusterParameterGroup("default.neptune1")
-                .engineVersion(engineVersion)
-                .port(8182)
-                .iamDatabaseAuthenticationEnabled(false)
-                .dbClusterMembers(
-                        DBClusterMember.builder()
-                                .dbInstanceIdentifier("instance-1")
-                                .isClusterWriter(true)
-                                .build()
-                )
-                .build();
-        
-        DescribeDbClustersResponse mockDescribeDbClustersResponse = DescribeDbClustersResponse.builder()
-                .dbClusters(Collections.singletonList(mockDbCluster))
-                .build();
-        
-        when(mockNeptuneClient.describeDBClusters(any(DescribeDbClustersRequest.class)))
-                .thenReturn(mockDescribeDbClustersResponse);
-        
-        // Mock the listTagsForResource response
-        ListTagsForResourceResponse mockListTagsResponse = ListTagsForResourceResponse.builder()
-                .tagList(Collections.emptyList())
-                .build();
-
-        when(mockNeptuneClient.listTagsForResource(any(ListTagsForResourceRequest.class)))
-                .thenReturn(mockListTagsResponse);
-        
+       setupMocks();
         // Mock the describeDBClusterParameterGroups to throw NeptuneException
         when(mockNeptuneClient.describeDBClusterParameterGroups(any(DescribeDbClusterParameterGroupsRequest.class)))
                 .thenThrow(NeptuneException.builder().message("Access Denied").build());
-        
-        // Mock the describeDBClusterParameters response
-        Parameter neptuneStreamsParameter = Parameter.builder()
-                .parameterName("neptune_streams")
-                .parameterValue("0")
-                .build();
+        // Verify the parameter group family is correctly determined from the engine version
+        assertEquals(expectedParameterGroupFamily, NeptuneClusterMetadata.createFromClusterId("test", () -> mockNeptuneClient).dbParameterGroupFamily());
+    }
 
-        DescribeDbClusterParametersResponse mockParametersResponse = DescribeDbClusterParametersResponse.builder()
-                .parameters(Collections.singletonList(neptuneStreamsParameter))
-                .build();
+    private void setupMocks() {
+        when(mockNeptuneClient.describeDBClusters(any(DescribeDbClustersRequest.class)))
+                .thenReturn(DescribeDbClustersResponse.builder()
+                        .dbClusters(Collections.singletonList(DBCluster.builder()
+                                .dbClusterIdentifier("test")
+                                .dbClusterArn("arn:aws:rds:us-east-1:123456789012:cluster:test")
+                                .dbClusterParameterGroup("default.neptune1")
+                                .engineVersion(engineVersion)
+                                .port(8182)
+                                .iamDatabaseAuthenticationEnabled(false)
+                                .dbClusterMembers(
+                                        DBClusterMember.builder()
+                                                .dbInstanceIdentifier("instance-1")
+                                                .isClusterWriter(true)
+                                                .build()
+                                )
+                                .build()))
+                        .build());
+
+        when(mockNeptuneClient.listTagsForResource(any(ListTagsForResourceRequest.class)))
+                .thenReturn(ListTagsForResourceResponse.builder()
+                        .tagList(Collections.emptyList())
+                        .build());
 
         when(mockNeptuneClient.describeDBClusterParameters(any(DescribeDbClusterParametersRequest.class)))
-                .thenReturn(mockParametersResponse);
-        
-        // Mock the describeDBInstances response
-        Endpoint mockEndpoint = Endpoint.builder()
-                .address("instance-1.test.us-east-1.neptune.amazonaws.com")
-                .port(8182)
-                .build();
-
-        DBInstance mockDbInstance = DBInstance.builder()
-                .dbInstanceIdentifier("instance-1")
-                .dbInstanceClass("db.r5.large")
-                .dbParameterGroups(Collections.singletonList(
-                        DBParameterGroupStatus.builder()
-                                .dbParameterGroupName("default.neptune1")
-                                .build()
-                ))
-                .endpoint(mockEndpoint)
-                .build();
-
-        DescribeDbInstancesResponse mockDescribeDbInstancesResponse = DescribeDbInstancesResponse.builder()
-                .dbInstances(Collections.singletonList(mockDbInstance))
-                .build();
+                .thenReturn(DescribeDbClusterParametersResponse.builder()
+                        .parameters(Collections.singletonList(Parameter.builder()
+                                .parameterName("neptune_streams")
+                                .parameterValue("0")
+                                .build()))
+                        .build());
 
         when(mockNeptuneClient.describeDBInstances(any(DescribeDbInstancesRequest.class)))
-                .thenReturn(mockDescribeDbInstancesResponse);
-        
-        // Create supplier for mock NeptuneClient
-        Supplier<NeptuneClient> mockNeptuneClientSupplier = () -> mockNeptuneClient;
-        
-        // Call the method under test
-        NeptuneClusterMetadata clusterMetadata = NeptuneClusterMetadata.createFromClusterId("test", mockNeptuneClientSupplier);
-        
-        // Verify the parameter group family is correctly determined
-        assertEquals(expectedParameterGroupFamily, clusterMetadata.dbParameterGroupFamily());
+                .thenReturn(DescribeDbInstancesResponse.builder()
+                        .dbInstances(Collections.singletonList(DBInstance.builder()
+                                .dbInstanceIdentifier("instance-1")
+                                .dbInstanceClass("db.r5.large")
+                                .dbParameterGroups(Collections.singletonList(
+                                        DBParameterGroupStatus.builder()
+                                                .dbParameterGroupName("default.neptune1")
+                                                .build()
+                                ))
+                                .endpoint(Endpoint.builder()
+                                        .address("instance-1.test.us-east-1.neptune.amazonaws.com")
+                                        .port(8182)
+                                        .build())
+                                .build()))
+                        .build());
     }
 }
