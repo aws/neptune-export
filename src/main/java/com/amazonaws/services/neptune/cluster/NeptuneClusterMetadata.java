@@ -30,6 +30,9 @@ public class NeptuneClusterMetadata {
     public static final String NEPTUNE_EXPORT_APPLICATION_TAG = "neptune-export";
     public static final String NEPTUNE_EXPORT_CORRELATION_ID_KEY = "correlation-id";
 
+    private static final Pattern engineVersionPattern = Pattern.compile("^(\\d+)\\.(\\d+)(\\.\\d+)*");
+
+
     private static final Logger logger = LoggerFactory.getLogger(NeptuneClusterMetadata.class);
 
     public static String clusterIdFromEndpoint(String endpoint) {
@@ -146,8 +149,7 @@ public class NeptuneClusterMetadata {
             // Older deployments of Neptune Export service may not have requisite permissions to
             // describe cluster parameter group, so we'll try and guess the group family.
 
-            Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)(\\.\\d+)*");
-            Matcher matcher = versionPattern.matcher(engineVersion != null ? engineVersion : "");
+            Matcher matcher = engineVersionPattern.matcher(engineVersion != null ? engineVersion : "");
 
             if (StringUtils.isNotEmpty(engineVersion) && matcher.find()) {
                 int major = Integer.parseInt(matcher.group(1));

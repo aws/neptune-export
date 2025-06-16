@@ -95,7 +95,6 @@ public class NeptuneClusterMetadataTest {
 
         @Test
         public void shouldRethrowExceptionIfFallbackForParamGroupFamilyFails() {
-            // This test is not parameterized, so we use a fixed non-parseable engine version
             NeptuneClient mockNeptuneClient = createMockNeptuneClient(engineVersion);
 
             Exception expectedException = NeptuneException.builder().message("Access Denied").build();
