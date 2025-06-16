@@ -21,6 +21,8 @@ import software.amazon.awssdk.services.neptune.model.*;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class NeptuneClusterMetadata {
@@ -144,9 +146,12 @@ public class NeptuneClusterMetadata {
             // Older deployments of Neptune Export service may not have requisite permissions to
             // describe cluster parameter group, so we'll try and guess the group family.
 
-            if (StringUtils.isNotEmpty(engineVersion) && engineVersion.contains(".")) {
-                int major = Integer.parseInt(engineVersion.split("\\.")[0]);
-                int minor = Integer.parseInt(engineVersion.split("\\.")[1]);
+            Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)(\\.\\d+)*");
+            Matcher matcher = versionPattern.matcher(engineVersion != null ? engineVersion : "");
+
+            if (StringUtils.isNotEmpty(engineVersion) && matcher.find()) {
+                int major = Integer.parseInt(matcher.group(1));
+                int minor = Integer.parseInt(matcher.group(2));
 
                 if (major == 1 && minor <= 1) {
                     dbParameterGroupFamily = "neptune1";
@@ -154,7 +159,7 @@ public class NeptuneClusterMetadata {
                     dbParameterGroupFamily = String.format("neptune%s.%s", major, minor);
                 }
             } else {
-                logger.error("Failed to determine correct DB Parameter group family from engine version");
+                logger.error("Failed to determine correct DB Parameter group family from engine version [{}]", engineVersion);
                 throw e;
             }
         }
