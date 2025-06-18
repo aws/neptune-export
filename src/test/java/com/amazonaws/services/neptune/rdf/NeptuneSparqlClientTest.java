@@ -49,12 +49,14 @@ import static org.mockito.Mockito.verify;
 
 public class NeptuneSparqlClientTest {
 
+    private static final String escapedLineSeparator = System.lineSeparator().replace("\r", "\\r").replace("\n", "\\n");
+
     private SPARQLRepository mockSPARQLRepository;
     private SailRepository sailRepository;
     private final String testDataNTriples = "<http://aws.amazon.com/neptune/csv2rdf/resource/0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://aws.amazon.com/neptune/csv2rdf/class/Version> .\n" +
             "<http://aws.amazon.com/neptune/csv2rdf/resource/0> <http://aws.amazon.com/neptune/csv2rdf/datatypeProperty/type> \"version\" .\n" +
             "<http://aws.amazon.com/neptune/csv2rdf/resource/0> <http://aws.amazon.com/neptune/csv2rdf/datatypeProperty/code> \"0.77\" .\n" +
-            "<http://aws.amazon.com/neptune/csv2rdf/resource/0> <http://aws.amazon.com/neptune/csv2rdf/datatypeProperty/desc> \"Version: 0.77 Generated: 2017-10-06 16:24:52 UTC\\nGraph created by Kelvin R. Lawrence\\nPlease let me know of any errors you find in the graph.\" .\n";
+            "<http://aws.amazon.com/neptune/csv2rdf/resource/0> <http://aws.amazon.com/neptune/csv2rdf/datatypeProperty/desc> \"Version: 0.77 Generated: 2017-10-06 16:24:52 UTC"+escapedLineSeparator+"Graph created by Kelvin R. Lawrence"+escapedLineSeparator+"Please let me know of any errors you find in the graph.\" .\n";
 
     private OutputWriter writer;
 

@@ -145,7 +145,7 @@ public class CsvPropertyGraphPrinterTest {
 
     @Test
     public void shouldNotEscapeNewlineAfterPrintPropertiesToCSVAndRewrite() throws Exception {
-        testEscapeCharacterAfterPrintPropertiesAndRewrite("A" + System.lineSeparator() + "B", "\"A\nB\"",
+        testEscapeCharacterAfterPrintPropertiesAndRewrite("A" + System.lineSeparator() + "B", "\"A"+System.lineSeparator()+"B\"",
                 new PrinterOptions(CsvPrinterOptions.builder().build()));
     }
 
@@ -158,8 +158,9 @@ public class CsvPropertyGraphPrinterTest {
 
     @Test
     public void shouldEscapeNewlineSetTrueAfterPrintPropertiesToCSVAndRewrite() throws Exception {
+        final String escapedLineSeparator = System.lineSeparator().replace("\r", "\\r").replace("\n", "\\n");
         testEscapeCharacterAfterPrintPropertiesAndRewrite("A" + System.lineSeparator() + "B",
-                "\"A\\nB\"",
+                "\"A"+escapedLineSeparator+"B\"",
                 new PrinterOptions(CsvPrinterOptions.builder().setEscapeNewline(true).build()));
     }
 
