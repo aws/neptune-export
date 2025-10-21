@@ -26,6 +26,9 @@ on:
 env:
   SIGNING_ENABLED: ${{ github.event.inputs.signJarArtifacts }}
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
