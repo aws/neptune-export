@@ -42,6 +42,7 @@ public class ExportToS3NeptuneExportEventHandlerTest {
                 Collections.EMPTY_SET,
                 Collections.EMPTY_SET,
                 "",
+                "",
                 mock(AwsCredentialsProvider.class)
         );
 

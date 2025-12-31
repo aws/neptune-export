@@ -67,6 +67,7 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
     private final boolean createExportSubdirectory;
     private final PrinterOptions printerOptions;
     private final String sseKmsKeyId;
+    private final String expectedBucketOwner;
     private final AwsCredentialsProvider s3CredentialsProvider;
 
     public NeptuneMachineLearningExportEventHandlerV1(String outputS3Path,
@@ -76,6 +77,7 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
                                                       Args args,
                                                       Collection<String> profiles,
                                                       String sseKmsKeyId,
+                                                      String expectedBucketOwner,
                                                       AwsCredentialsProvider s3CredentialsProvider) {
         logger.info("Adding neptune_ml event handler");
 
@@ -95,6 +97,7 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
         this.profiles = profiles;
         this.printerOptions = new PrinterOptions(csvPrinterOptions, jsonPrinterOptions);
         this.sseKmsKeyId = sseKmsKeyId;
+        this.expectedBucketOwner = expectedBucketOwner;
         this.s3CredentialsProvider = s3CredentialsProvider;
     }
 
@@ -230,9 +233,10 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
         try {
             UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
                     .source(trainingJobConfigurationFile)
-                    .putObjectRequest(configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId)
+                    .putObjectRequest(configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId, expectedBucketOwner)
                             .bucket(s3ObjectInfo.bucket())
                             .key(s3ObjectInfo.key())
+                            .expectedBucketOwner(expectedBucketOwner)
                             .tagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles))
                             .build())
                     .build();

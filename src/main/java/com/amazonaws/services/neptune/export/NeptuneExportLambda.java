@@ -78,6 +78,10 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 json.path("sseKmsKeyId").textValue() :
                 EnvironmentVariableUtils.getOptionalEnv("SSE_KMS_KEY_ID", "");
 
+        String expectedBucketOwner = json.has("expectedBucketOwner") ?
+                json.path("expectedBucketOwner").textValue() :
+                EnvironmentVariableUtils.getOptionalEnv("EXPECTED_BUCKET_OWNER", "");
+
         boolean createExportSubdirectory = Boolean.parseBoolean(
                 json.has("createExportSubdirectory") ?
                         json.path("createExportSubdirectory").toString() :
@@ -134,6 +138,10 @@ public class NeptuneExportLambda implements RequestStreamHandler {
 
         AwsCredentialsProvider s3CredentialsProvider = getS3CredentialsProvider(json, params, s3Region);
 
+        String resolvedExpectedBucketOwner = StringUtils.isNotBlank(expectedBucketOwner) ?
+                expectedBucketOwner :
+                s3CredentialsProvider.resolveCredentials().accountId().orElse("");
+
         logger.log("cmd                       : " + cmd);
         logger.log("params                    : " + params.toPrettyString());
         logger.log("outputS3Path              : " + outputS3Path);
@@ -145,6 +153,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
         logger.log("completionFileS3Path      : " + completionFileS3Path);
         logger.log("s3Region                  : " + s3Region);
         logger.log("sseKmsKeyId               : " + maskedKeyId);
+        logger.log("expectedBucketOwner       : " + resolvedExpectedBucketOwner);
         logger.log("completionFilePayload     : " + completionFilePayload.toPrettyString());
         logger.log("additionalParams          : " + additionalParams.toPrettyString());
         logger.log("maxFileDescriptorCount    : " + maxFileDescriptorCount);
@@ -172,6 +181,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 s3Region,
                 maxFileDescriptorCount,
                 sseKmsKeyId,
+                resolvedExpectedBucketOwner,
                 s3CredentialsProvider);
 
         S3ObjectInfo outputS3ObjectInfo = neptuneExportService.execute();

@@ -44,6 +44,13 @@ public class S3ObjectInfo {
     }
 
     public static PutObjectRequest.Builder configureServerSideEncryption(PutObjectRequest.Builder putObjectRequestBuilder, String sseKmsKeyId) {
+        return configureServerSideEncryption(putObjectRequestBuilder, sseKmsKeyId, null);
+    }
+
+    public static PutObjectRequest.Builder configureServerSideEncryption(PutObjectRequest.Builder putObjectRequestBuilder, String sseKmsKeyId, String expectedBucketOwner) {
+        if (!StringUtils.isBlank(expectedBucketOwner)) {
+            putObjectRequestBuilder = putObjectRequestBuilder.expectedBucketOwner(expectedBucketOwner);
+        }
         if (!StringUtils.isBlank(sseKmsKeyId)) {
             return putObjectRequestBuilder
                     .serverSideEncryption(ServerSideEncryption.AWS_KMS)
