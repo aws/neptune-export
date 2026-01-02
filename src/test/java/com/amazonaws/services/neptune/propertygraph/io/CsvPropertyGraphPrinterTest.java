@@ -145,7 +145,7 @@ public class CsvPropertyGraphPrinterTest {
 
     @Test
     public void shouldNotEscapeNewlineAfterPrintPropertiesToCSVAndRewrite() throws Exception {
-        testEscapeCharacterAfterPrintPropertiesAndRewrite("A" + System.lineSeparator() + "B", "\"A\nB\"",
+        testEscapeCharacterAfterPrintPropertiesAndRewrite("A" + System.lineSeparator() + "B", "\"A" +  System.lineSeparator() + "B\"",
                 new PrinterOptions(CsvPrinterOptions.builder().build()));
     }
 
@@ -158,8 +158,11 @@ public class CsvPropertyGraphPrinterTest {
 
     @Test
     public void shouldEscapeNewlineSetTrueAfterPrintPropertiesToCSVAndRewrite() throws Exception {
-        testEscapeCharacterAfterPrintPropertiesAndRewrite("A" + System.lineSeparator() + "B",
-                "\"A\\nB\"",
+        String lineSep = System.lineSeparator();
+        String expectedEscaped = lineSep.equals("\r\n") ? "\"A\\r\\nB\"" : "\"A\\nB\"";
+        
+        testEscapeCharacterAfterPrintPropertiesAndRewrite("A" + lineSep + "B",
+                expectedEscaped,
                 new PrinterOptions(CsvPrinterOptions.builder().setEscapeNewline(true).build()));
     }
 
@@ -213,7 +216,7 @@ public class CsvPropertyGraphPrinterTest {
             // what CSVFormat read in from printed CSV should be the original value
             if (printerOptions.csv().escapeNewline()){
                 // parsed record will contain escaped newline, to compare to original we have to unescape it
-                assertEquals(originalValue, record.get("property1").replace("\\n", "\n"));
+                assertEquals(originalValue, record.get("property1").replace("\\n", "\n").replace("\\r","\r"));
             } else {
                 assertEquals(originalValue, record.get("property1"));
             }

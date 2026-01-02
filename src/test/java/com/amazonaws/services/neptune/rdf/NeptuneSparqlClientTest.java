@@ -86,7 +86,7 @@ public class NeptuneSparqlClientTest {
         // Test data does not have named graphs but a ?g binding is required by TupleQueryHandler
         client.executeTupleQuery("SELECT * WHERE { BIND(<http://aws.amazon.com/neptune/csv2rdf/graph/version> AS ?g) ?s ?p ?o }", getMockTargetConfig(outputWriter));
 
-        assertEquals(testDataNTriples, outputWriter.toString());
+        assertEquals(testDataNTriples, outputWriter.toString().replace("\\r\\n", "\\n").replace("\\r", "\\n"));
     }
 
     @Test

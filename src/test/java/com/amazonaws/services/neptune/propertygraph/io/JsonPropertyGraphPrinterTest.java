@@ -181,7 +181,7 @@ public class JsonPropertyGraphPrinterTest {
     public void shouldPrintNestedPropertiesMapAsJsonObject() throws Exception {
         StringWriter stringWriter = new StringWriter();
 
-        PropertySchema propertySchema1 = new PropertySchema("property", false, DataType.String, true);
+        PropertySchema propertySchema1 = new PropertySchema("property", false, DataType.String, true, EnumSet.noneOf(DataType.class));
 
         LabelSchema labelSchema = new LabelSchema(new Label("Entity"));
         labelSchema.put("property", propertySchema1);

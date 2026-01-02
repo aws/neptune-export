@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+
 public class KinesisConfig {
 
     private final Stream stream;
@@ -50,6 +52,14 @@ public class KinesisConfig {
     }
 
     public KinesisConfig(AbstractTargetModule targetModule) {
+        // Check for Windows and warn user
+        // https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-supported-plats.html
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            throw new UnsupportedOperationException(
+                "Kinesis streaming is not supported on Windows due to KPL limitations. " +
+                "Please use a Linux environment or export to files instead.");
+        }
+
         if (StringUtils.isNotEmpty(targetModule.getRegion()) && StringUtils.isNotEmpty(targetModule.getStreamName())) {
             logger.trace("Constructing new KinesisConfig for stream name: {}, in region: {}, with LargeStreamRecordHandlingStrategy: {} and AggregationEnabled={}",
                     targetModule.getStreamName(), targetModule.getRegion(), targetModule.getLargeStreamRecordHandlingStrategy(), targetModule.isEnableAggregation());
