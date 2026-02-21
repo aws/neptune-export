@@ -38,7 +38,9 @@ import software.amazon.awssdk.services.neptune.model.RestoreDbClusterToPointInTi
 import software.amazon.awssdk.services.neptune.model.RestoreDbClusterToPointInTimeResponse;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,6 +74,21 @@ public class AddCloneTaskTest {
         // Assert that "neptune_enable_audit_log" parameter has not been set
         assertEquals(0, capturedParamsRequest.parameters().stream().filter((p) -> (p.parameterName().equals("neptune_enable_audit_log"))).count());
 
+        // Assert that standard parameters have been set
+        List<Parameter> queryTimeoutParams = capturedParamsRequest.parameters().stream()
+                .filter((p) -> (p.parameterName().equals("neptune_query_timeout")))
+                .peek((parameter -> assertEquals("2147483647", parameter.parameterValue())))
+                .collect(Collectors.toList());
+        assertEquals(1, queryTimeoutParams.size());
+
+        List<Parameter> enforceSslParams = capturedParamsRequest.parameters().stream()
+                .filter((p) -> (p.parameterName().equals("neptune_enforce_ssl")))
+                .peek((parameter -> assertEquals("1", parameter.parameterValue())))
+                .collect(Collectors.toList());
+        assertEquals(1, queryTimeoutParams.size());
+
+        assertEquals(1, capturedParamsRequest.parameters().stream().filter((p) -> (p.parameterName().equals("neptune_streams"))).count());
+
         RestoreDbClusterToPointInTimeRequest capturedCloneRequest = cloneClusterRequestCaptor.getValue();
 
         // Assert that cluster log exports are disabled
@@ -99,11 +116,26 @@ public class AddCloneTaskTest {
         ModifyDbClusterParameterGroupRequest capturedParamsRequest = clusterParamsCaptor.getValue();
 
         // Assert that "neptune_enable_audit_log" parameter exists and has been set to "1"
-        assertEquals(1,
-                capturedParamsRequest.parameters().stream()
-                        .filter((p) -> (p.parameterName().equals("neptune_enable_audit_log")))
-                        .peek((parameter -> assertEquals("1", parameter.parameterValue())))
-                        .count());
+        List<Parameter> auditLogParams = capturedParamsRequest.parameters().stream()
+                .filter((p) -> (p.parameterName().equals("neptune_enable_audit_log")))
+                .peek((parameter -> assertEquals("1", parameter.parameterValue())))
+                .collect(Collectors.toList());
+        assertEquals(1, auditLogParams.size());
+
+        // Assert that standard parameters have been set
+        List<Parameter> queryTimeoutParams = capturedParamsRequest.parameters().stream()
+                .filter((p) -> (p.parameterName().equals("neptune_query_timeout")))
+                .peek((parameter -> assertEquals("2147483647", parameter.parameterValue())))
+                .collect(Collectors.toList());
+        assertEquals(1, queryTimeoutParams.size());
+
+        List<Parameter> enforceSslParams = capturedParamsRequest.parameters().stream()
+                .filter((p) -> (p.parameterName().equals("neptune_enforce_ssl")))
+                .peek((parameter -> assertEquals("1", parameter.parameterValue())))
+                .collect(Collectors.toList());
+        assertEquals(1, queryTimeoutParams.size());
+
+        assertEquals(1, capturedParamsRequest.parameters().stream().filter((p) -> (p.parameterName().equals("neptune_streams"))).count());
 
         RestoreDbClusterToPointInTimeRequest capturedCloneRequest = cloneClusterRequestCaptor.getValue();
 

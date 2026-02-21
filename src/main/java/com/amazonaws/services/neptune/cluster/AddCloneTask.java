@@ -322,36 +322,60 @@ public class AddCloneTask {
         String neptuneStreamsParameterValue = sourceClusterMetadata.isStreamEnabled() ? "1" : "0";
 
         try {
-            ModifyDbClusterParameterGroupRequest.Builder requestBuilder = ModifyDbClusterParameterGroupRequest.builder()
-                    .dbClusterParameterGroupName(dbClusterParameterGroup.dbClusterParameterGroupName())
-                    .parameters(
-                            Parameter.builder()
-                                    .parameterName("neptune_enforce_ssl")
-                                    .parameterValue("1")
-                                    .applyMethod(ApplyMethod.PENDING_REBOOT)
-                                    .build(),
-                            Parameter.builder()
-                                    .parameterName("neptune_query_timeout")
-                                    .parameterValue("2147483647")
-                                    .applyMethod(ApplyMethod.PENDING_REBOOT)
-                                    .build(),
-                            Parameter.builder()
-                                    .parameterName("neptune_streams")
-                                    .parameterValue(neptuneStreamsParameterValue)
-                                    .applyMethod(ApplyMethod.PENDING_REBOOT)
-                                    .build());
+            Collection<Parameter> parameters = new ArrayList<>(4);
+            parameters.add(Parameter.builder()
+                    .parameterName("neptune_enforce_ssl")
+                    .parameterValue("1")
+                    .applyMethod(ApplyMethod.PENDING_REBOOT)
+                    .build());
+            parameters.add(Parameter.builder()
+                    .parameterName("neptune_query_timeout")
+                    .parameterValue("2147483647")
+                    .applyMethod(ApplyMethod.PENDING_REBOOT)
+                    .build());
+            parameters.add(Parameter.builder()
+                    .parameterName("neptune_streams")
+                    .parameterValue(neptuneStreamsParameterValue)
+                    .applyMethod(ApplyMethod.PENDING_REBOOT)
+                    .build());
 
             if (this.enableAuditLogs) {
                 logger.debug("Adding neptune_enable_audit_log parameter");
-                requestBuilder = requestBuilder.parameters(Parameter.builder()
+                parameters.add(Parameter.builder()
                         .parameterName("neptune_enable_audit_log")
                         .parameterValue("1")
                         .applyMethod(ApplyMethod.PENDING_REBOOT)
                         .build());
             }
 
+            ModifyDbClusterParameterGroupRequest.Builder requestBuilder = ModifyDbClusterParameterGroupRequest.builder()
+                    .dbClusterParameterGroupName(dbClusterParameterGroup.dbClusterParameterGroupName())
+                    .parameters(parameters);
+
             neptune.modifyDBClusterParameterGroup(requestBuilder.build());
         } catch (NeptuneException e) {
+            Collection<Parameter> parameters = new ArrayList<>(3);
+            parameters.add(Parameter.builder()
+                    .parameterName("neptune_query_timeout")
+                    .parameterValue("2147483647")
+                    .applyMethod(ApplyMethod.PENDING_REBOOT)
+                    .build());
+            parameters.add(Parameter.builder()
+                    .parameterName("neptune_streams")
+                    .parameterValue(neptuneStreamsParameterValue)
+                    .applyMethod(ApplyMethod.PENDING_REBOOT)
+                    .build());
+
+            if (this.enableAuditLogs) {
+                logger.debug("Adding neptune_enable_audit_log parameter");
+                parameters.add(Parameter.builder()
+                        .parameterName("neptune_enable_audit_log")
+                        .parameterValue("1")
+                        .applyMethod(ApplyMethod.PENDING_REBOOT)
+                        .build());
+            }
+
+
             ModifyDbClusterParameterGroupRequest.Builder requestBuilder = ModifyDbClusterParameterGroupRequest.builder()
                     .dbClusterParameterGroupName(dbClusterParameterGroup.dbClusterParameterGroupName())
                     .parameters(
