@@ -407,9 +407,14 @@ public class AddCloneTask {
                                 .build()
                 ).parameters();
 
+        int count = 0;
         while (dbClusterParameters.stream().noneMatch(parameter ->
                 parameter.parameterName().equals("neptune_query_timeout") &&
                         parameter.parameterValue().equals("2147483647"))) {
+            count++;
+            if (count >= 30) {
+                throw new IllegalStateException("Failed to create DB cluster parameter group: " + dbClusterParameterGroup.dbClusterParameterGroupName() + "after 5 minutes");
+            }
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
