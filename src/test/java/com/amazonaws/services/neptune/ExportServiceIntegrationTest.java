@@ -36,7 +36,8 @@ public class ExportServiceIntegrationTest extends AbstractExportIntegrationTest{
                 "--json", "{"+
                     "\"command\": \"export-pg\",\n" +
                 "    \"params\": {\n" +
-                "    \"endpoint\": \""+neptuneEndpoint+"\"\n" +
+                "    \"endpoint\": \""+neptuneEndpoint+"\",\n" +
+                "    \"useIamAuth\": true\n" +
                 "    }\n" +
                 "}"
         };
@@ -57,7 +58,8 @@ public class ExportServiceIntegrationTest extends AbstractExportIntegrationTest{
                 "        \"command\": \"export-pg\",\n" +
                 "        \"params\": {\n" +
                 "          \"endpoint\": \""+neptuneEndpoint+"\",\n" +
-                "          \"profile\": \"neptune_ml\"\n" +
+                "          \"profile\": \"neptune_ml\",\n" +
+                "          \"useIamAuth\": true\n" +
                 "        },\n" +
                 "        \"additionalParams\": {\n" +
                 "          \"neptune_ml\": {\n" +
@@ -93,7 +95,8 @@ public class ExportServiceIntegrationTest extends AbstractExportIntegrationTest{
                 "          \"endpoint\": \""+neptuneEndpoint+"\",\n" +
                 "          \"profile\": \"neptune_ml\",\n" +
                 "          \"query\" : \"query=g.V().union(elementMap(), outE().elementMap())\",\n" +
-                "          \"structuredOutput\" : true \n" +
+                "          \"structuredOutput\" : true,\n" +
+                "          \"useIamAuth\": true\n" +
                 "        },\n" +
                 "        \"additionalParams\": {\n" +
                 "          \"neptune_ml\": {\n" +

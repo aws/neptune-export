@@ -29,7 +29,7 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
     public void testExportRdf() {
-        final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
+        final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(), "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -41,7 +41,7 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
     @Test
     public void testExportRdfSingleNamedGraphVersion() {
         final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--named-graph", "http://aws.amazon.com/neptune/csv2rdf/graph/version"};
+                "--named-graph", "http://aws.amazon.com/neptune/csv2rdf/graph/version", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -53,7 +53,7 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
     @Test
     public void testExportRdfSingleNamedGraphDefault() {
         final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--named-graph", "http://aws.amazon.com/neptune/vocab/v01/DefaultNamedGraph"};
+                "--named-graph", "http://aws.amazon.com/neptune/vocab/v01/DefaultNamedGraph", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -65,7 +65,7 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
     @Test
     public void testExportRdfNoGSP() {
         final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--feature-toggle", "No_GSP"};
+                "--feature-toggle", "No_GSP", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -78,7 +78,7 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
     public void testExportRdfSingleNamedGraphVersionNoGSP() {
         final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
                 "--named-graph", "http://aws.amazon.com/neptune/csv2rdf/graph/version",
-                "--feature-toggle", "No_GSP"};
+                "--feature-toggle", "No_GSP", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -91,7 +91,7 @@ public class ExportRdfIntegrationTest extends AbstractExportIntegrationTest{
     public void testExportRdfSingleNamedGraphDefaultNoGSP() {
         final String[] command = {"export-rdf", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
                 "--named-graph", "http://aws.amazon.com/neptune/vocab/v01/DefaultNamedGraph",
-                "--feature-toggle", "No_GSP"};
+                "--feature-toggle", "No_GSP", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 

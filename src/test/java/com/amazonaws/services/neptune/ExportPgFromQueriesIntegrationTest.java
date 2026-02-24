@@ -25,7 +25,8 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
     public void testExportPgFromQueries() {
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
-                "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')"
+                "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')",
+                "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -39,7 +40,8 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
     public void testExportPgFromQueriesNoHeaders() {
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(), "--format", "csvNoHeaders",
-                "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')"
+                "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')",
+                "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -53,7 +55,8 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
     public void testExportPgFromQueriesWithStaggeredResults() {
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
-                "-q", "airport=g.inject(['code': 'YYC'], ['city': 'Vancouver', 'code': 'YVR'], ['code':'SEA', 'city':'Seattle', 'runways': 3])"
+                "-q", "airport=g.inject(['code': 'YYC'], ['city': 'Vancouver', 'code': 'YVR'], ['code':'SEA', 'city':'Seattle', 'runways': 3])",
+                "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -67,7 +70,8 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
     public void testExportPgFromQueriesWithStaggeredResultsNoHeaders() {
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(), "--format", "csvNoHeaders",
-                "-q", "airport=g.inject(['code':'SEA', 'city':'Seattle', 'runways': 3], ['city': 'Vancouver', 'code': 'YVR'], ['code': 'YYC'])"
+                "-q", "airport=g.inject(['code':'SEA', 'city':'Seattle', 'runways': 3], ['city': 'Vancouver', 'code': 'YVR'], ['code': 'YYC'])",
+                "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -82,7 +86,7 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
                 "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')",
-                "--split-queries"
+                "--split-queries", "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -97,7 +101,7 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
                 "-q", "airport=g.V().hasLabel('airport').has('runways', gt(2)).project('code', 'runways', 'city', 'country').by('code').by('runways').by('city').by('country')",
-                "--split-queries", "--range", "25"
+                "--split-queries", "--range", "25", "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -113,7 +117,7 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
                 "-d", outputDir.getPath(),
                 "-q", "airport=g.V().union(hasLabel('airport'), outE()).elementMap()",
                 "--include-type-definitions",
-                "--structured-output"
+                "--structured-output", "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -130,7 +134,7 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
                 "-q", "airport=g.V().union(hasLabel('airport'), outE()).elementMap()",
                 "--include-type-definitions",
                 "--split-queries", "--range", "25",
-                "--structured-output"
+                "--structured-output", "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -145,7 +149,7 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
         final String[] command = {"export-pg-from-queries", "-e", neptuneEndpoint,
                 "-d", outputDir.getPath(),
                 "-q", "all=g.V().union(elementMap(), outE().elementMap())",
-                "--edge-label-strategy", "edgeAndVertexLabels", "--structured-output"
+                "--edge-label-strategy", "edgeAndVertexLabels", "--structured-output", "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
@@ -161,7 +165,7 @@ public class ExportPgFromQueriesIntegrationTest extends AbstractExportIntegratio
                 "-d", outputDir.getPath(),
                 "-q", "airport=g.V().union(hasLabel('airport'), outE()).elementMap()",
                 "--include-type-definitions", "--edge-label-strategy", "edgeAndVertexLabels",
-                "--structured-output"
+                "--structured-output", "--use-iam-auth"
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
