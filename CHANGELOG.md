@@ -1,5 +1,15 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v2.0.3 (Release Date: TBD):
+
+### New Features and Improvements:
+
+* Use SPARQL over GSP for complete and named-graph exports in `export-rdf` for Neptune versions >= 1.3.2.0
+
+### Bug Fixes:
+
+* Fix missing graph fields for complete and named-graph exports in `export-rdf` with `nquads` format
+
 ## Neptune Export v2.0.2 (Release Date: June 16, 2025):
 
 ### Bug Fixes:

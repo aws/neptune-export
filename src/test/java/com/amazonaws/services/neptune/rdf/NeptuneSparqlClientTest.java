@@ -13,6 +13,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.rdf;
 
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
+import com.amazonaws.services.neptune.cluster.NeptuneClusterMetadata;
 import com.amazonaws.services.neptune.export.FeatureToggle;
 import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.io.OutputWriter;
@@ -90,14 +91,38 @@ public class NeptuneSparqlClientTest {
     }
 
     @Test
-    public void completeExportShouldExportDefaultGraphViaGSP() throws Exception {
-        NeptuneSparqlClient client = createNeptuneSparqlClient();
+    public void completeExportShouldExportDefaultGraphViaGSPWithOldNeptune() throws Exception {
+        NeptuneSparqlClient client = createNeptuneSparqlClient("1.2.0.0");
         RdfTargetConfig targetConfig = getMockTargetConfig(new StringWriter());
 
         client.executeCompleteExport(targetConfig);
 
         verify(client, times(1)).executeGSPExport(targetConfig, "default");
         verify(client, never()).executeTupleQuery(any(), any());
+        verifyWriterClosed();
+    }
+
+    @Test
+    public void completeExportShouldExportSPARQLWithNewNeptune() throws Exception {
+        NeptuneSparqlClient client = createNeptuneSparqlClient("1.4.6.3");
+        RdfTargetConfig targetConfig = getMockTargetConfig(new StringWriter());
+
+        client.executeCompleteExport(targetConfig);
+
+        verify(client, never()).executeGSPExport(any(), any());
+        verify(client, times(1)).executeTupleQuery(any(), any());
+        verifyWriterClosed();
+    }
+
+    @Test
+    public void completeExportShouldExportSPARQLWithOldNeptuneAndNQuads() throws Exception {
+        NeptuneSparqlClient client = createNeptuneSparqlClient("1.2.0.0");
+        RdfTargetConfig targetConfig = getMockTargetConfig(new StringWriter(), RdfExportFormat.nquads);
+
+        client.executeCompleteExport(targetConfig);
+
+        verify(client, never()).executeGSPExport(any(), any());
+        verify(client, times(1)).executeTupleQuery(any(), any());
         verifyWriterClosed();
     }
 
@@ -114,14 +139,38 @@ public class NeptuneSparqlClientTest {
     }
 
     @Test
-    public void namedGraphExportShouldExportDefaultGraphViaGSP() throws Exception {
-        NeptuneSparqlClient client = createNeptuneSparqlClient();
+    public void namedGraphExportShouldExportViaGSPWithOldNeptune() throws Exception {
+        NeptuneSparqlClient client = createNeptuneSparqlClient("1.2.0.0");
         RdfTargetConfig targetConfig = getMockTargetConfig(new StringWriter());
 
         client.executeNamedGraphExport(targetConfig, "GraphName");
 
         verify(client, times(1)).executeGSPExport(targetConfig, "graph=GraphName");
         verify(client, never()).executeTupleQuery(any(), any());
+        verifyWriterClosed();
+    }
+
+    @Test
+    public void namedGraphExportShouldExportViaSPARQLWithNewNeptune() throws Exception {
+        NeptuneSparqlClient client = createNeptuneSparqlClient("1.4.6.3");
+        RdfTargetConfig targetConfig = getMockTargetConfig(new StringWriter());
+
+        client.executeNamedGraphExport(targetConfig, "http://graphname.example.com");
+
+        verify(client, never()).executeGSPExport(any(), any());
+        verify(client, times(1)).executeTupleQuery(any(), any());
+        verifyWriterClosed();
+    }
+
+    @Test
+    public void namedGraphExportShouldExportViaSPARQLWithOldNeptuneAndNQuads() throws Exception {
+        NeptuneSparqlClient client = createNeptuneSparqlClient("1.2.0.0");
+        RdfTargetConfig targetConfig = getMockTargetConfig(new StringWriter(), RdfExportFormat.nquads);
+
+        client.executeNamedGraphExport(targetConfig, "http://graphname.example.com");
+
+        verify(client, never()).executeGSPExport(any(), any());
+        verify(client, times(1)).executeTupleQuery(any(), any());
         verifyWriterClosed();
     }
 
@@ -138,10 +187,17 @@ public class NeptuneSparqlClientTest {
     }
 
     private NeptuneSparqlClient createNeptuneSparqlClient(FeatureToggle ... featureToggles) throws IOException {
+        return createNeptuneSparqlClient("1.4.6.3", featureToggles);
+    }
+
+    private NeptuneSparqlClient createNeptuneSparqlClient(String engineVersion, FeatureToggle ... featureToggles) throws IOException {
         ConnectionConfig mockConnectionConfig = mock(ConnectionConfig.class);
         doReturn(Collections.singletonList("localhost")).when(mockConnectionConfig).endpoints();
 
-        NeptuneSparqlClient client = spy(NeptuneSparqlClient.create(mockConnectionConfig, new FeatureToggles(Arrays.asList(featureToggles))));
+        NeptuneClusterMetadata mockClusterMetadata = mock(NeptuneClusterMetadata.class);
+        doReturn(engineVersion).when(mockClusterMetadata).engineVersion();
+
+        NeptuneSparqlClient client = spy(NeptuneSparqlClient.create(mockConnectionConfig, mockClusterMetadata, new FeatureToggles(Arrays.asList(featureToggles))));
 
         doReturn(mockSPARQLRepository).when(client).chooseRepository();
 
@@ -149,7 +205,11 @@ public class NeptuneSparqlClientTest {
     }
 
     private RdfTargetConfig getMockTargetConfig(Writer outputWriter) throws Exception {
-        RdfTargetConfig target = spy(new RdfTargetConfig(null, null, null, RdfExportFormat.ntriples));
+        return getMockTargetConfig(outputWriter, RdfExportFormat.ntriples);
+    }
+
+    private RdfTargetConfig getMockTargetConfig(Writer outputWriter, RdfExportFormat format) throws Exception {
+        RdfTargetConfig target = spy(new RdfTargetConfig(null, null, null, format));
         writer = spy(new PrintOutputWriter("TestOutputWriter", outputWriter));
         doReturn(writer).when(target).createOutputWriter();
 
