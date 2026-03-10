@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 import static com.amazonaws.services.neptune.RunNeptuneExportSvc.DEFAULT_MAX_FILE_DESCRIPTOR_COUNT;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -138,9 +139,16 @@ public class NeptuneExportLambda implements RequestStreamHandler {
 
         AwsCredentialsProvider s3CredentialsProvider = getS3CredentialsProvider(json, params, s3Region);
 
-        String resolvedExpectedBucketOwner = StringUtils.isNotBlank(expectedBucketOwner) ?
+        String resolvedExpectedBucketOwner;
+        try {
+            resolvedExpectedBucketOwner = StringUtils.isNotBlank(expectedBucketOwner) ?
                 expectedBucketOwner :
                 s3CredentialsProvider.resolveCredentials().accountId().orElse("");
+        } catch (SdkClientException e) {
+            logger.log("Failed to infer expectedBucketOwner, using empty String as default: " + e.getMessage());
+            resolvedExpectedBucketOwner = "";
+        }
+
 
         logger.log("cmd                       : " + cmd);
         logger.log("params                    : " + params.toPrettyString());
