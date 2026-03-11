@@ -42,6 +42,7 @@
                         [ "s3RoleExternalId" : <s3RoleExternalId>, ]
                         [ "s3RoleSessionName":  <s3RoleSessionName>, ]
                         [ "sseKmsKeyId" : <sseKmsKeyId>, ]
+                        [ "expectedBucketOwner" : <expectedBucketOwner>, ]
                         [ "uploadToS3OnError" : <uploadToS3OnError>, ]
                     }'
 
@@ -149,6 +150,14 @@
 
             "sseKmsKeyId" : <sseKmsKeyId>
                 sseKmsKeyId to be used with the Amazon S3 bucket.
+
+                This option may occur a maximum of 1 times
+
+
+            "expectedBucketOwner" : <expectedBucketOwner>
+                Expected bucket owner account ID for S3 bucket verification. When provided, 
+                verifies the bucket is owned by the specified AWS account. If not provided, 
+                defaults to the account ID resolved from the credentials used for S3 operations.
 
                 This option may occur a maximum of 1 times
 

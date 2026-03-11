@@ -66,6 +66,7 @@ public class NeptuneExportService {
     private final String s3Region;
     private final int maxFileDescriptorCount;
     private final String sseKmsKeyId;
+    private final String expectedBucketOwner;
     private final AwsCredentialsProvider s3CredentialsProvider;
 
     public NeptuneExportService(String cmd,
@@ -84,6 +85,7 @@ public class NeptuneExportService {
                                 String s3Region,
                                 int maxFileDescriptorCount,
                                 String sseKmsKeyId,
+                                String expectedBucketOwner,
                                 AwsCredentialsProvider s3CredentialsProvider) {
         this.cmd = cmd;
         this.localOutputPath = localOutputPath;
@@ -101,6 +103,7 @@ public class NeptuneExportService {
         this.s3Region = s3Region;
         this.maxFileDescriptorCount = maxFileDescriptorCount;
         this.sseKmsKeyId = sseKmsKeyId;
+        this.expectedBucketOwner = expectedBucketOwner;
         this.s3CredentialsProvider = s3CredentialsProvider;
     }
 
@@ -184,6 +187,7 @@ public class NeptuneExportService {
                 profiles,
                 completionFileWriters,
                 sseKmsKeyId,
+                expectedBucketOwner,
                 s3CredentialsProvider);
 
         eventHandlerCollection.addHandler(exportToS3EventHandler);
@@ -207,6 +211,7 @@ public class NeptuneExportService {
                                 args,
                                 profiles,
                                 sseKmsKeyId,
+                                expectedBucketOwner,
                                 s3CredentialsProvider);
                 eventHandlerCollection.addHandler(neptuneMlEventHandler);
             } else {
@@ -219,6 +224,7 @@ public class NeptuneExportService {
                                 args,
                                 profiles,
                                 sseKmsKeyId,
+                                expectedBucketOwner,
                                 s3CredentialsProvider);
                 eventHandlerCollection.addHandler(neptuneMlEventHandler);
             }
@@ -256,6 +262,7 @@ public class NeptuneExportService {
                         .bucket(s3ObjectInfo.bucket())
                         .prefix(s3ObjectInfo.key())
                         .maxKeys(1)
+                        .expectedBucketOwner(expectedBucketOwner)
                         .build()
         );
 
@@ -294,6 +301,7 @@ public class NeptuneExportService {
                 .getObjectRequest(GetObjectRequest.builder()
                         .bucket(configFileS3ObjectInfo.bucket())
                         .key(configFileS3ObjectInfo.key())
+                        .expectedBucketOwner(expectedBucketOwner)
                         .build())
                 .destination(file.toPath())
                 .build();

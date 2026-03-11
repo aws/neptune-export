@@ -13,6 +13,7 @@ permissions and limitations under the License.
 package com.amazonaws.services.neptune.util;
 
 import org.junit.Test;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.util.Map;
 
@@ -20,6 +21,37 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class S3ObjectInfoTest {
+
+    @Test
+    public void configureServerSideEncryptionShouldSetExpectedBucketOwner() {
+        PutObjectRequest.Builder builder = PutObjectRequest.builder();
+        String expectedBucketOwner = "123456789012";
+        
+        PutObjectRequest.Builder result = S3ObjectInfo.configureServerSideEncryption(builder, null, expectedBucketOwner);
+        PutObjectRequest request = result.bucket("test-bucket").key("test-key").build();
+        
+        assertEquals(expectedBucketOwner, request.expectedBucketOwner());
+    }
+
+    @Test
+    public void configureServerSideEncryptionShouldNotSetExpectedBucketOwnerWhenNull() {
+        PutObjectRequest.Builder builder = PutObjectRequest.builder();
+        
+        PutObjectRequest.Builder result = S3ObjectInfo.configureServerSideEncryption(builder, null, null);
+        PutObjectRequest request = result.bucket("test-bucket").key("test-key").build();
+        
+        assertNull(request.expectedBucketOwner());
+    }
+
+    @Test
+    public void configureServerSideEncryptionShouldNotSetExpectedBucketOwnerWhenBlank() {
+        PutObjectRequest.Builder builder = PutObjectRequest.builder();
+        
+        PutObjectRequest.Builder result = S3ObjectInfo.configureServerSideEncryption(builder, null, "");
+        PutObjectRequest request = result.bucket("test-bucket").key("test-key").build();
+        
+        assertNull(request.expectedBucketOwner());
+    }
 
     @Test
     public void canParseBucketFromURI(){

@@ -116,6 +116,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
     private final AtomicReference<S3ObjectInfo> result = new AtomicReference<>();
     private static final Pattern STATUS_CODE_5XX_PATTERN = Pattern.compile("Status Code: (5\\d+)");
     private final String sseKmsKeyId;
+    private final String expectedBucketOwner;
     private final AwsCredentialsProvider s3CredentialsProvider;
 
     public ExportToS3NeptuneExportEventHandler(String localOutputPath,
@@ -128,6 +129,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
                                                Collection<String> profiles,
                                                Collection<CompletionFileWriter> completionFileWriters,
                                                String sseKmsKeyId,
+                                               String expectedBucketOwner,
                                                AwsCredentialsProvider s3CredentialsProvider) {
         this.localOutputPath = localOutputPath;
         this.outputS3Path = outputS3Path;
@@ -139,6 +141,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         this.profiles = profiles;
         this.completionFileWriters = completionFileWriters;
         this.sseKmsKeyId = sseKmsKeyId;
+        this.expectedBucketOwner = expectedBucketOwner;
         this.s3CredentialsProvider = s3CredentialsProvider;
     }
 
@@ -238,9 +241,8 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         S3ObjectInfo gcLogS3ObjectInfo = outputS3ObjectInfo.withNewKeySuffix("gc.log");
 
         try {
-
             UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-                    .putObjectRequest(configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId)
+                    .putObjectRequest(configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId, expectedBucketOwner)
                             .bucket(gcLogS3ObjectInfo.bucket())
                             .key(gcLogS3ObjectInfo.key())
                             .tagging(createObjectTags(profiles))
@@ -316,6 +318,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
                     .putObjectRequest(PutObjectRequest.builder()
                             .bucket(completionFileS3ObjectInfo.bucket())
                             .key(completionFileS3ObjectInfo.key())
+                            .expectedBucketOwner(expectedBucketOwner)
                             .metadata(S3ObjectInfo.createObjectMetadata(completionFile.length(), sseKmsKeyId))
                             .tagging(createObjectTags(profiles))
                             .build())
@@ -344,7 +347,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         while (allowRetry){
             try {
                 logger.info("Uploading export files to {}", outputS3ObjectInfo.toString());
-
+                
                 UploadDirectoryRequest uploadRequest = UploadDirectoryRequest.builder()
                         .source(directory.toPath())
                         .bucket(outputS3ObjectInfo.bucket())
@@ -352,7 +355,7 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
                         .uploadFileRequestTransformer(builder -> {
                             UploadFileRequest built = builder.build();
                             PutObjectRequest.Builder newBuilder = built.putObjectRequest().toBuilder();
-                                newBuilder = configureServerSideEncryption(newBuilder, sseKmsKeyId).tagging(createObjectTags(profiles));
+                                newBuilder = configureServerSideEncryption(newBuilder, sseKmsKeyId, expectedBucketOwner).tagging(createObjectTags(profiles));
                                 builder.putObjectRequest(newBuilder.build());
                         })
                         .build();
