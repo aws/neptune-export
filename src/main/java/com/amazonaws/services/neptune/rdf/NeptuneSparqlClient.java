@@ -65,7 +65,22 @@ public class NeptuneSparqlClient implements AutoCloseable {
             .set(BasicParserSettings.VERIFY_URI_SYNTAX, false);
 
     // Beyond this version, there are no longer performance or stability benefits from using GSP instead of SPARQL for exports
-    private static final String NO_GSP_VERSION = "1.3.2.0";
+    static final int[] NO_GSP_VERSION = {1, 3, 2, 0};
+
+    static boolean isVersionAtLeast(String version, int[] threshold) {
+        try {
+            String[] parts = version.split("\\.");
+            if (parts.length != 4) return true; // Default true if version does not match expected format
+            for (int i = 0; i < 4; i++) {
+                int v = Integer.parseInt(parts[i]);
+                if (v > threshold[i]) return true;
+                if (v < threshold[i]) return false;
+            }
+            return true;
+        } catch (NumberFormatException e) {
+            return true; // Default true if version cannot be parsed
+        }
+    }
 
     public static NeptuneSparqlClient create(ConnectionConfig config, NeptuneClusterMetadata clusterMetadata, FeatureToggles featureToggles) {
 
@@ -180,10 +195,14 @@ public class NeptuneSparqlClient implements AutoCloseable {
         }
     }
 
-    public void executeCompleteExport(RdfTargetConfig targetConfig) throws IOException {
-        if(clusterMetadata.engineVersion().compareTo(NO_GSP_VERSION) >= 0
+    boolean shouldUseSPARQL(RdfTargetConfig targetConfig) {
+        return isVersionAtLeast(clusterMetadata.engineVersion(), NO_GSP_VERSION)
                 || targetConfig.format() == RdfExportFormat.nquads
-                || featureToggles.containsFeature(FeatureToggle.No_GSP)) {
+                || featureToggles.containsFeature(FeatureToggle.No_GSP);
+    }
+
+    public void executeCompleteExport(RdfTargetConfig targetConfig) throws IOException {
+        if(shouldUseSPARQL(targetConfig)) {
             executeTupleQuery("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } }", targetConfig);
         } else {
             executeGSPExport(targetConfig, "default");
@@ -191,9 +210,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
     }
 
     public void executeNamedGraphExport(RdfTargetConfig targetConfig, String namedGraph) throws IOException {
-        if(clusterMetadata.engineVersion().compareTo(NO_GSP_VERSION) >= 0
-                || targetConfig.format() == RdfExportFormat.nquads
-                || featureToggles.containsFeature(FeatureToggle.No_GSP)) {
+        if(shouldUseSPARQL(targetConfig)) {
             executeTupleQuery(String.format("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } FILTER(?g = <%s>) .}", namedGraph), targetConfig);
         } else {
             executeGSPExport(targetConfig, "graph="+namedGraph);
