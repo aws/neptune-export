@@ -46,6 +46,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,7 +86,7 @@ public class AddCloneTaskTest {
                 .filter((p) -> (p.parameterName().equals("neptune_enforce_ssl")))
                 .peek((parameter -> assertEquals("1", parameter.parameterValue())))
                 .collect(Collectors.toList());
-        assertEquals(1, queryTimeoutParams.size());
+        assertEquals(1, enforceSslParams.size());
 
         assertEquals(1, capturedParamsRequest.parameters().stream().filter((p) -> (p.parameterName().equals("neptune_streams"))).count());
 
@@ -133,7 +134,7 @@ public class AddCloneTaskTest {
                 .filter((p) -> (p.parameterName().equals("neptune_enforce_ssl")))
                 .peek((parameter -> assertEquals("1", parameter.parameterValue())))
                 .collect(Collectors.toList());
-        assertEquals(1, queryTimeoutParams.size());
+        assertEquals(1, enforceSslParams.size());
 
         assertEquals(1, capturedParamsRequest.parameters().stream().filter((p) -> (p.parameterName().equals("neptune_streams"))).count());
 
@@ -141,6 +142,61 @@ public class AddCloneTaskTest {
 
         // Assert that cluster audit log exports are enabled
         assertEquals(Arrays.asList("audit"), capturedCloneRequest.enableCloudwatchLogsExports());
+    }
+
+    @Test
+    public void shouldNotSetAuditLogsOrSslWhenEnableAuditLogsIsFalseAndFallbackIsUsed() {
+        NeptuneClient mockNeptune = createMockNeptune();
+        when(mockNeptune.modifyDBClusterParameterGroup((ModifyDbClusterParameterGroupRequest) any()))
+                .thenThrow(NeptuneException.builder().message("Test Exception").build())
+                .thenReturn(null);
+        ArgumentCaptor<ModifyDbClusterParameterGroupRequest> clusterParamsCaptor = ArgumentCaptor.forClass(ModifyDbClusterParameterGroupRequest.class);
+
+        AddCloneTask noLogsTask = new AddCloneTask("sourceClusterId", "targetClusterId", "db_r5_large", 1, null,
+                () -> mockNeptune, null, false);
+
+        try (MockedStatic<NeptuneClusterMetadata> classMock = mockStatic(NeptuneClusterMetadata.class)) {
+            classMock.when(() -> NeptuneClusterMetadata.createFromClusterId(any(), any())).thenReturn(mock(NeptuneClusterMetadata.class));
+            noLogsTask.execute();
+        }
+
+        verify(mockNeptune, times(2)).modifyDBClusterParameterGroup(clusterParamsCaptor.capture());
+        ModifyDbClusterParameterGroupRequest fallbackRequest = clusterParamsCaptor.getAllValues().get(1);
+
+        assertEquals(0, fallbackRequest.parameters().stream().filter(p -> p.parameterName().equals("neptune_enable_audit_log")).count());
+        assertEquals(0, fallbackRequest.parameters().stream().filter(p -> p.parameterName().equals("neptune_enforce_ssl")).count());
+        assertEquals(1, fallbackRequest.parameters().stream().filter(p -> p.parameterName().equals("neptune_query_timeout")).count());
+        assertEquals(1, fallbackRequest.parameters().stream().filter(p -> p.parameterName().equals("neptune_streams")).count());
+    }
+
+    @Test
+    public void shouldSetAuditLogsButNotSslWhenEnableAuditLogsIsTrueAndFallbackIsUsed() {
+        NeptuneClient mockNeptune = createMockNeptune();
+        when(mockNeptune.modifyDBClusterParameterGroup((ModifyDbClusterParameterGroupRequest) any()))
+                .thenThrow(NeptuneException.builder().message("Test Exception").build())
+                .thenReturn(null);
+        ArgumentCaptor<ModifyDbClusterParameterGroupRequest> clusterParamsCaptor = ArgumentCaptor.forClass(ModifyDbClusterParameterGroupRequest.class);
+
+        AddCloneTask auditLogsTask = new AddCloneTask("sourceClusterId", "targetClusterId", "db_r5_large", 1, null,
+                () -> mockNeptune, null, true);
+
+        try (MockedStatic<NeptuneClusterMetadata> classMock = mockStatic(NeptuneClusterMetadata.class)) {
+            classMock.when(() -> NeptuneClusterMetadata.createFromClusterId(any(), any())).thenReturn(mock(NeptuneClusterMetadata.class));
+            auditLogsTask.execute();
+        }
+
+        verify(mockNeptune, times(2)).modifyDBClusterParameterGroup(clusterParamsCaptor.capture());
+        ModifyDbClusterParameterGroupRequest fallbackRequest = clusterParamsCaptor.getAllValues().get(1);
+
+        List<Parameter> auditLogParams = fallbackRequest.parameters().stream()
+                .filter(p -> p.parameterName().equals("neptune_enable_audit_log"))
+                .peek(p -> assertEquals("1", p.parameterValue()))
+                .collect(Collectors.toList());
+        assertEquals(1, auditLogParams.size());
+
+        assertEquals(0, fallbackRequest.parameters().stream().filter(p -> p.parameterName().equals("neptune_enforce_ssl")).count());
+        assertEquals(1, fallbackRequest.parameters().stream().filter(p -> p.parameterName().equals("neptune_query_timeout")).count());
+        assertEquals(1, fallbackRequest.parameters().stream().filter(p -> p.parameterName().equals("neptune_streams")).count());
     }
 
     @Test
