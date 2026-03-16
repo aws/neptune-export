@@ -57,24 +57,24 @@ public class ExportStatsTest {
         String formattedStats = stats.formatStats(schema);
 
         String expectedStats =
-                "Source:\n" +
-                "  Nodes: 0\n" +
-                "  Edges: 0\n" +
-                "Export:\n" +
-                "  Nodes: 2\n" +
-                "  Edges: 2\n" +
-                "  Properties: 0\n" +
-                "Details:\n" +
-                "  Nodes: \n" +
-                "    node1: 1\n" +
-                "        |_ prop1 {propertyCount=0, minCardinality=-1, maxCardinality=-1, recordCount=0, dataTypeCounts=[]}\n" +
-                "        |_ prop2 {propertyCount=0, minCardinality=-1, maxCardinality=-1, recordCount=0, dataTypeCounts=[]}\n" +
-                "    node2: 1\n" +
-                "  Edges: \n" +
-                "    edge2: 1\n" +
-                "    edge1: 1\n" +
-                "        |_ prop1 {propertyCount=0, minCardinality=-1, maxCardinality=-1, recordCount=0, dataTypeCounts=[]}\n" +
-                "        |_ prop2 {propertyCount=0, minCardinality=-1, maxCardinality=-1, recordCount=0, dataTypeCounts=[]}\n";
+                "Source:" + System.lineSeparator() +
+                "  Nodes: 0" + System.lineSeparator() +
+                "  Edges: 0" + System.lineSeparator() +
+                "Export:" + System.lineSeparator() +
+                "  Nodes: 2" + System.lineSeparator() +
+                "  Edges: 2" + System.lineSeparator() +
+                "  Properties: 0" + System.lineSeparator() +
+                "Details:" + System.lineSeparator() +
+                "  Nodes: " + System.lineSeparator() +
+                "    node1: 1" + System.lineSeparator() +
+                "        |_ prop1 {propertyCount=0, minCardinality=-1, maxCardinality=-1, recordCount=0, dataTypeCounts=[]}" + System.lineSeparator() +
+                "        |_ prop2 {propertyCount=0, minCardinality=-1, maxCardinality=-1, recordCount=0, dataTypeCounts=[]}" + System.lineSeparator() +
+                "    node2: 1" + System.lineSeparator() +
+                "  Edges: " + System.lineSeparator() +
+                "    edge2: 1" + System.lineSeparator() +
+                "    edge1: 1" + System.lineSeparator() +
+                "        |_ prop1 {propertyCount=0, minCardinality=-1, maxCardinality=-1, recordCount=0, dataTypeCounts=[]}" + System.lineSeparator() +
+                "        |_ prop2 {propertyCount=0, minCardinality=-1, maxCardinality=-1, recordCount=0, dataTypeCounts=[]}" + System.lineSeparator();
 
         assertEquals(expectedStats, formattedStats);
     }

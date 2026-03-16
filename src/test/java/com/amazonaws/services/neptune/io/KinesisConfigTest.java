@@ -27,6 +27,12 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/* Note that the Kinesis Producer Library is no longer supported on Windows as of > v0.14.0.
+ * And this older version is not supported with the AWS Java SDK v2.  Since changing this
+ * approach to use something other than the KPL will require significant effort, these
+ * tests have been disabled when compiling on Windows.  The export to Kinesis functionality
+ * will not currently work on Windows.
+ */
 public class KinesisConfigTest {
 
     private AbstractTargetModule target;
@@ -40,47 +46,65 @@ public class KinesisConfigTest {
     public void shouldCreateStreamIfNameAndRegionAreProvided() {
         when(target.getStreamName()).thenReturn("test");
         when(target.getRegion()).thenReturn("us-west-2");
-        KinesisConfig config = new KinesisConfig(target);
-
-        assertNotNull(config.stream());
+        
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            assertThrows(UnsupportedOperationException.class, () -> new KinesisConfig(target));
+        } else {
+            KinesisConfig config = new KinesisConfig(target);
+            assertNotNull(config.stream());
+        }
     }
 
     @Test
     public void shouldNotCreateStreamIfNameNotProvided() {
         when(target.getStreamName()).thenReturn("");
         when(target.getRegion()).thenReturn("us-west-2");
-        KinesisConfig config = new KinesisConfig(target);
-
-        Throwable t = assertThrows(IllegalArgumentException.class, () -> config.stream());
-        assertEquals("You must supply an AWS Region and Amazon Kinesis Data Stream name", t.getMessage());
+        
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            assertThrows(UnsupportedOperationException.class, () -> new KinesisConfig(target));
+        } else {
+            KinesisConfig config = new KinesisConfig(target);
+            Throwable t = assertThrows(IllegalArgumentException.class, () -> config.stream());
+            assertEquals("You must supply an AWS Region and Amazon Kinesis Data Stream name", t.getMessage());
+        }
     }
 
     @Test
     public void shouldNotCreateStreamIfRegionNotProvided() {
         when(target.getStreamName()).thenReturn("test");
         when(target.getRegion()).thenReturn("");
-        KinesisConfig config = new KinesisConfig(target);
-
-        Throwable t = assertThrows(IllegalArgumentException.class, () -> config.stream());
-        assertEquals("You must supply an AWS Region and Amazon Kinesis Data Stream name", t.getMessage());
+        
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            assertThrows(UnsupportedOperationException.class, () -> new KinesisConfig(target));
+        } else {
+            KinesisConfig config = new KinesisConfig(target);
+            Throwable t = assertThrows(IllegalArgumentException.class, () -> config.stream());
+            assertEquals("You must supply an AWS Region and Amazon Kinesis Data Stream name", t.getMessage());
+        }
     }
 
     @Test
     public void shouldUseProvidedCredentialsProvider() throws InterruptedException {
         when(target.getStreamName()).thenReturn("test");
         when(target.getRegion()).thenReturn("us-west-2");
-        AwsCredentialsProvider credentialsProvider = spy(AnonymousCredentialsProvider.create());
-        when(target.getCredentialsProvider()).thenReturn(credentialsProvider);
+        
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            assertThrows(UnsupportedOperationException.class, () -> new KinesisConfig(target));
+        } else {
+            AwsCredentialsProvider credentialsProvider = spy(AnonymousCredentialsProvider.create());
+            when(target.getCredentialsProvider()).thenReturn(credentialsProvider);
 
-        KinesisConfig config = new KinesisConfig(target);
-        try {
-            config.stream().publish("test");
-        } catch (Exception e) {
-            // expected to fail as anonymous credentials are unauthorized.
+            KinesisConfig config = new KinesisConfig(target);
+            try {
+                config.stream().publish("test");
+            } catch (Exception e) {
+                // expected to fail as anonymous credentials are unauthorized.
+            }
+
+            java.lang.Thread.sleep(100); // Kinesis writing is done asynchronously. Wait to ensure credentials first have time to resolve.
+
+            verify(credentialsProvider, Mockito.atLeast(1)).resolveCredentials();
         }
-
-        java.lang.Thread.sleep(100); // Kinesis writing is done asynchronously. Wait to ensure credentials first have time to resolve.
-
-        verify(credentialsProvider, Mockito.atLeast(1)).resolveCredentials();
     }
+
 }
