@@ -322,59 +322,15 @@ public class AddCloneTask {
         String neptuneStreamsParameterValue = sourceClusterMetadata.isStreamEnabled() ? "1" : "0";
 
         try {
-            ModifyDbClusterParameterGroupRequest.Builder requestBuilder = ModifyDbClusterParameterGroupRequest.builder()
+            neptune.modifyDBClusterParameterGroup(ModifyDbClusterParameterGroupRequest.builder()
                     .dbClusterParameterGroupName(dbClusterParameterGroup.dbClusterParameterGroupName())
-                    .parameters(
-                            Parameter.builder()
-                                    .parameterName("neptune_enforce_ssl")
-                                    .parameterValue("1")
-                                    .applyMethod(ApplyMethod.PENDING_REBOOT)
-                                    .build(),
-                            Parameter.builder()
-                                    .parameterName("neptune_query_timeout")
-                                    .parameterValue("2147483647")
-                                    .applyMethod(ApplyMethod.PENDING_REBOOT)
-                                    .build(),
-                            Parameter.builder()
-                                    .parameterName("neptune_streams")
-                                    .parameterValue(neptuneStreamsParameterValue)
-                                    .applyMethod(ApplyMethod.PENDING_REBOOT)
-                                    .build());
-
-            if (this.enableAuditLogs) {
-                logger.debug("Adding neptune_enable_audit_log parameter");
-                requestBuilder = requestBuilder.parameters(Parameter.builder()
-                        .parameterName("neptune_enable_audit_log")
-                        .parameterValue("1")
-                        .applyMethod(ApplyMethod.PENDING_REBOOT)
-                        .build());
-            }
-
-            neptune.modifyDBClusterParameterGroup(requestBuilder.build());
+                    .parameters(buildClusterParameters(true, neptuneStreamsParameterValue))
+                    .build());
         } catch (NeptuneException e) {
-            ModifyDbClusterParameterGroupRequest.Builder requestBuilder = ModifyDbClusterParameterGroupRequest.builder()
+            neptune.modifyDBClusterParameterGroup(ModifyDbClusterParameterGroupRequest.builder()
                     .dbClusterParameterGroupName(dbClusterParameterGroup.dbClusterParameterGroupName())
-                    .parameters(
-                            Parameter.builder()
-                                    .parameterName("neptune_query_timeout")
-                                    .parameterValue("2147483647")
-                                    .applyMethod(ApplyMethod.PENDING_REBOOT)
-                                    .build(),
-                            Parameter.builder()
-                                    .parameterName("neptune_streams")
-                                    .parameterValue(neptuneStreamsParameterValue)
-                                    .applyMethod(ApplyMethod.PENDING_REBOOT)
-                                    .build());
-
-            if (this.enableAuditLogs) {
-                requestBuilder = requestBuilder.parameters(Parameter.builder()
-                        .parameterName("neptune_enable_audit_log")
-                        .parameterValue("1")
-                        .applyMethod(ApplyMethod.PENDING_REBOOT)
-                        .build());
-            }
-
-            neptune.modifyDBClusterParameterGroup(requestBuilder.build());
+                    .parameters(buildClusterParameters(false, neptuneStreamsParameterValue))
+                    .build());
         }
 
         List<Parameter> dbClusterParameters = neptune.describeDBClusterParameters(
@@ -383,9 +339,14 @@ public class AddCloneTask {
                                 .build()
                 ).parameters();
 
+        int count = 0;
         while (dbClusterParameters.stream().noneMatch(parameter ->
                 parameter.parameterName().equals("neptune_query_timeout") &&
                         parameter.parameterValue().equals("2147483647"))) {
+            count++;
+            if (count >= 30) {
+                throw new IllegalStateException("Failed to create DB cluster parameter group: " + dbClusterParameterGroup.dbClusterParameterGroupName() + " after 5 minutes");
+            }
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
@@ -401,6 +362,36 @@ public class AddCloneTask {
         System.err.println(String.format("DB cluster parameter group : %s", dbClusterParameterGroup.dbClusterParameterGroupName()));
 
         return dbClusterParameterGroup;
+    }
+
+    private Collection<Parameter> buildClusterParameters(boolean includeEnforceSsl, String neptuneStreamsParameterValue) {
+        Collection<Parameter> parameters = new ArrayList<>(4);
+        if (includeEnforceSsl) {
+            parameters.add(Parameter.builder()
+                    .parameterName("neptune_enforce_ssl")
+                    .parameterValue("1")
+                    .applyMethod(ApplyMethod.PENDING_REBOOT)
+                    .build());
+        }
+        parameters.add(Parameter.builder()
+                .parameterName("neptune_query_timeout")
+                .parameterValue("2147483647")
+                .applyMethod(ApplyMethod.PENDING_REBOOT)
+                .build());
+        parameters.add(Parameter.builder()
+                .parameterName("neptune_streams")
+                .parameterValue(neptuneStreamsParameterValue)
+                .applyMethod(ApplyMethod.PENDING_REBOOT)
+                .build());
+        if (this.enableAuditLogs) {
+            logger.debug("Adding neptune_enable_audit_log parameter");
+            parameters.add(Parameter.builder()
+                    .parameterName("neptune_enable_audit_log")
+                    .parameterValue("1")
+                    .applyMethod(ApplyMethod.PENDING_REBOOT)
+                    .build());
+        }
+        return parameters;
     }
 
     private void createInstance(String name,

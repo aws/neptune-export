@@ -1,10 +1,20 @@
 # Amazon Neptune Export CHANGELOG
 
+## Neptune Export v2.0.3 (Release Date: TBD):
+
+### New Features and Improvements:
+
+
+
+### Bug Fixes:
+
+- Fix --clone-cluster-enable-audit-logs overriding other Neptune cluster parameters
+
 ## Neptune Export v2.0.2 (Release Date: June 16, 2025):
 
 ### Bug Fixes:
 
-* Fix fallback for finding parameter group families via Neptune engine version
+- Fix fallback for finding parameter group families via Neptune engine version
 
 ## Neptune Export v2.0.1 (Release Date: June 10, 2025):
 
