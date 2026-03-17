@@ -15,10 +15,12 @@ package com.amazonaws.services.neptune.rdf;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.neptune.auth.NeptuneSigV4SignerException;
 import com.amazonaws.services.neptune.cluster.ConnectionConfig;
+import com.amazonaws.services.neptune.cluster.NeptuneClusterMetadata;
 import com.amazonaws.services.neptune.export.FeatureToggle;
 import com.amazonaws.services.neptune.export.FeatureToggles;
 import com.amazonaws.services.neptune.io.OutputWriter;
 import com.amazonaws.services.neptune.rdf.io.NeptuneExportSparqlRepository;
+import com.amazonaws.services.neptune.rdf.io.RdfExportFormat;
 import com.amazonaws.services.neptune.rdf.io.RdfTargetConfig;
 import com.amazonaws.services.neptune.util.EnvironmentVariableUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +64,25 @@ public class NeptuneSparqlClient implements AutoCloseable {
             .addNonFatalError(BasicParserSettings.VERIFY_URI_SYNTAX)
             .set(BasicParserSettings.VERIFY_URI_SYNTAX, false);
 
-    public static NeptuneSparqlClient create(ConnectionConfig config, FeatureToggles featureToggles) {
+    // Beyond this version, there are no longer performance or stability benefits from using GSP instead of SPARQL for exports
+    static final int[] NO_GSP_VERSION = {1, 3, 2, 0};
+
+    static boolean isVersionAtLeast(String version, int[] threshold) {
+        try {
+            String[] parts = version.split("\\.");
+            if (parts.length != 4) return true; // Default true if version does not match expected format
+            for (int i = 0; i < 4; i++) {
+                int v = Integer.parseInt(parts[i]);
+                if (v > threshold[i]) return true;
+                if (v < threshold[i]) return false;
+            }
+            return true;
+        } catch (NumberFormatException e) {
+            return true; // Default true if version cannot be parsed
+        }
+    }
+
+    public static NeptuneSparqlClient create(ConnectionConfig config, NeptuneClusterMetadata clusterMetadata, FeatureToggles featureToggles) {
 
         String serviceRegion = config.useIamAuth() ? EnvironmentVariableUtils.getMandatoryEnv("SERVICE_REGION") : null;
         AwsCredentialsProvider credentialsProvider = config.useIamAuth() ? config.getCredentialsProvider() : null;
@@ -83,7 +103,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
                         )
                         .peek(AbstractRepository::init)
                         .collect(Collectors.toList()),
-                featureToggles, config);
+                featureToggles, config, clusterMetadata);
     }
 
     private static SPARQLRepository updateParser(SPARQLRepository repository) {
@@ -125,11 +145,13 @@ public class NeptuneSparqlClient implements AutoCloseable {
     private final Random random = new Random(DateTime.now().getMillis());
     private final FeatureToggles featureToggles;
     private final ConnectionConfig connectionConfig;
+    private final NeptuneClusterMetadata clusterMetadata;
 
-    private NeptuneSparqlClient(List<SPARQLRepository> repositories, FeatureToggles featureToggles, ConnectionConfig connectionConfig) {
+    private NeptuneSparqlClient(List<SPARQLRepository> repositories, FeatureToggles featureToggles, ConnectionConfig connectionConfig, NeptuneClusterMetadata clusterMetadata) {
         this.repositories = repositories;
         this.featureToggles = featureToggles;
         this.connectionConfig = connectionConfig;
+        this.clusterMetadata = clusterMetadata;
     }
 
     public void executeTupleQuery(String sparql, RdfTargetConfig targetConfig) throws IOException {
@@ -173,8 +195,14 @@ public class NeptuneSparqlClient implements AutoCloseable {
         }
     }
 
+    boolean shouldUseSPARQL(RdfTargetConfig targetConfig) {
+        return isVersionAtLeast(clusterMetadata.engineVersion(), NO_GSP_VERSION)
+                || targetConfig.format() == RdfExportFormat.nquads
+                || featureToggles.containsFeature(FeatureToggle.No_GSP);
+    }
+
     public void executeCompleteExport(RdfTargetConfig targetConfig) throws IOException {
-        if(featureToggles.containsFeature(FeatureToggle.No_GSP)) {
+        if(shouldUseSPARQL(targetConfig)) {
             executeTupleQuery("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } }", targetConfig);
         } else {
             executeGSPExport(targetConfig, "default");
@@ -182,7 +210,7 @@ public class NeptuneSparqlClient implements AutoCloseable {
     }
 
     public void executeNamedGraphExport(RdfTargetConfig targetConfig, String namedGraph) throws IOException {
-        if(featureToggles.containsFeature(FeatureToggle.No_GSP)) {
+        if(shouldUseSPARQL(targetConfig)) {
             executeTupleQuery(String.format("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } FILTER(?g = <%s>) .}", namedGraph), targetConfig);
         } else {
             executeGSPExport(targetConfig, "graph="+namedGraph);
