@@ -345,7 +345,7 @@ public class AddCloneTask {
                         parameter.parameterValue().equals("2147483647"))) {
             count++;
             if (count >= 30) {
-                throw new IllegalStateException("Failed to create DB cluster parameter group: " + dbClusterParameterGroup.dbClusterParameterGroupName() + "after 5 minutes");
+                throw new IllegalStateException("Failed to create DB cluster parameter group: " + dbClusterParameterGroup.dbClusterParameterGroupName() + " after 5 minutes");
             }
             try {
                 Thread.sleep(10000);
