@@ -23,7 +23,7 @@ public class ExportPgFromConfigIntegrationTest extends AbstractExportIntegration
     public void testExportPgFromConfig() {
         final String[] command = {"export-pg-from-config", "-e", neptuneEndpoint,
                 "-c", "src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/input/config.json",
-                "-d", outputDir.getPath()};
+                "-d", outputDir.getPath(), "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -36,7 +36,7 @@ public class ExportPgFromConfigIntegrationTest extends AbstractExportIntegration
     public void testExportPgFromConfigWithGremlinFilter() {
         final String[] command = {"export-pg-from-config", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
                 "-c", "src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/input/config.json",
-                "--gremlin-filter", "has(\"runways\", 2)"};
+                "--gremlin-filter", "has(\"runways\", 2)", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -49,7 +49,7 @@ public class ExportPgFromConfigIntegrationTest extends AbstractExportIntegration
     public void testExportEdgesFromConfigWithGremlinFilter() {
         final String[] command = {"export-pg-from-config", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
                 "-c", "src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/input/config.json",
-                "--gremlin-filter", "hasLabel(\"route\")"};
+                "--gremlin-filter", "hasLabel(\"route\")", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -62,7 +62,7 @@ public class ExportPgFromConfigIntegrationTest extends AbstractExportIntegration
     public void testExportEdgesFromConfigWithGremlinFilterWithEarlyGremlinFilter() {
         final String[] command = {"export-pg-from-config", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
                 "-c", "src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/input/config.json",
-                "--gremlin-filter", "hasLabel(\"route\")", "--filter-edges-early"};
+                "--gremlin-filter", "hasLabel(\"route\")", "--filter-edges-early", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
