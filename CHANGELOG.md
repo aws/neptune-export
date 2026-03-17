@@ -4,17 +4,19 @@
 
 ### New Features and Improvements:
 
-* Use SPARQL over GSP for complete and named-graph exports in `export-rdf` for Neptune versions >= 1.3.2.0
+- Use SPARQL over GSP for complete and named-graph exports in `export-rdf` for Neptune versions >= 1.3.2.0
+- Updated `NeptuneSparqlClient create()` method signature to require NeptuneClusterMetadata
 
 ### Bug Fixes:
 
-* Fix missing graph fields for complete and named-graph exports in `export-rdf` with `nquads` format
+- Fix missing graph fields for complete and named-graph exports in `export-rdf` with `nquads` format
+- Fix --clone-cluster-enable-audit-logs overriding other Neptune cluster parameters
 
 ## Neptune Export v2.0.2 (Release Date: June 16, 2025):
 
 ### Bug Fixes:
 
-* Fix fallback for finding parameter group families via Neptune engine version
+- Fix fallback for finding parameter group families via Neptune engine version
 
 ## Neptune Export v2.0.1 (Release Date: June 10, 2025):
 

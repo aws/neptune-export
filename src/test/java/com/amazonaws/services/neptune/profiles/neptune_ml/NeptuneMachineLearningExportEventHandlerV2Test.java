@@ -87,6 +87,7 @@ public class NeptuneMachineLearningExportEventHandlerV2Test {
                 new Args(new String[]{}),
                 Collections.EMPTY_SET,
                 "",
+                "",
                 mock(AwsCredentialsProvider.class)
         );
     }

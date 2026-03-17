@@ -22,7 +22,7 @@ public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
     public void testExportPgToCsv() {
-        final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
+        final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(), "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -34,7 +34,7 @@ public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
     @Test
     public void testExportPgWithEdgeAndVertexLabels() {
         final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--edge-label-strategy", "edgeAndVertexLabels"};
+                "--edge-label-strategy", "edgeAndVertexLabels", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -45,7 +45,7 @@ public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
 
     @Test
     public void testExportPgToCsvWithJanus() {
-        final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(), "--janus"};
+        final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(), "--janus", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -57,7 +57,7 @@ public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
     @Test
     public void testExportPgToCsvWithGremlinFilter() {
         final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--gremlin-filter", "has(\"runways\", 2)"};
+                "--gremlin-filter", "has(\"runways\", 2)", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -69,7 +69,7 @@ public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
     @Test
     public void testExportEdgesToCsvWithGremlinFilter() {
         final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--gremlin-filter", "hasLabel(\"route\")"};
+                "--gremlin-filter", "hasLabel(\"route\")", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -81,7 +81,7 @@ public class ExportPgIntegrationTest extends AbstractExportIntegrationTest{
     @Test
     public void testExportEdgesToCsvWithGremlinFilterWithEarlyGremlinFilter() {
         final String[] command = {"export-pg", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--gremlin-filter", "hasLabel(\"route\")", "--filter-edges-early"};
+                "--gremlin-filter", "hasLabel(\"route\")", "--filter-edges-early", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 

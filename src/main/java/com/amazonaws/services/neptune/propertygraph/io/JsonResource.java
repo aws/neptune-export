@@ -118,7 +118,11 @@ public class JsonResource<T extends Jsonizable<E>, E> {
     private JsonNode getFromS3() throws IOException {
         S3ObjectInfo s3ObjectInfo = new S3ObjectInfo(resourcePath.toString());
         S3Client s3 = S3Client.create();
-        try (InputStream stream  = s3.getObject(GetObjectRequest.builder().bucket(s3ObjectInfo.bucket()).key(s3ObjectInfo.key()).build())){
+        
+        try (InputStream stream = s3.getObject(GetObjectRequest.builder()
+                .bucket(s3ObjectInfo.bucket())
+                .key(s3ObjectInfo.key())
+                .build())){
             return new ObjectMapper().readTree(stream);
         }
     }

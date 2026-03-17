@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 import static com.amazonaws.services.neptune.RunNeptuneExportSvc.DEFAULT_MAX_FILE_DESCRIPTOR_COUNT;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -77,6 +78,10 @@ public class NeptuneExportLambda implements RequestStreamHandler {
         String sseKmsKeyId = json.has("sseKmsKeyId") ?
                 json.path("sseKmsKeyId").textValue() :
                 EnvironmentVariableUtils.getOptionalEnv("SSE_KMS_KEY_ID", "");
+
+        String expectedBucketOwner = json.has("expectedBucketOwner") ?
+                json.path("expectedBucketOwner").textValue() :
+                EnvironmentVariableUtils.getOptionalEnv("EXPECTED_BUCKET_OWNER", "");
 
         boolean createExportSubdirectory = Boolean.parseBoolean(
                 json.has("createExportSubdirectory") ?
@@ -134,6 +139,17 @@ public class NeptuneExportLambda implements RequestStreamHandler {
 
         AwsCredentialsProvider s3CredentialsProvider = getS3CredentialsProvider(json, params, s3Region);
 
+        String resolvedExpectedBucketOwner;
+        try {
+            resolvedExpectedBucketOwner = StringUtils.isNotBlank(expectedBucketOwner) ?
+                expectedBucketOwner :
+                s3CredentialsProvider.resolveCredentials().accountId().orElse("");
+        } catch (SdkClientException e) {
+            logger.log("Failed to infer expectedBucketOwner, using empty String as default: " + e.getMessage());
+            resolvedExpectedBucketOwner = "";
+        }
+
+
         logger.log("cmd                       : " + cmd);
         logger.log("params                    : " + params.toPrettyString());
         logger.log("outputS3Path              : " + outputS3Path);
@@ -145,6 +161,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
         logger.log("completionFileS3Path      : " + completionFileS3Path);
         logger.log("s3Region                  : " + s3Region);
         logger.log("sseKmsKeyId               : " + maskedKeyId);
+        logger.log("expectedBucketOwner       : " + resolvedExpectedBucketOwner);
         logger.log("completionFilePayload     : " + completionFilePayload.toPrettyString());
         logger.log("additionalParams          : " + additionalParams.toPrettyString());
         logger.log("maxFileDescriptorCount    : " + maxFileDescriptorCount);
@@ -172,6 +189,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
                 s3Region,
                 maxFileDescriptorCount,
                 sseKmsKeyId,
+                resolvedExpectedBucketOwner,
                 s3CredentialsProvider);
 
         S3ObjectInfo outputS3ObjectInfo = neptuneExportService.execute();
@@ -181,9 +199,7 @@ public class NeptuneExportLambda implements RequestStreamHandler {
         }
 
         if (outputS3ObjectInfo != null) {
-            try (Writer writer = new BufferedWriter(new OutputStreamWriter(outputStream, UTF_8))) {
-                writer.write(outputS3ObjectInfo.toString());
-            }
+            outputStream.write(outputS3ObjectInfo.toString().getBytes(UTF_8));
         } else {
             System.exit(-1);
         }

@@ -21,7 +21,7 @@ public class CreatePgConfigIntegrationTest extends AbstractExportIntegrationTest
 
     @Test
     public void testCreatePgConfig() {
-        final String[] command = {"create-pg-config", "-e", neptuneEndpoint, "-d", outputDir.getPath()};
+        final String[] command = {"create-pg-config", "-e", neptuneEndpoint, "-d", outputDir.getPath(), "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -33,7 +33,7 @@ public class CreatePgConfigIntegrationTest extends AbstractExportIntegrationTest
     @Test
     public void testCreatePgConfigWithGremlinFilter() {
         final String[] command = {"create-pg-config", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--gremlin-filter", "has(\"runways\", 2)"};
+                "--gremlin-filter", "has(\"runways\", 2)", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -45,7 +45,7 @@ public class CreatePgConfigIntegrationTest extends AbstractExportIntegrationTest
     @Test
     public void testCreatePgConfigWithEdgeGremlinFilter() {
         final String[] command = {"create-pg-config", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--gremlin-filter", "hasLabel(\"route\")"};
+                "--gremlin-filter", "hasLabel(\"route\")", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
@@ -57,7 +57,7 @@ public class CreatePgConfigIntegrationTest extends AbstractExportIntegrationTest
     @Test
     public void testCreatePgConfigWithEdgeGremlinFilterAndEarlyGremlinFilter() {
         final String[] command = {"create-pg-config", "-e", neptuneEndpoint, "-d", outputDir.getPath(),
-                "--gremlin-filter", "hasLabel(\"route\")", "--filter-edges-early"};
+                "--gremlin-filter", "hasLabel(\"route\")", "--filter-edges-early", "--use-iam-auth"};
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
 
