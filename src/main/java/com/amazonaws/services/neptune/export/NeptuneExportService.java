@@ -257,14 +257,14 @@ public class NeptuneExportService {
     private void checkS3OutputIsEmpty() {
         S3Client s3 = S3Client.builder().build();
         S3ObjectInfo s3ObjectInfo = new S3ObjectInfo(outputS3Path);
-        ListObjectsResponse listing = s3.listObjects(
-                ListObjectsRequest.builder()
+        ListObjectsRequest.Builder listRequestBuilder = ListObjectsRequest.builder()
                         .bucket(s3ObjectInfo.bucket())
                         .prefix(s3ObjectInfo.key())
-                        .maxKeys(1)
-                        .expectedBucketOwner(expectedBucketOwner)
-                        .build()
-        );
+                        .maxKeys(1);
+        if (StringUtils.isNotBlank(expectedBucketOwner)) {
+            listRequestBuilder = listRequestBuilder.expectedBucketOwner(expectedBucketOwner);
+        }
+        ListObjectsResponse listing = s3.listObjects(listRequestBuilder.build());
 
         if (listing.hasContents()) {
             throw new IllegalStateException(String.format("S3 destination contains existing objects: %s. Set 'overwriteExisting' parameter to 'true' to allow overwriting existing objects.", outputS3Path));
@@ -297,12 +297,14 @@ public class NeptuneExportService {
         logger.info("Key   : " + configFileS3ObjectInfo.key());
         logger.info("File  : " + file);
 
-        DownloadFileRequest downloadRequest = DownloadFileRequest.builder()
-                .getObjectRequest(GetObjectRequest.builder()
+        GetObjectRequest.Builder getObjectRequestBuilder = GetObjectRequest.builder()
                         .bucket(configFileS3ObjectInfo.bucket())
-                        .key(configFileS3ObjectInfo.key())
-                        .expectedBucketOwner(expectedBucketOwner)
-                        .build())
+                        .key(configFileS3ObjectInfo.key());
+        if (StringUtils.isNotBlank(expectedBucketOwner)) {
+            getObjectRequestBuilder = getObjectRequestBuilder.expectedBucketOwner(expectedBucketOwner);
+        }
+        DownloadFileRequest downloadRequest = DownloadFileRequest.builder()
+                .getObjectRequest(getObjectRequestBuilder.build())
                 .destination(file.toPath())
                 .build();
 

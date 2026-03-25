@@ -231,14 +231,16 @@ public class NeptuneMachineLearningExportEventHandlerV1 implements NeptuneExport
         S3ObjectInfo s3ObjectInfo = outputS3ObjectInfo.withNewKeySuffix(filename);
 
         try {
-            UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-                    .source(trainingJobConfigurationFile)
-                    .putObjectRequest(configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId, expectedBucketOwner)
+            PutObjectRequest.Builder putObjectRequestBuilder = configureServerSideEncryption(PutObjectRequest.builder(), sseKmsKeyId, expectedBucketOwner)
                             .bucket(s3ObjectInfo.bucket())
                             .key(s3ObjectInfo.key())
-                            .expectedBucketOwner(expectedBucketOwner)
-                            .tagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles))
-                            .build())
+                            .tagging(ExportToS3NeptuneExportEventHandler.createObjectTags(profiles));
+            if (StringUtils.isNotBlank(expectedBucketOwner)) {
+                putObjectRequestBuilder = putObjectRequestBuilder.expectedBucketOwner(expectedBucketOwner);
+            }
+            UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                    .source(trainingJobConfigurationFile)
+                    .putObjectRequest(putObjectRequestBuilder.build())
                     .build();
 
             FileUpload upload = transferManager.uploadFile(uploadFileRequest);

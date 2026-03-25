@@ -313,15 +313,17 @@ public class ExportToS3NeptuneExportEventHandler implements NeptuneExportEventHa
         logger.info("Uploading completion file to {}", completionFileS3ObjectInfo.key());
 
         try {
-            UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-                    .source(completionFile)
-                    .putObjectRequest(PutObjectRequest.builder()
+            PutObjectRequest.Builder putObjectRequestBuilder = PutObjectRequest.builder()
                             .bucket(completionFileS3ObjectInfo.bucket())
                             .key(completionFileS3ObjectInfo.key())
-                            .expectedBucketOwner(expectedBucketOwner)
                             .metadata(S3ObjectInfo.createObjectMetadata(completionFile.length(), sseKmsKeyId))
-                            .tagging(createObjectTags(profiles))
-                            .build())
+                            .tagging(createObjectTags(profiles));
+            if (StringUtils.isNotBlank(expectedBucketOwner)) {
+                putObjectRequestBuilder = putObjectRequestBuilder.expectedBucketOwner(expectedBucketOwner);
+            }
+            UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                    .source(completionFile)
+                    .putObjectRequest(putObjectRequestBuilder.build())
                     .build();
 
             FileUpload upload = transferManager.uploadFile(uploadFileRequest);
