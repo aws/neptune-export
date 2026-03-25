@@ -1,11 +1,12 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v2.0.3 (Release Date: TBD):
+## Neptune Export v2.1.0 (Release Date: March 25, 2026):
 
 ### New Features and Improvements:
 
 - Use SPARQL over GSP for complete and named-graph exports in `export-rdf` for Neptune versions >= 1.3.2.0
 - Updated `NeptuneSparqlClient create()` method signature to require NeptuneClusterMetadata
+- Add new parameter `expectedBucketOwner` to `export-service` to validate target S3 buckets belong to the expected account
 
 ### Bug Fixes:
 
