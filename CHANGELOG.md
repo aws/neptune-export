@@ -1,10 +1,10 @@
 # Amazon Neptune Export CHANGELOG
 
-## Neptune Export v2.1.1 (Release Date: TBD):
+## Neptune Export v2.1.1 (Release Date: April 8, 2026):
 
 ### New Features and Improvements:
 
-### Bug Fixes:
+- Bump Netty to 4.2.12.Final
 
 ## Neptune Export v2.1.0 (Release Date: March 25, 2026):
 
