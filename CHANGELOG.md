@@ -4,6 +4,8 @@
 
 ### New Features and Improvements:
 
+- Bump commons-beanutils to 1.11.0
+
 ### Bug Fixes:
 
 ## Neptune Export v2.1.1 (Release Date: April 8, 2026):
