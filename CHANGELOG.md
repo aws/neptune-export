@@ -4,6 +4,7 @@
 
 ### New Features and Improvements:
 
+- Bump gremlin-driver to 3.7.6
 - Bump commons-beanutils to 1.11.0
 
 ### Bug Fixes:
