@@ -22,7 +22,7 @@
         <skipIntegrationTests>true</skipIntegrationTests>
         <neptuneEndpoint></neptuneEndpoint>
         <aws.sdk.version>2.29.3</aws.sdk.version>
-        <gremlin.version>3.7.3</gremlin.version>
+        <gremlin.version>3.7.6</gremlin.version>
         <slf4j.version>2.0.5</slf4j.version>
         <rdf4j.version>3.5.0</rdf4j.version>
         <amazon.neptune.sigv4.signer.version>3.0.1</amazon.neptune.sigv4.signer.version>
@@ -85,6 +85,22 @@
             <groupId>org.apache.tinkerpop</groupId>
             <artifactId>gremlin-driver</artifactId>
             <version>${gremlin.version}</version>
+            <exclusions>
+                <!-- Exclude vulnerable commons-beanutils 1.9.4 (transitive via gremlin-core).
+                     Can be removed once TinkerPop upgrades to commons-beanutils >= 1.11.0. -->
+                <exclusion>
+                    <groupId>commons-beanutils</groupId>
+                    <artifactId>commons-beanutils</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Override vulnerable commons-beanutils 1.9.4 from TinkerPop.
+             Can be removed once TinkerPop upgrades to >= 1.11.0. -->
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.11.0</version>
         </dependency>
 
         <dependency>

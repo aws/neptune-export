@@ -5,7 +5,7 @@
 ** Caffeine; version 2.3.x -- https://github.com/ben-manes/caffeine
 ** rvesse/airline; version 2.9.0 -- https://github.com/rvesse/airline
 ** Google Guava; version 18 -- https://github.com/google/guava
-** Apache Commons Beanutils; version 1.9.x -- http://commons.apache.org/proper/commons-beanutils/
+** Apache Commons Beanutils; version 1.11.0 -- http://commons.apache.org/proper/commons-beanutils/
 ** Apache Commons CLI; version 1.4 -- http://commons.apache.org/proper/commons-cli/
 ** Apache Commons Codec; version 1.15 -- http://commons.apache.org/proper/commons-codec/
 ** Apache Commons Collections; version 3.2.2 -- https://commons.apache.org/proper/commons-collections/
@@ -268,10 +268,10 @@ these copyrights do not in any way effect your rights to use this software
     Copyright (C) 2010 The Guava Authors
 * For Apache Commons Beanutils see also this required NOTICE:
     Apache Commons BeanUtils
-    Copyright 2001-2007 The Apache Software Foundation
+    Copyright 2000-2025 The Apache Software Foundation
 
-    This product includes software developed by
-    The Apache Software Foundation (http://www.apache.org/).
+    This product includes software developed at
+    The Apache Software Foundation (https://www.apache.org/).
 * For Apache Commons CLI see also this required NOTICE:
     Copyright © 2002-2019 The Apache Software Foundation. All Rights Reserved.
 * For Apache Commons Codec see also this required NOTICE:

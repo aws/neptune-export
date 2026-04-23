@@ -4,6 +4,9 @@
 
 ### New Features and Improvements:
 
+- Bump gremlin-driver to 3.7.6
+- Bump commons-beanutils to 1.11.0
+
 ### Bug Fixes:
 
 ## Neptune Export v2.1.1 (Release Date: April 8, 2026):
