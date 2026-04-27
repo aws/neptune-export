@@ -9,6 +9,8 @@
 
 ### Bug Fixes:
 
+- Fix S3 config file download failure when cleanOutputPath is true
+
 ## Neptune Export v2.1.1 (Release Date: April 8, 2026):
 
 ### New Features and Improvements:
