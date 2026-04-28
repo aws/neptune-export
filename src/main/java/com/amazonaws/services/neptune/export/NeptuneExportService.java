@@ -293,6 +293,13 @@ public class NeptuneExportService {
         S3ObjectInfo configFileS3ObjectInfo = new S3ObjectInfo(s3Path);
         File file = configFileS3ObjectInfo.createDownloadFile(localOutputPath);
 
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            if (!parentDir.mkdirs()) {
+                throw new RuntimeException("Failed to create directory for download: " + parentDir.getAbsolutePath());
+            }
+        }
+
         logger.info("Bucket: " + configFileS3ObjectInfo.bucket());
         logger.info("Key   : " + configFileS3ObjectInfo.key());
         logger.info("File  : " + file);

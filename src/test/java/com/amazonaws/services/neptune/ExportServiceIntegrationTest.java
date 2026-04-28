@@ -24,8 +24,11 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
@@ -145,6 +148,78 @@ public class ExportServiceIntegrationTest extends AbstractExportIntegrationTest{
         };
         final NeptuneExportRunner runner = new NeptuneExportRunner(command);
         runner.run();
+    }
+
+    @Test
+    public void testExportPgFromConfigWithS3ConfigFile() {
+        String testName = "testExportPgFromConfigWithS3ConfigFile";
+        String configFileS3Path = s3Path + "/" + testName + "/config.json";
+
+        // Upload the known-good config file to S3
+        uploadFileToS3(
+                "src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/input/config.json",
+                configFileS3Path);
+
+        exit.expectSystemExitWithStatus(0);
+        exit.checkAssertionAfterwards((Assertion) () -> {
+            final File resultDir = new File(outputDir, "output").listFiles()[0];
+            assertEquivalentResults(
+                    new File("src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/testExportPgFromConfig"),
+                    resultDir);
+        });
+        exit.checkAssertionAfterwards(new S3EquivalentResultsAssertion(
+                s3Path,
+                "src/test/resources/IntegrationTest/ExportPgFromConfigIntegrationTest/testExportPgFromConfig",
+                testName + "-export"));
+        exit.checkAssertionAfterwards(new CleanupS3Assertion(s3Path + "/" + testName));
+
+        // Run export-pg-from-config via nesvc with --clean and configFileS3Path.
+        // This exercises the bug path: clearTempFiles() deletes the root path, then
+        // downloadFile() must recreate it before downloading the config file from S3.
+        final String[] command = {
+                "nesvc",
+                "--root-path", outputDir.getPath(),
+                "--clean",
+                "--json", "{" +
+                "    \"command\": \"export-pg-from-config\",\n" +
+                "    \"params\": {\n" +
+                "        \"endpoint\": \"" + neptuneEndpoint + "\",\n" +
+                "        \"useIamAuth\": true\n" +
+                "    },\n" +
+                "    \"outputS3Path\": \"" + s3Path + "/" + testName + "-export\",\n" +
+                "    \"configFileS3Path\": \"" + configFileS3Path + "\"\n" +
+                "}"
+        };
+        final NeptuneExportRunner runner = new NeptuneExportRunner(command);
+        runner.run();
+    }
+
+    private void uploadFileToS3(String localPath, String s3Uri) {
+        S3ObjectInfo s3ObjectInfo = new S3ObjectInfo(s3Uri);
+        try (TransferManagerWrapper transferManager = new TransferManagerWrapper(null)) {
+            UploadFileRequest uploadRequest = UploadFileRequest.builder()
+                    .putObjectRequest(PutObjectRequest.builder()
+                            .bucket(s3ObjectInfo.bucket())
+                            .key(s3ObjectInfo.key())
+                            .build())
+                    .source(Paths.get(localPath))
+                    .build();
+            FileUpload upload = transferManager.get().uploadFile(uploadRequest);
+            upload.completionFuture().join();
+        }
+    }
+
+    private class CleanupS3Assertion implements Assertion {
+        private final String s3Uri;
+
+        public CleanupS3Assertion(String s3Uri) {
+            this.s3Uri = s3Uri;
+        }
+
+        @Override
+        public void checkAssertion() {
+            deleteS3Directory(new S3ObjectInfo(s3Uri));
+        }
     }
 
     private class EquivalentResultsAssertion implements Assertion {
