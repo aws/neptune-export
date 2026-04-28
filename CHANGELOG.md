@@ -6,6 +6,8 @@
 
 - Bump gremlin-driver to 3.7.6
 - Bump commons-beanutils to 1.11.0
+- Bump plexus-utils to 4.0.3
+- Bump jackson-databind to 2.18.2
 
 ### Bug Fixes:
 

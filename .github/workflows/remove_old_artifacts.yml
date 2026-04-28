@@ -9,6 +9,8 @@ jobs:
   remove-old-artifacts:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      actions: write
 
     steps:
       - name: Remove Old Artifacts
