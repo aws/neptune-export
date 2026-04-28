@@ -295,7 +295,9 @@ public class NeptuneExportService {
 
         File parentDir = file.getParentFile();
         if (parentDir != null && !parentDir.exists()) {
-            parentDir.mkdirs();
+            if (!parentDir.mkdirs()) {
+                throw new RuntimeException("Failed to create directory for download: " + parentDir.getAbsolutePath());
+            }
         }
 
         logger.info("Bucket: " + configFileS3ObjectInfo.bucket());
