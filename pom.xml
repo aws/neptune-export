@@ -24,7 +24,7 @@
         <aws.sdk.version>2.29.3</aws.sdk.version>
         <gremlin.version>3.7.6</gremlin.version>
         <slf4j.version>2.0.5</slf4j.version>
-        <rdf4j.version>3.5.0</rdf4j.version>
+        <rdf4j.version>4.3.16</rdf4j.version>
         <amazon.neptune.sigv4.signer.version>3.0.1</amazon.neptune.sigv4.signer.version>
         <amazon.neptune.gremlin.java.sigv4.version>3.0.1</amazon.neptune.gremlin.java.sigv4.version>
         <amazon.neptune.sparql.java.sigv4.version>3.0.1</amazon.neptune.sparql.java.sigv4.version>
