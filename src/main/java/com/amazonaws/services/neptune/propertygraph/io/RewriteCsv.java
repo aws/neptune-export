@@ -21,6 +21,7 @@ import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,7 +149,7 @@ public class RewriteCsv implements RewriteCommand {
 
                 renamedFiles.add(target.outputId());
 
-                CSVFormat format = CSVFormat.RFC4180.withHeader(fileHeaders);
+                CSVFormat format = CSVFormat.RFC4180.withHeader(fileHeaders).withQuoteMode(QuoteMode.NON_NUMERIC);
                 Iterable<CSVRecord> records = format.parse(in);
 
                 int recordCount = 0;
@@ -172,7 +173,7 @@ public class RewriteCsv implements RewriteCommand {
                         }
                     }
 
-                    target.printProperties(record.toMap(), false);
+                    target.printProperties(propertyValues(record), false);
                     target.printEndRow();
 
                     recordCount++;
@@ -186,6 +187,26 @@ public class RewriteCsv implements RewriteCommand {
         return new MasterLabelSchema(
                 masterSchema,
                 renamedFiles.stream().map(f -> new FileSpecificLabelSchema(f, targetConfig.format(), masterSchema)).collect(Collectors.toList()));
+    }
+
+    /**
+     * Builds the property map passed to the rewrite printer, preserving the distinction between an
+     * absent property and a property whose value is an empty string.
+     *
+     * <p>The rewrite input is parsed with {@link QuoteMode#NON_NUMERIC}, under which Commons CSV
+     * returns {@code null} for a blank field (an absent property) and {@code ""} for a quoted empty
+     * field (a present, empty-string property). Absent properties are omitted from the returned map
+     * so that {@link CsvPropertyGraphPrinter} emits a blank cell for them, whereas present empty
+     * strings are retained and re-quoted as {@code ""} on output.
+     */
+    static Map<String, String> propertyValues(CSVRecord record) {
+        Map<String, String> values = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : record.toMap().entrySet()) {
+            if (entry.getValue() != null) {
+                values.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return values;
     }
 
 }
