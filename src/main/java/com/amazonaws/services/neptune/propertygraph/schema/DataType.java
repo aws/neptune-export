@@ -14,7 +14,6 @@ package com.amazonaws.services.neptune.propertygraph.schema;
 
 import com.amazonaws.services.neptune.propertygraph.io.CsvPrinterOptions;
 import com.fasterxml.jackson.core.JsonGenerator;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -249,11 +248,7 @@ public enum DataType {
             if (escapeNewline){
                 escaped = escapeNewlineChar(escaped);
             }
-            if (StringUtils.isNotEmpty(escaped)) {
-                return java.lang.String.format("\"%s\"", escaped);
-            } else {
-                return "";
-            }
+            return java.lang.String.format("\"%s\"", escaped);
         }
 
         private String escapeNewlineChar(String value) {
@@ -263,10 +258,6 @@ public enum DataType {
 
         @Override
         public String formatList(Collection<?> values, CsvPrinterOptions options) {
-            if (values.isEmpty()) {
-                return "";
-            }
-
             return java.lang.String.format("\"%s\"",
                     values.stream().
                             map(v -> DataType.escapeSeparators(v, options.multiValueSeparator())).

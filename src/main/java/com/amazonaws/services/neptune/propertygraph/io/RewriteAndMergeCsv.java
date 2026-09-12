@@ -22,6 +22,7 @@ import com.amazonaws.services.neptune.util.CheckedActivity;
 import com.amazonaws.services.neptune.util.Timer;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +148,8 @@ public class RewriteAndMergeCsv implements RewriteCommand {
 
                         CSVFormat format = CSVFormat.RFC4180
                                 .withSkipHeaderRecord(false) // files will not have headers
-                                .withHeader(fileHeaders);
+                                .withHeader(fileHeaders)
+                                .withQuoteMode(QuoteMode.NON_NUMERIC);
 
                         Iterable<CSVRecord> records = format.parse(in);
 
@@ -171,7 +173,7 @@ public class RewriteAndMergeCsv implements RewriteCommand {
                                 }
                             }
 
-                            printer.printProperties(record.toMap(), false);
+                            printer.printProperties(RewriteCsv.propertyValues(record), false);
                             printer.printEndRow();
                         }
 
