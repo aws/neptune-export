@@ -4,6 +4,9 @@
 
 ### New Features and Improvements:
 
+- Parse `--gremlin-filter`, `--gremlin-node-filter`, and `--gremlin-edge-filter` with the gremlin-lang grammar instead of the Groovy script engine.
+- Remove the `gremlin-groovy` dependency, dropping the bundled Groovy libraries from the uber-jar.
+
 ### Bug Fixes:
 
 ## Neptune Export v2.1.2 (Release Date: April 29, 2026):

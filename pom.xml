@@ -134,12 +134,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
-            <artifactId>gremlin-groovy</artifactId>
-            <version>${gremlin.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
             <version>${aws.sdk.version}</version>
@@ -523,6 +517,7 @@
                     <excludes>
                         <exclude>.github/**</exclude>
                         <exclude>**/.idea/**</exclude>
+                        <exclude>**/.kiro/**</exclude>
                         <exclude>**/target/**</exclude>
                         <exclude>*.md</exclude>
                         <exclude>*.json</exclude>
