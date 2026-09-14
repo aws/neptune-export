@@ -30,7 +30,7 @@
         <amazon.neptune.sparql.java.sigv4.version>3.0.1</amazon.neptune.sparql.java.sigv4.version>
         <netty.version>4.2.12.Final</netty.version>
         <kinesis.producer.version>1.0.0</kinesis.producer.version>
-        <jackson.version>2.18.2</jackson.version>
+        <jackson.version>2.22.0</jackson.version>
     </properties>
 
     <dependencyManagement>
