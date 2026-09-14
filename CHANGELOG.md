@@ -6,6 +6,7 @@
 
 - Parse `--gremlin-filter`, `--gremlin-node-filter`, and `--gremlin-edge-filter` with the gremlin-lang grammar instead of the Groovy script engine.
 - Remove the `gremlin-groovy` dependency, dropping the bundled Groovy libraries from the uber-jar.
+- Bump gremlin-driver to 3.7.7
 
 ### Bug Fixes:
 
