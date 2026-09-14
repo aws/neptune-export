@@ -19,6 +19,7 @@ import com.amazonaws.services.neptune.propertygraph.schema.LabelSchema;
 import com.amazonaws.services.neptune.propertygraph.schema.PropertySchema;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -174,6 +175,89 @@ public class CsvPropertyGraphPrinterTest {
         testEscapeCharacterAfterPrintPropertiesAndRewrite("A\n\nB",
                 "\"A\\n\\nB\"",
                 new PrinterOptions(CsvPrinterOptions.builder().setEscapeNewline(true).build()));
+    }
+
+    @Test
+    public void shouldWriteQuotedEmptyStringForPresentEmptyStringProperty() throws Exception {
+        StringWriter stringWriter = new StringWriter();
+
+        PropertySchema propertySchema1 = new PropertySchema("property1", false, DataType.String, false, EnumSet.noneOf(DataType.class));
+
+        LabelSchema labelSchema = new LabelSchema(new Label("Entity"));
+        labelSchema.put("property1", propertySchema1);
+
+        HashMap<String, String> props = new HashMap<String, String>() {{
+            put("property1", "");
+        }};
+
+        CsvPropertyGraphPrinter printer = new CsvPropertyGraphPrinter(
+                new PrintOutputWriter("outputId", stringWriter),
+                labelSchema,
+                new PrinterOptions(CsvPrinterOptions.builder().build()));
+
+        printer.printProperties(props);
+
+        assertEquals("\"\"", stringWriter.toString());
+    }
+
+    @Test
+    public void shouldWriteBlankFieldForAbsentPropertyDistinctFromEmptyString() throws Exception {
+        StringWriter stringWriter = new StringWriter();
+
+        LabelSchema labelSchema = new LabelSchema(new Label("person"));
+        labelSchema.put("name", new PropertySchema("name", false, DataType.String, false, EnumSet.noneOf(DataType.class)));
+        labelSchema.put("nickname", new PropertySchema("nickname", false, DataType.String, false, EnumSet.noneOf(DataType.class)));
+
+        HashMap<String, String> props = new HashMap<String, String>() {{
+            put("name", "Carol"); // nickname absent
+        }};
+
+        CsvPropertyGraphPrinter printer = new CsvPropertyGraphPrinter(
+                new PrintOutputWriter("outputId", stringWriter),
+                labelSchema,
+                new PrinterOptions(CsvPrinterOptions.builder().build()));
+
+        printer.printProperties(props);
+
+        assertEquals("\"Carol\",", stringWriter.toString());
+    }
+
+    @Test
+    public void shouldPreserveEmptyStringThroughRewrite() throws Exception {
+        LabelSchema labelSchema = personSchema();
+        assertEquals("\"Bob\",\"\"", rewriteRow(labelSchema, "\"Bob\",\"\""));
+    }
+
+    @Test
+    public void shouldPreserveAbsentPropertyThroughRewrite() throws Exception {
+        LabelSchema labelSchema = personSchema();
+        assertEquals("\"Carol\",", rewriteRow(labelSchema, "\"Carol\","));
+    }
+
+    private LabelSchema personSchema() {
+        LabelSchema labelSchema = new LabelSchema(new Label("person"));
+        labelSchema.put("name", new PropertySchema("name", false, DataType.String, false, EnumSet.noneOf(DataType.class)));
+        labelSchema.put("nickname", new PropertySchema("nickname", false, DataType.String, false, EnumSet.noneOf(DataType.class)));
+        return labelSchema;
+    }
+
+    // Mirrors the per-record read/reprint performed by RewriteCsv and RewriteAndMergeCsv: parse the
+    // (header-less) CSV row using QuoteMode.NON_NUMERIC so blank vs quoted-empty is distinguishable,
+    // then reprint via the shared RewriteCsv.propertyValues helper with applyFormatting=false.
+    private String rewriteRow(LabelSchema labelSchema, String row) throws Exception {
+        String[] headers = labelSchema.propertySchemas().stream()
+                .map(p -> p.property().toString())
+                .toArray(String[]::new);
+        CSVFormat format = CSVFormat.RFC4180.withHeader(headers).withQuoteMode(QuoteMode.NON_NUMERIC);
+        StringWriter stringWriter = new StringWriter();
+        for (CSVRecord record : format.parse(new StringReader(row))) {
+            CsvPropertyGraphPrinter printer = new CsvPropertyGraphPrinter(
+                    new PrintOutputWriter("outputId", stringWriter),
+                    labelSchema,
+                    new PrinterOptions(CsvPrinterOptions.builder().build()));
+            printer.printProperties(RewriteCsv.propertyValues(record), false);
+        }
+        return stringWriter.toString();
     }
 
     // A set of tests to ensure that String escaping is done properly when CSVPropertyGraphPrinter prints to

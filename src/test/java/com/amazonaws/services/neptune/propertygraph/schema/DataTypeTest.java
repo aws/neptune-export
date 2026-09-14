@@ -39,6 +39,24 @@ public class DataTypeTest {
     }
 
     @Test
+    public void emptyStringValueShouldFormatAsQuotedEmptyString() {
+        assertEquals("\"\"", DataType.String.format(""));
+    }
+
+    @Test
+    public void emptyStringValueShouldFormatAsQuotedEmptyStringWhenEscapingNewlines() {
+        assertEquals("\"\"", DataType.String.format("", true));
+    }
+
+    @Test
+    public void emptyListValueShouldFormatAsQuotedEmptyString() {
+        String result = DataType.String.formatList(
+                java.util.Collections.emptyList(),
+                com.amazonaws.services.neptune.propertygraph.io.CsvPrinterOptions.builder().build());
+        assertEquals("\"\"", result);
+    }
+
+    @Test
     public void shouldEscapeTwoDoubleQuotes() {
         String result = DataType.String.format("One \"\"two\"\" three");
         assertEquals("\"One \"\"\"\"two\"\"\"\" three\"", result);
