@@ -72,20 +72,6 @@ public class GremlinFilters {
             return null;
         }
 
-        /*
-         * The gremlin-lang grammar accepts a multi-statement script and returns only the result of the LAST
-         * statement. A filter containing a newline or a semicolon followed by its own g-rooted statement would
-         * therefore silently discard ROOT_PREFIX along with the rest of the user's fragment, yielding something
-         * that is not an anonymous traversal at all (e.g. a bare TraversalSource) and bypassing the operator
-         * denylist in apply(). A filter is only ever a single anonymous traversal fragment, so statement
-         * separators are never legitimate and are rejected up front.
-         */
-        if (StringUtils.containsAny(filter, '\n', '\r', ';')) {
-            throw new IllegalStateException(String.format("Invalid %s: %s. %s", description, filter,
-                    "A Gremlin filter must be a single Gremlin traversal fragment, and must not contain multiple " +
-                            "statements. Remove any newline or semicolon characters."));
-        }
-
         Object result;
 
         try {
@@ -137,8 +123,8 @@ public class GremlinFilters {
 
             if (isFirst) {
                 isFirst = false;
-                // Discard the synthetic root added by ROOT_PREFIX so the fragment can be spliced mid-chain.
-                if (GraphTraversal.Symbols.V.equals(operator) || GraphTraversal.Symbols.E.equals(operator)) {
+                // Drop the synthetic root prepended by ROOT_PREFIX before splicing.
+                if (GraphTraversal.Symbols.V.equals(operator)) {
                     continue;
                 }
             }

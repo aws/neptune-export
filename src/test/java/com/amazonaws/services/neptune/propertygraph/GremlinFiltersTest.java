@@ -137,13 +137,13 @@ public class GremlinFiltersTest {
     @Test
     public void shouldRejectDropStep() {
         // The gremlin-lang grammar happily parses mutating steps, so the INVALID_OPERATORS denylist is the only thing
-        // that stops them - and it fires at apply time, not at construction time.
+        // that stops them - and it fires at apply() time, mirroring the original Groovy-era behaviour. Construction
+        // succeeds; splicing the drop() into a destination traversal is what surfaces the rejection.
         GremlinFilters filters = new GremlinFilters("drop()", null, null, false);
 
         assertTrue("Exception does not name the rejected operator", assertThrows(IllegalArgumentException.class,
                 () -> filters.applyToNodes(anonymousTraversal())
         ).getMessage().contains("Invalid operator: 'drop'"));
-
         assertTrue("Exception does not name the rejected operator", assertThrows(IllegalArgumentException.class,
                 () -> filters.applyToEdges(anonymousTraversal())
         ).getMessage().contains("Invalid operator: 'drop'"));
@@ -223,11 +223,6 @@ public class GremlinFiltersTest {
                 GremlinQueryDebugger.queryAsString(filters.applyToEdges(anonymousTraversal())));
     }
 
-    // The multi-statement guard emits this distinctive tail. It is unique to the guard: neither the ScriptException
-    // catch (which appends parser text) nor the instanceof-failure check (which says "...evaluated to <class>.")
-    // produce this sentence, so asserting on it actually pins the guard rather than falling through to another site.
-    private static final String MULTI_STATEMENT_GUARD_TAIL = "Remove any newline or semicolon characters.";
-
     @Test
     public void shouldPreserveUserAuthoredLeadingVStep() {
         // A user filter whose first step is itself named V() parses internally as g.V().V().hasLabel('x'). apply()
@@ -243,25 +238,22 @@ public class GremlinFiltersTest {
 
     @Test
     public void shouldRejectMultiStatementFilterWithNewline() {
-        // gremlin-lang evaluates only the LAST statement of a multi-statement script, which would silently discard
-        // the internal synthetic root along with the user's fragment.
+        // gremlin-lang evaluates only the LAST statement of a multi-statement script. Here the trailing statement is
+        // a bare 'g' source, which is rejected by the instanceof check (it is not a traversal fragment).
         String message = assertThrows(IllegalStateException.class,
                 () -> new GremlinFilters("has('a',1)\ng", null, null, false)
         ).getMessage();
         assertTrue("Exception does not contain expected prefix", message.contains("Invalid Gremlin filter: "));
-        assertTrue("Exception was not raised by the multi-statement guard", message.contains(MULTI_STATEMENT_GUARD_TAIL));
     }
 
     @Test
     public void shouldRejectMultiStatementFilterWithCarriageReturn() {
-        // The guard also checks for '\r'; exercise it explicitly so a future edit that drops '\r' from the guard
-        // is caught. Assert both the prefix and the guard's distinctive tail so it cannot pass by falling through
-        // to another throw site.
+        // The trailing statement is a bare 'g' source. This input's separator is not inside a string literal, so the
+        // last statement is a bare TraversalSource that the instanceof check rejects.
         String message = assertThrows(IllegalStateException.class,
                 () -> new GremlinFilters("has('a',1)\rg", null, null, false)
         ).getMessage();
         assertTrue("Exception does not contain expected prefix", message.contains("Invalid Gremlin filter: "));
-        assertTrue("Exception was not raised by the multi-statement guard", message.contains(MULTI_STATEMENT_GUARD_TAIL));
     }
 
     @Test
@@ -270,39 +262,59 @@ public class GremlinFiltersTest {
                 () -> new GremlinFilters("has('a',1);g", null, null, false)
         ).getMessage();
         assertTrue("Exception does not contain expected prefix", message.contains("Invalid Gremlin filter: "));
-        assertTrue("Exception was not raised by the multi-statement guard", message.contains(MULTI_STATEMENT_GUARD_TAIL));
     }
 
     @Test
     public void shouldRejectMultiStatementFilterSmugglingMutatingStep() {
-        // The multi-statement guard rejects this input up front, at construction time, before apply() and its
-        // operator denylist are ever reached. Asserting the guard's distinctive tail pins that specific throw site.
-        String message = assertThrows(IllegalStateException.class,
-                () -> new GremlinFilters("has('a',1)\ng.addV('x')", null, null, false)
-        ).getMessage();
-        assertTrue("Exception does not contain expected prefix", message.contains("Invalid Gremlin filter: "));
-        assertTrue("Exception was not raised by the multi-statement guard", message.contains(MULTI_STATEMENT_GUARD_TAIL));
+        // gremlin-lang evaluates only the final statement, so the synthetic V() root is discarded and the bytecode
+        // leads with the user's own addV step. Construction succeeds; the operator denylist rejects addV at apply()
+        // time, mirroring the original Groovy-era behaviour.
+        GremlinFilters filters = new GremlinFilters("has('a',1)\ng.addV('x')", null, null, false);
+
+        assertTrue("Exception does not name the rejected operator", assertThrows(IllegalArgumentException.class,
+                () -> filters.applyToNodes(anonymousTraversal())
+        ).getMessage().contains("Invalid operator: 'addV'"));
     }
 
     @Test
     public void shouldRejectMultiStatementNodeFilter() {
-        String message = assertThrows(IllegalStateException.class,
-                () -> new GremlinFilters(null, "has('a',1)\ng.addV('x')", null, false)
-        ).getMessage();
-        assertTrue("Exception does not contain expected prefix", message.contains("Invalid Gremlin node filter: "));
-        assertTrue("Exception was not raised by the multi-statement guard", message.contains(MULTI_STATEMENT_GUARD_TAIL));
+        // The synthetic V() root is discarded by the multi-statement smuggle, leaving the user's own addV at index 0.
+        // Construction succeeds; the operator denylist rejects addV at apply() time.
+        GremlinFilters filters = new GremlinFilters(null, "has('a',1)\ng.addV('x')", null, false);
+
+        assertTrue("Exception does not name the rejected operator", assertThrows(IllegalArgumentException.class,
+                () -> filters.applyToNodes(anonymousTraversal())
+        ).getMessage().contains("Invalid operator: 'addV'"));
     }
 
     @Test
     public void shouldRejectMultiStatementEdgeFilter() {
-        // The trailing statement here ('g') evaluates to a bare TraversalSource, so without the guard the
-        // instanceof-failure check would also reject it - making a prefix-only assertion tautological. Pin the
-        // guard by additionally asserting its distinctive tail.
+        // The trailing statement here ('g') evaluates to a bare TraversalSource, which the instanceof check rejects.
         String message = assertThrows(IllegalStateException.class,
                 () -> new GremlinFilters(null, null, "has('a',1);g", false)
         ).getMessage();
         assertTrue("Exception does not contain expected prefix", message.contains("Invalid Gremlin edge filter: "));
-        assertTrue("Exception was not raised by the multi-statement guard", message.contains(MULTI_STATEMENT_GUARD_TAIL));
+    }
+
+    @Test
+    public void shouldAcceptSemicolonInsideStringLiteral() {
+        // Direct regression test for the deleted separator guard: a semicolon inside a string literal is NOT a
+        // statement separator and must be accepted, splicing through unchanged.
+        GremlinFilters filters = new GremlinFilters("has('note','a;b')", null, null, false);
+
+        assertEquals("__.inject(\"x\").has(\"note\",\"a;b\")",
+                GremlinQueryDebugger.queryAsString(filters.applyToNodes(anonymousTraversal())));
+        assertEquals("__.inject(\"x\").has(\"note\",\"a;b\")",
+                GremlinQueryDebugger.queryAsString(filters.applyToEdges(anonymousTraversal())));
+    }
+
+    @Test
+    public void shouldAcceptNewlineInsideStringLiteral() {
+        // A newline inside a string literal is NOT a statement separator and must be accepted.
+        GremlinFilters filters = new GremlinFilters("has('note','a\nb')", null, null, false);
+
+        String nodes = GremlinQueryDebugger.queryAsString(filters.applyToNodes(anonymousTraversal()));
+        assertEquals("__.inject(\"x\").has(\"note\",\"a\\nb\")", nodes);
     }
 
     @Test
@@ -353,6 +365,19 @@ public class GremlinFiltersTest {
         for (String result : results) {
             assertEquals(expected, result);
         }
+    }
+
+    @Test
+    public void shouldCurrentlyAcceptNestedMutatingStepsKnownLimitation() {
+        // KNOWN LIMITATION (pinned, not fixed here): the operator denylist only validates top-level steps, not
+        // steps nested inside child traversals. A mutating step such as drop() hidden inside where(__.drop()) is
+        // therefore accepted at construction and spliced through unchanged. This predates the gremlin-lang
+        // migration (the old Groovy apply() also only inspected top-level instructions) and is tracked for a
+        // separate hardening change. Do NOT treat this as desired behavior.
+        GremlinFilters filters = new GremlinFilters("where(__.drop())", null, null, false);
+
+        assertEquals("__.inject(\"x\").where(__.drop())",
+                GremlinQueryDebugger.queryAsString(filters.applyToNodes(anonymousTraversal())));
     }
 
     private GraphTraversal anonymousTraversal() {
